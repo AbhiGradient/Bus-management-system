@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Requests | Smart College Bus</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="/<%= user.role %>/dashboard"><i class="bi bi-bus-front"></i> College Bus <span><%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %></span></a>
+    <div class="d-flex align-items-center text-white">
+      <span class="me-3"><i class="bi bi-person-circle"></i> <%= user.name %></span>
+      <a href="/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+  </nav>
+
+  <div class="d-flex">
+    <div class="sidebar" style="width: 230px;">
+      <ul class="nav flex-column">
+        <% if (user.role === 'admin') { %>
+          <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/buses"><i class="bi bi-bus-front-fill"></i> Manage Buses</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/students"><i class="bi bi-people-fill"></i> Manage Students</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/assign-bus"><i class="bi bi-signpost-split"></i> Assign Bus</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/admin/requests"><i class="bi bi-envelope-paper"></i> Requests</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/fees"><i class="bi bi-cash-coin"></i> Fees</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/profile"><i class="bi bi-person-badge"></i> Profile</a></li>
+        <% } else { %>
+          <li class="nav-item"><a class="nav-link" href="/student/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/student/requests"><i class="bi bi-envelope-paper"></i> My Requests</a></li>
+          <li class="nav-item"><a class="nav-link" href="/student/fees"><i class="bi bi-cash-coin"></i> Fees</a></li>
+          <li class="nav-item"><a class="nav-link" href="/student/profile"><i class="bi bi-person-badge"></i> Profile</a></li>
+        <% } %>
+      </ul>
+    </div>
+
+    <div class="main-content flex-grow-1">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-envelope-paper"></i> <%= user.role === 'admin' ? 'All Transport Requests' : 'My Requests' %></h3>
+        <% if (user.role === 'student') { %>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newRequestModal">
+            <i class="bi bi-plus-circle"></i> New Request
+          </button>
+        <% } %>
+      </div>
+
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <% if (user.role === 'admin') { %><th>Student</th><th>Roll No</th><% } %>
+                <th>Subject</th>
+                <th>Message</th>
+                <th>Date</th>
+                <th>Status</th>
+                <% if (user.role === 'admin') { %><th class="text-end">Action</th><% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (requests.length === 0) { %>
+                <tr><td colspan="8" class="text-center text-muted py-3">No requests found.</td></tr>
+              <% } %>
+              <% requests.forEach((r, i) => { %>
+                <tr>
+                  <td><%= i + 1 %></td>
+                  <% if (user.role === 'admin') { %>
+                    <td><%= r.student_name %></td>
+                    <td><%= r.roll_no %></td>
+                  <% } %>
+                  <td><%= r.subject %></td>
+                  <td><%= r.message %></td>
+                  <td><%= new Date(r.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <span class="badge badge-status
+                      <%= r.status === 'approved' ? 'bg-success' : r.status === 'rejected' ? 'bg-danger' : 'bg-warning text-dark' %>">
+                      <%= r.status %>
+                    </span>
+                  </td>
+                  <% if (user.role === 'admin') { %>
+                    <td class="text-end">
+                      <form action="/admin/requests/<%= r.id %>?_method=PUT" method="POST" class="d-inline">
+                        <select name="status" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                          <option value="pending" <%= r.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                          <option value="approved" <%= r.status === 'approved' ? 'selected' : '' %>>Approved</option>
+                          <option value="rejected" <%= r.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+                        </select>
+                      </form>
+                    </td>
+                  <% } %>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <footer class="app-footer">Smart College Bus Management System &copy; <%= new Date().getFullYear() %></footer>
+    </div>
+  </div>
+
+  <% if (user.role === 'student') { %>
+    <div class="modal fade" id="newRequestModal" tabindex="-1">
+      <div class="modal-dialog">
+        <form action="/student/requests" method="POST" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Submit New Request</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-2">
+              <label class="form-label">Subject</label>
+              <input type="text" name="subject" class="form-control" placeholder="e.g. Route Change Request" required />
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Message</label>
+              <textarea name="message" class="form-control" rows="4" placeholder="Describe your request..." required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Submit Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  <% } %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/script.js"></script>
+</body>
+</html>

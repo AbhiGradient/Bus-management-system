@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fees | Smart College Bus</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="/<%= user.role %>/dashboard"><i class="bi bi-bus-front"></i> College Bus <span><%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %></span></a>
+    <div class="d-flex align-items-center text-white">
+      <span class="me-3"><i class="bi bi-person-circle"></i> <%= user.name %></span>
+      <a href="/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+  </nav>
+
+  <div class="d-flex">
+    <div class="sidebar" style="width: 230px;">
+      <ul class="nav flex-column">
+        <% if (user.role === 'admin') { %>
+          <li class="nav-item"><a class="nav-link" href="/admin/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/buses"><i class="bi bi-bus-front-fill"></i> Manage Buses</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/students"><i class="bi bi-people-fill"></i> Manage Students</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/assign-bus"><i class="bi bi-signpost-split"></i> Assign Bus</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/requests"><i class="bi bi-envelope-paper"></i> Requests</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/admin/fees"><i class="bi bi-cash-coin"></i> Fees</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/profile"><i class="bi bi-person-badge"></i> Profile</a></li>
+        <% } else { %>
+          <li class="nav-item"><a class="nav-link" href="/student/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/student/requests"><i class="bi bi-envelope-paper"></i> My Requests</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/student/fees"><i class="bi bi-cash-coin"></i> Fees</a></li>
+          <li class="nav-item"><a class="nav-link" href="/student/profile"><i class="bi bi-person-badge"></i> Profile</a></li>
+        <% } %>
+      </ul>
+    </div>
+
+    <div class="main-content flex-grow-1">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="bi bi-cash-coin"></i> <%= user.role === 'admin' ? 'Manage Transport Fees' : 'My Fee Records' %></h3>
+        <% if (user.role === 'admin') { %>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFeeModal">
+            <i class="bi bi-plus-circle"></i> Add Fee Record
+          </button>
+        <% } %>
+      </div>
+
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <% if (user.role === 'admin') { %><th>Student</th><th>Roll No</th><% } %>
+                <th>Amount (₹)</th>
+                <th>Due Date</th>
+                <th>Paid Date</th>
+                <th>Status</th>
+                <% if (user.role === 'admin') { %><th class="text-end">Action</th><% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (fees.length === 0) { %>
+                <tr><td colspan="8" class="text-center text-muted py-3">No fee records found.</td></tr>
+              <% } %>
+              <% fees.forEach((f, i) => { %>
+                <tr>
+                  <td><%= i + 1 %></td>
+                  <% if (user.role === 'admin') { %>
+                    <td><%= f.student_name %></td>
+                    <td><%= f.roll_no %></td>
+                  <% } %>
+                  <td><%= f.amount %></td>
+                  <td><%= f.due_date ? new Date(f.due_date).toLocaleDateString() : '—' %></td>
+                  <td><%= f.paid_date ? new Date(f.paid_date).toLocaleDateString() : '—' %></td>
+                  <td>
+                    <span class="badge badge-status <%= f.status === 'paid' ? 'bg-success' : 'bg-danger' %>">
+                      <%= f.status %>
+                    </span>
+                  </td>
+                  <% if (user.role === 'admin') { %>
+                    <td class="text-end">
+                      <form action="/admin/fees/<%= f.id %>?_method=PUT" method="POST" class="d-inline">
+                        <select name="status" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+                          <option value="unpaid" <%= f.status === 'unpaid' ? 'selected' : '' %>>Unpaid</option>
+                          <option value="paid" <%= f.status === 'paid' ? 'selected' : '' %>>Paid</option>
+                        </select>
+                      </form>
+                    </td>
+                  <% } %>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <footer class="app-footer">Smart College Bus Management System &copy; <%= new Date().getFullYear() %></footer>
+    </div>
+  </div>
+
+  <% if (user.role === 'admin') { %>
+    <div class="modal fade" id="addFeeModal" tabindex="-1">
+      <div class="modal-dialog">
+        <form action="/admin/fees" method="POST" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Fee Record</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-2">
+              <label class="form-label">Student</label>
+              <select name="student_id" class="form-select" required>
+                <option value="" disabled selected>-- Choose Student --</option>
+                <% students.forEach(s => { %>
+                  <option value="<%= s.id %>"><%= s.name %> (<%= s.roll_no %>)</option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Amount (₹)</label>
+              <input type="number" step="0.01" name="amount" class="form-control" required />
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Due Date</label>
+              <input type="date" name="due_date" class="form-control" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Add Record</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  <% } %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/script.js"></script>
+</body>
+</html>
