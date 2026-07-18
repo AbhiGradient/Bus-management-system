@@ -1,0 +1,256 @@
+<!--
+  qr-scanner.ejs  (Driver)
+  ------------------------------------------------------------
+  Expected route: GET /driver/qr-scanner  ->  routes/qr.js
+  Expected locals:
+    user -> req.session.user
+    bus  -> { id, bus_number, route_name, capacity } | null
+            (same query used in routes/driver.js dashboard)
+
+  Expected AJAX endpoint (to be added in routes/qr.js):
+    POST /driver/qr-scanner/mark
+    body: { qr_data: '<raw string decoded from the QR>' }
+       OR { roll_no: '<manually typed roll number>' }
+    response JSON: {
+      success: true|false,
+      status: 'marked' | 'duplicate' | 'not_found' | 'wrong_bus' | 'error',
+      message: 'human readable message',
+      student: { name, roll_no } // present when success or duplicate
+    }
+
+  The QR payload written by qr-generator.ejs is JSON:
+    { "type": "student", "id": <id>, "roll_no": "<roll_no>" }
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Scanner | Smart College Bus</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="/driver/dashboard"><i class="bi bi-bus-front"></i> College Bus <span>Driver</span></a>
+    <div class="d-flex align-items-center text-white">
+      <span class="me-3"><i class="bi bi-person-circle"></i> <%= user.name %></span>
+      <a href="/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+  </nav>
+
+  <div class="d-flex">
+    <div class="sidebar" style="width: 230px;">
+      <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" href="/driver/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/driver/qr-scanner"><i class="bi bi-qr-code-scan"></i> QR Scanner</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/profile"><i class="bi bi-person-badge"></i> Profile</a></li>
+      </ul>
+    </div>
+
+    <div class="main-content flex-grow-1">
+      <h3 class="mb-1"><i class="bi bi-qr-code-scan"></i> Attendance Scanner</h3>
+
+      <% if (!bus) { %>
+        <div class="card p-4 mt-3">
+          <p class="text-muted mb-0">No bus has been assigned to you yet, so attendance scanning is unavailable. Please contact the administrator.</p>
+        </div>
+      <% } else { %>
+        <p class="text-muted">Scan each student's boarding pass as they board <strong><%= bus.bus_number %></strong> — <%= bus.route_name %>.</p>
+
+        <div class="row g-3 mt-1">
+          <div class="col-md-4">
+            <div class="stat-card bg-c1">
+              <i class="bi bi-bus-front-fill fs-3"></i>
+              <h2><%= bus.bus_number %></h2>
+              <div>Bus</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card bg-c5">
+              <i class="bi bi-people-fill fs-3"></i>
+              <h2 id="boardedCount">0</h2>
+              <div>Boarded / <%= bus.capacity %></div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card bg-c2">
+              <i class="bi bi-clock-fill fs-3"></i>
+              <h5 class="mb-0" id="lastScanTime">—</h5>
+              <div>Last Scan</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <!-- Camera -->
+          <div class="col-lg-6">
+            <div class="card p-3">
+              <h5 class="mb-3"><i class="bi bi-camera-fill"></i> Camera</h5>
+
+              <div class="qr-scanner-frame mb-3">
+                <div id="qr-reader"></div>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary" id="startScanBtn">
+                  <i class="bi bi-camera-video"></i> Start Camera
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="stopScanBtn" style="display:none;">
+                  <i class="bi bi-stop-circle"></i> Stop Camera
+                </button>
+              </div>
+
+              <div id="scanBanner" class="scan-banner is-idle mt-3">
+                <i class="bi bi-info-circle fs-5"></i>
+                <span>Start the camera and point it at a student's QR pass.</span>
+              </div>
+
+              <!-- Manual fallback -->
+              <hr class="my-3">
+              <h6 class="text-muted"><i class="bi bi-keyboard"></i> Manual Entry (if camera unavailable)</h6>
+              <form id="manualForm" class="d-flex gap-2">
+                <input type="text" id="manualRollNo" class="form-control" placeholder="Enter roll number" required />
+                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-check2"></i> Mark</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Live scan feed -->
+          <div class="col-lg-6">
+            <div class="card p-3">
+              <h5 class="mb-2"><i class="bi bi-list-check"></i> Today's Scans</h5>
+              <div id="scanFeed" style="max-height: 480px; overflow-y: auto;">
+                <p class="text-muted text-center py-4 mb-0" id="scanFeedEmpty">No students scanned yet.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+    </div>
+  </div>
+
+  <%- include('footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <% if (bus) { %>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <% } %>
+  <script src="/js/script.js"></script>
+
+  <% if (bus) { %>
+  <script>
+    let html5QrCode = null;
+    let scanning = false;
+    let boardedCount = 0;
+    const recentlyScanned = new Set(); // roll numbers already marked this session, to reduce duplicate POSTs
+
+    function setBanner(type, message, icon) {
+      const el = document.getElementById('scanBanner');
+      el.className = 'scan-banner is-' + type + ' mt-3';
+      el.innerHTML = '<i class="bi ' + icon + ' fs-5"></i><span>' + message + '</span>';
+    }
+
+    function addToFeed(student, status) {
+      const feed = document.getElementById('scanFeed');
+      const empty = document.getElementById('scanFeedEmpty');
+      if (empty) empty.remove();
+
+      const item = document.createElement('div');
+      item.className = 'scan-feed-item';
+      const badgeClass = status === 'marked' ? 'bg-success' : status === 'duplicate' ? 'bg-warning text-dark' : 'bg-danger';
+      const statusLabel = status === 'marked' ? 'Boarded' : status === 'duplicate' ? 'Already Scanned' : 'Error';
+
+      item.innerHTML =
+        '<div><strong>' + student.name + '</strong><br><span class="text-muted">' + student.roll_no + '</span></div>' +
+        '<div class="text-end"><span class="badge badge-status ' + badgeClass + '">' + statusLabel + '</span><br>' +
+        '<small class="text-muted">' + new Date().toLocaleTimeString() + '</small></div>';
+
+      feed.prepend(item);
+      document.getElementById('lastScanTime').textContent = new Date().toLocaleTimeString();
+    }
+
+    async function markAttendance(payload) {
+      try {
+        const res = await fetch('/driver/qr-scanner/mark', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success && data.status === 'marked') {
+          boardedCount++;
+          document.getElementById('boardedCount').textContent = boardedCount;
+          setBanner('success', data.message || (data.student.name + ' marked present.'), 'bi-check-circle-fill');
+          addToFeed(data.student, 'marked');
+        } else if (data.status === 'duplicate') {
+          setBanner('warning', data.message || 'This student has already been scanned.', 'bi-exclamation-triangle-fill');
+          if (data.student) addToFeed(data.student, 'duplicate');
+        } else {
+          setBanner('error', data.message || 'Could not mark attendance. Please try again.', 'bi-x-circle-fill');
+        }
+      } catch (err) {
+        setBanner('error', 'Network error — could not reach the server.', 'bi-x-circle-fill');
+      }
+    }
+
+    function onScanSuccess(decodedText) {
+      // Basic client-side de-dupe using the raw decoded string, in case the
+      // camera fires multiple frames for the same code before it moves away.
+      if (recentlyScanned.has(decodedText)) return;
+      recentlyScanned.add(decodedText);
+      setTimeout(() => recentlyScanned.delete(decodedText), 4000);
+
+      let payload;
+      try {
+        const parsed = JSON.parse(decodedText);
+        payload = { qr_data: decodedText, id: parsed.id, roll_no: parsed.roll_no };
+      } catch (e) {
+        payload = { qr_data: decodedText };
+      }
+      markAttendance(payload);
+    }
+
+    document.getElementById('startScanBtn').addEventListener('click', () => {
+      html5QrCode = new Html5Qrcode('qr-reader');
+      html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        onScanSuccess
+      ).then(() => {
+        scanning = true;
+        document.getElementById('startScanBtn').style.display = 'none';
+        document.getElementById('stopScanBtn').style.display = '';
+        setBanner('idle', 'Camera active — waiting for a QR pass...', 'bi-camera-video-fill');
+      }).catch(() => {
+        setBanner('error', 'Could not access the camera. Check permissions or use manual entry below.', 'bi-x-circle-fill');
+      });
+    });
+
+    document.getElementById('stopScanBtn').addEventListener('click', () => {
+      if (html5QrCode && scanning) {
+        html5QrCode.stop().then(() => {
+          scanning = false;
+          document.getElementById('startScanBtn').style.display = '';
+          document.getElementById('stopScanBtn').style.display = 'none';
+          setBanner('idle', 'Camera stopped.', 'bi-info-circle');
+        });
+      }
+    });
+
+    document.getElementById('manualForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('manualRollNo');
+      const rollNo = input.value.trim();
+      if (!rollNo) return;
+      markAttendance({ roll_no: rollNo });
+      input.value = '';
+    });
+  </script>
+  <% } %>
+</body>
+</html>
