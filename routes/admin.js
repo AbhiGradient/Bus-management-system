@@ -270,7 +270,189 @@ router.put('/fees/:id', async (req, res) => {
     res.redirect('/admin/fees');
   }
 });
+// ================= DRIVERS =================
 
+// View Drivers
+router.get('/drivers', async (req, res) => {
+  try {
+    const [drivers] = await db.query(`
+      SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.phone,
+        b.id AS bus_id,
+        b.bus_number,
+        b.route_name,
+        b.status AS bus_status
+      FROM users u
+      LEFT JOIN buses b ON u.id = b.driver_id
+      WHERE u.role = 'driver'
+      ORDER BY u.id DESC
+    `);
+
+    const [buses] = await db.query(`
+      SELECT id, bus_number, route_name
+      FROM buses
+      ORDER BY bus_number
+    `);
+
+    res.render('admin/drivers', {
+      drivers,
+      buses
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading drivers');
+  }
+});
+
+// Add Driver
+router.post('/drivers', async (req, res) => {
+  const { name, email, phone, password, bus_id } = req.body;
+
+  try {
+    const hashed = await bcrypt.hash(password || 'driver123', 10);
+
+    const [result] = await db.query(
+      `INSERT INTO users (name, email, password, role, phone)
+       VALUES (?, ?, ?, 'driver', ?)`,
+      [name, email, hashed, phone]
+    );
+
+    if (bus_id) {
+      await db.query(
+        `UPDATE buses
+         SET driver_id = ?
+         WHERE id = ?`,
+        [result.insertId, bus_id]
+      );
+    }
+
+    res.redirect('/admin/drivers');
+
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/drivers');
+  }
+});
+
+// Update Driver
+router.put('/drivers/:id', async (req, res) => {
+  const { name, email, phone, bus_id } = req.body;
+
+  try {
+    await db.query(
+      `UPDATE users
+       SET name=?, email=?, phone=?
+       WHERE id=?`,
+      [name, email, phone, req.params.id]
+    );
+
+    await db.query(
+      `UPDATE buses
+       SET driver_id = NULL
+       WHERE driver_id = ?`,
+      [req.params.id]
+    );
+
+    if (bus_id) {
+      await db.query(
+        `UPDATE buses
+         SET driver_id = ?
+         WHERE id = ?`,
+        [req.params.id, bus_id]
+      );
+    }
+
+    res.redirect('/admin/drivers');
+
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/drivers');
+  }
+});
+
+// Delete Driver
+router.delete('/drivers/:id', async (req, res) => {
+  try {
+    await db.query(
+      `UPDATE buses
+       SET driver_id = NULL
+       WHERE driver_id = ?`,
+      [req.params.id]
+    );
+
+    await db.query(
+      `DELETE FROM users
+       WHERE id=? AND role='driver'`,
+      [req.params.id]
+    );
+
+    res.redirect('/admin/drivers');
+
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/drivers');
+  }
+});
+// ================= SEAT MANAGEMENT =================
+
+router.get('/seat-management', async (req, res) => {
+  try {
+    const { bus_id } = req.query;
+
+    // Get all buses
+    const [buses] = await db.query(`
+      SELECT id, bus_number, route_name, capacity
+      FROM buses
+      ORDER BY bus_number
+    `);
+
+    let selectedBus = null;
+    let allocatedStudents = [];
+
+    if (bus_id) {
+
+      const [[bus]] = await db.query(
+        `SELECT id, bus_number, route_name, capacity
+         FROM buses
+         WHERE id = ?`,
+        [bus_id]
+      );
+
+      selectedBus = bus;
+
+      if (selectedBus) {
+        const [students] = await db.query(`
+          SELECT
+            u.name,
+            s.roll_no,
+            s.department,
+            s.year
+          FROM students s
+          JOIN users u
+            ON s.user_id = u.id
+          WHERE s.bus_id = ?
+          ORDER BY u.name
+        `, [bus_id]);
+
+        allocatedStudents = students;
+      }
+    }
+
+    res.render('admin/seat-management', {
+      buses,
+      selectedBus,
+      allocatedStudents
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading seat management');
+  }
+});
 // ================= PROFILE =================
 router.get('/profile', async (req, res) => {
   try {

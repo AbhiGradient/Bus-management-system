@@ -1,0 +1,223 @@
+<%- include('../partials/header', {
+  pageTitle: 'Seat Management',
+  pageCss: []
+}) %>
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+    currentPage: 'seats'
+  }) %>
+
+  <%- include('../partials/navbar', {
+    pageLabel: 'Seat Management'
+  }) %>
+
+  <div class="app-main">
+    <main class="main-content">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Seat Management
+        </h3>
+      </div>
+
+      <!-- Bus Selector -->
+      <div class="card p-3 mb-3">
+        <form action="/admin/seat-management" method="GET" class="row g-2 align-items-end">
+
+          <div class="col-md-5">
+            <label class="form-label">Select Bus</label>
+            <select
+              name="bus_id"
+              class="form-select"
+              onchange="this.form.submit()">
+
+              <option value="">-- Choose a bus --</option>
+
+              <% buses.forEach(b => { %>
+                <option
+                  value="<%= b.id %>"
+                  <%= (selectedBus && selectedBus.id === b.id) ? 'selected' : '' %>>
+                  <%= b.bus_number %> — <%= b.route_name %>
+                </option>
+              <% }) %>
+
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-search"></i>
+              View Seats
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <% if (!selectedBus) { %>
+
+        <div class="card p-4 text-center text-muted">
+          Select a bus above to view its seat allocation.
+        </div>
+
+      <% } else { %>
+
+        <!-- Summary -->
+        <div class="row mb-3 g-3">
+
+          <div class="col-md-4">
+            <div class="card p-3 text-center">
+              <div class="text-muted small">Total Capacity</div>
+              <div class="fs-3 fw-bold"><%= selectedBus.capacity %></div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card p-3 text-center">
+              <div class="text-muted small">Allocated Seats</div>
+              <div class="fs-3 fw-bold text-danger"><%= allocatedStudents.length %></div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card p-3 text-center">
+              <div class="text-muted small">Vacant Seats</div>
+              <div class="fs-3 fw-bold text-success">
+                <%= selectedBus.capacity - allocatedStudents.length %>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Seat Grid -->
+        <div class="card p-3">
+
+          <h5 class="mb-3">
+            <%= selectedBus.bus_number %> — <%= selectedBus.route_name %>
+          </h5>
+
+          <div class="d-flex gap-3 mb-3">
+            <span>
+              <span class="badge bg-danger">&nbsp;</span>
+              Allocated
+            </span>
+            <span>
+              <span class="badge bg-success">&nbsp;</span>
+              Vacant
+            </span>
+          </div>
+
+          <div class="seat-grid d-flex flex-wrap gap-2">
+
+            <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
+
+              <% const student = allocatedStudents[seatNo - 1]; %>
+
+              <% if (student) { %>
+
+                <div
+                  class="seat seat-occupied"
+                  data-bs-toggle="tooltip"
+                  title="<%= student.name %> (<%= student.roll_no %>)">
+                  <i class="bi bi-person-fill"></i>
+                  <small><%= seatNo %></small>
+                </div>
+
+              <% } else { %>
+
+                <div class="seat seat-vacant">
+                  <i class="bi bi-person"></i>
+                  <small><%= seatNo %></small>
+                </div>
+
+              <% } %>
+
+            <% } %>
+
+          </div>
+
+        </div>
+
+        <!-- Student list for this bus -->
+        <div class="card p-3 mt-3">
+          <h5 class="mb-3">Students Allocated to <%= selectedBus.bus_number %></h5>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Seat #</th>
+                  <th>Name</th>
+                  <th>Roll No</th>
+                  <th>Department</th>
+                  <th>Year</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                <% if (allocatedStudents.length === 0) { %>
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-3">
+                      No students allocated to this bus yet.
+                    </td>
+                  </tr>
+                <% } %>
+
+                <% allocatedStudents.forEach((s, i) => { %>
+                  <tr>
+                    <td><%= i + 1 %></td>
+                    <td><%= s.name %></td>
+                    <td><%= s.roll_no %></td>
+                    <td><%= s.department %></td>
+                    <td><%= s.year %></td>
+                  </tr>
+                <% }) %>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      <% } %>
+
+    </main>
+
+    <%- include('../partials/footer') %>
+
+  </div>
+</div>
+
+<style>
+  .seat {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: #fff;
+    cursor: default;
+  }
+  .seat-occupied {
+    background-color: var(--bs-danger, #dc3545);
+  }
+  .seat-vacant {
+    background-color: var(--bs-success, #198754);
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const tooltipEls = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  tooltipEls.forEach(el => new bootstrap.Tooltip(el));
+</script>
+<script src="../public/js/script.js"></script>
+
+</body>
+</html>
