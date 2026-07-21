@@ -378,48 +378,52 @@ router.get('/request-bus-change', async (req, res) => {
 // ==============================
 // Notifications
 // ==============================
+
 router.get('/notifications', async (req, res) => {
-  try {
 
-    const student = await getStudentRecord(req.session.user.id);
+    try {
 
-    let notifications = [];
+        const student = await getStudentRecord(req.session.user.id);
 
-    if (student && student.bus_id) {
+        let notifications = [];
 
-      const [rows] = await db.query(`
-        SELECT *
-        FROM notifications
-        WHERE
-            audience = 'all'
-            OR audience = 'students'
-            OR (audience = 'bus' AND bus_id = ?)
-        ORDER BY created_at DESC
-      `, [student.bus_id]);
+        if(student && student.bus_id){
 
-      notifications = rows;
+            const [rows] = await db.query(`
+                SELECT *
+                FROM notifications
+                WHERE audience='all'
+                   OR audience='students'
+                   OR (audience='bus' AND bus_id=?)
+                ORDER BY created_at DESC
+            `,[student.bus_id]);
 
-    } else {
+            notifications = rows;
 
-      const [rows] = await db.query(`
-        SELECT *
-        FROM notifications
-        WHERE
-            audience = 'all'
-            OR audience = 'students'
-        ORDER BY created_at DESC
-      `);
+        }else{
 
-      notifications = rows;
+            const [rows] = await db.query(`
+                SELECT *
+                FROM notifications
+                WHERE audience='all'
+                   OR audience='students'
+                ORDER BY created_at DESC
+            `);
+
+            notifications = rows;
+
+        }
+
+        res.render('student/notifications',{
+            notifications
+        });
+
+    } catch(err){
+
+        console.error(err);
+        res.send(err.message);
+
     }
 
-    res.render('student/notifications', {
-      notifications
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.send('Error loading notifications');
-  }
 });
 module.exports = router;

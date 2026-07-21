@@ -561,69 +561,74 @@ router.get('/reports', async (req, res) => {
 
 // View Notifications
 router.get('/notifications', async (req, res) => {
-  try {
 
-    const [notifications] = await db.query(`
-      SELECT
-        n.*,
-        b.bus_number
-      FROM notifications n
-      LEFT JOIN buses b
-        ON n.bus_id = b.id
-      ORDER BY n.created_at DESC
-    `);
+    try {
 
-    const [buses] = await db.query(`
-      SELECT
-        id,
-        bus_number,
-        route_name
-      FROM buses
-      ORDER BY bus_number
-    `);
+        const [notifications] = await db.query(`
+            SELECT
+                n.*,
+                b.bus_number
+            FROM notifications n
+            LEFT JOIN buses b
+                ON n.bus_id = b.id
+            ORDER BY n.created_at DESC
+        `);
 
-    res.render('admin/notifications', {
-      notifications,
-      buses
-    });
+        const [buses] = await db.query(`
+            SELECT *
+            FROM buses
+            ORDER BY bus_number
+        `);
 
-  } catch (err) {
-    console.error(err);
-    res.send('Error loading notifications');
-  }
+        res.render('admin/notifications', {
+            notifications,
+            buses
+        });
+
+    } catch (err) {
+
+        console.error(err);
+        res.send(err.message);
+
+    }
+
 });
 
 
 // Add Notification
 router.post('/notifications', async (req, res) => {
 
-  const {
-    title,
-    message,
-    audience,
-    bus_id
-  } = req.body;
-
-  try {
-
-    await db.query(
-      `INSERT INTO notifications
-      (title, message, audience, bus_id)
-      VALUES (?, ?, ?, ?)`,
-      [
+    const {
         title,
         message,
         audience,
-        audience === 'bus' ? bus_id : null
-      ]
-    );
+        bus_id
+    } = req.body;
 
-    res.redirect('/admin/notifications');
+    try {
 
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/notifications');
-  }
+        await db.query(`
+            INSERT INTO notifications
+            (title,message,audience,bus_id)
+            VALUES (?,?,?,?)
+        `,[
+            title,
+            message,
+            audience,
+            audience === 'bus'
+                ? bus_id
+                : null
+        ]);
+
+        res.redirect('/admin/notifications');
+
+    } catch(err){
+
+        console.error(err);
+        res.send(err.message);
+
+    }
+
 });
 
 
