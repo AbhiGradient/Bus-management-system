@@ -209,30 +209,7 @@ router.post('/trip-end', async (req, res) => {
     }
 
 });
-// ================= NOTIFICATIONS =================
-router.get('/notifications', async (req, res) => {
 
-    try {
-
-        const [notifications] = await db.query(`
-            SELECT *
-            FROM notifications
-            WHERE user_id = ?
-            ORDER BY created_at DESC
-        `, [req.session.user.id]);
-
-        res.render('driver/notifications', {
-            notifications
-        });
-
-    } catch (err) {
-
-    console.error(err);
-    res.send(err.message);
-
-}
-
-});
 // ================= PROFILE =================
 
 // Show Profile
@@ -314,6 +291,63 @@ router.put('/profile', async (req, res) => {
 
         console.error(err);
         res.redirect('/driver/profile');
+
+    }
+
+});
+// ================= NOTIFICATIONS =================
+router.get('/notifications', async (req, res) => {
+
+    try {
+
+        // Get driver's assigned bus
+        const [[bus]] = await db.query(`
+            SELECT id
+            FROM buses
+            WHERE driver_id = ?
+        `, [req.session.user.id]);
+
+        let notifications = [];
+
+        if (bus) {
+
+            // Driver has a bus
+            const [rows] = await db.query(`
+                SELECT *
+                FROM notifications
+                WHERE
+                    audience = 'all'
+                    OR audience = 'drivers'
+                    OR (audience = 'bus' AND bus_id = ?)
+                ORDER BY created_at DESC
+            `, [bus.id]);
+
+            notifications = rows;
+
+        } else {
+
+            // Driver has no bus assigned
+            const [rows] = await db.query(`
+                SELECT *
+                FROM notifications
+                WHERE
+                    audience = 'all'
+                    OR audience = 'drivers'
+                ORDER BY created_at DESC
+            `);
+
+            notifications = rows;
+
+        }
+
+        res.render('driver/notifications', {
+            notifications
+        });
+
+    } catch (err) {
+
+        console.error(err);
+        res.send(err.message);
 
     }
 

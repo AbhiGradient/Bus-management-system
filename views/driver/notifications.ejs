@@ -31,7 +31,7 @@
           <h5>No Notifications</h5>
 
           <p class="text-muted mb-0">
-            You don't have any notifications yet.
+            No notifications available.
           </p>
 
         </div>
@@ -40,47 +40,21 @@
 
         <% notifications.forEach(notification => { %>
 
-          <div class="card mb-3 shadow-sm">
+          <div class="card mb-3">
 
             <div class="card-body">
 
-              <div class="d-flex justify-content-between">
+              <h5 class="mb-2">
+                <%= notification.title %>
+              </h5>
 
-                <div>
+              <p class="text-muted mb-2">
+                <%= notification.message %>
+              </p>
 
-                  <h5 class="mb-1">
-                    <%= notification.title %>
-                  </h5>
-
-                  <p class="text-muted mb-2">
-                    <%= notification.message %>
-                  </p>
-
-                  <small class="text-secondary">
-
-                    <i class="bi bi-clock"></i>
-
-                    <%= new Date(notification.created_at).toLocaleString('en-IN') %>
-
-                  </small>
-
-                </div>
-
-                <% if(notification.is_read == 0){ %>
-
-                    <span class="badge bg-warning text-dark">
-                        New
-                    </span>
-
-                <% } else { %>
-
-                    <span class="badge bg-success">
-                        Read
-                    </span>
-
-                <% } %>
-
-              </div>
+              <small class="text-secondary">
+                <%= new Date(notification.created_at).toLocaleString('en-IN') %>
+              </small>
 
             </div>
 
