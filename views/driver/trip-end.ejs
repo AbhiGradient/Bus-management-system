@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>End Trip | Smart College Bus</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="/driver/dashboard"><i class="bi bi-bus-front"></i> College Bus <span>Driver</span></a>
+    <div class="d-flex align-items-center text-white">
+      <span class="me-3"><i class="bi bi-person-circle"></i> <%= user.name %></span>
+      <a href="/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+  </nav>
+
+  <div class="d-flex">
+    <div class="sidebar" style="width: 230px;">
+      <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" href="/driver/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/today-route"><i class="bi bi-signpost-split"></i> Today's Route</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/trip-start"><i class="bi bi-play-circle"></i> Start Trip</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/driver/trip-end"><i class="bi bi-stop-circle"></i> End Trip</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/attendence"><i class="bi bi-clipboard-check"></i> Attendance</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/live-location"><i class="bi bi-geo-alt"></i> Live Location</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/notifications"><i class="bi bi-bell"></i> Notifications</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/driver-profile"><i class="bi bi-person-badge"></i> Profile</a></li>
+      </ul>
+    </div>
+
+    <div class="main-content flex-grow-1">
+      <h3 class="mb-1"><i class="bi bi-stop-circle"></i> End Trip</h3>
+      <p class="text-muted">Close out today's trip once all students have been dropped off.</p>
+
+      <% if (!bus) { %>
+        <div class="card p-4 mt-3">
+          <p class="text-muted mb-0">No bus has been assigned to you yet. Please contact the administrator.</p>
+        </div>
+      <% } else { %>
+        <div class="row justify-content-center mt-3">
+          <div class="col-lg-6">
+            <div class="card p-4 text-center">
+              <i class="bi bi-bus-front-fill" style="font-size: 3rem; color: #1F5C4F;"></i>
+              <h4 class="mt-2 mb-0"><%= bus.bus_number %></h4>
+              <p class="text-muted mb-3"><%= bus.route_name %></p>
+
+              <span class="badge badge-status mb-3
+                <%= trip.status === 'completed' ? 'bg-success' : trip.status === 'ongoing' ? 'bg-warning text-dark' : 'bg-secondary' %>">
+                <%= trip.status === 'not_started' ? 'Trip Not Started' : trip.status === 'ongoing' ? 'Trip In Progress' : 'Trip Completed' %>
+              </span>
+
+              <% if (trip.status === 'not_started') { %>
+                <p class="text-muted mb-3">You haven't started today's trip yet.</p>
+                <a href="/driver/trip-start" class="btn btn-success w-100"><i class="bi bi-play-fill"></i> Go to Start Trip</a>
+              <% } else if (trip.status === 'ongoing') { %>
+                <p class="mb-3"><strong>Started at:</strong> <%= new Date(trip.start_time).toLocaleTimeString() %></p>
+                <form action="/driver/trip-end" method="POST">
+                  <div class="mb-3 text-start">
+                    <label class="form-label">Ending Note (optional)</label>
+                    <input type="text" name="end_note" class="form-control" placeholder="e.g. All students dropped safely at campus" />
+                  </div>
+                  <button type="submit" class="btn btn-danger w-100"><i class="bi bi-stop-fill"></i> End Trip Now</button>
+                </form>
+              <% } else { %>
+                <p class="mb-1"><strong>Started:</strong> <%= new Date(trip.start_time).toLocaleTimeString() %></p>
+                <p class="mb-1"><strong>Ended:</strong> <%= new Date(trip.end_time).toLocaleTimeString() %></p>
+                <% if (trip.end_note) { %><p class="text-muted mb-0">"<%= trip.end_note %>"</p><% } %>
+                <p class="text-muted mt-2 mb-0">Today's trip is already complete. Great job!</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+    </div>
+  </div>
+
+   <%- include('footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/script.js"></script>
+</body>
+</html>

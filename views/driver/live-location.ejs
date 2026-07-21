@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Location | Smart College Bus</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="/css/style.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+</head>
+<body>
+
+  <nav class="navbar navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="/driver/dashboard"><i class="bi bi-bus-front"></i> College Bus <span>Driver</span></a>
+    <div class="d-flex align-items-center text-white">
+      <span class="me-3"><i class="bi bi-person-circle"></i> <%= user.name %></span>
+      <a href="/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+  </nav>
+
+  <div class="d-flex">
+    <div class="sidebar" style="width: 230px;">
+      <ul class="nav flex-column">
+        <li class="nav-item"><a class="nav-link" href="/driver/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/today-route"><i class="bi bi-signpost-split"></i> Today's Route</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/trip-start"><i class="bi bi-play-circle"></i> Start Trip</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/trip-end"><i class="bi bi-stop-circle"></i> End Trip</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/attendence"><i class="bi bi-clipboard-check"></i> Attendance</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/driver/live-location"><i class="bi bi-geo-alt"></i> Live Location</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/notifications"><i class="bi bi-bell"></i> Notifications</a></li>
+        <li class="nav-item"><a class="nav-link" href="/driver/driver-profile"><i class="bi bi-person-badge"></i> Profile</a></li>
+      </ul>
+    </div>
+
+    <div class="main-content flex-grow-1">
+      <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
+        <h3 class="mb-0"><i class="bi bi-geo-alt"></i> Live Location</h3>
+        <div>
+          <span id="sharingStatus" class="badge badge-status bg-secondary">Sharing Off</span>
+          <button id="toggleShareBtn" class="btn btn-primary btn-sm ms-2"><i class="bi bi-broadcast"></i> Start Sharing</button>
+        </div>
+      </div>
+      <p class="text-muted">Share your bus's live GPS position so students and admins can track it in real time.</p>
+
+      <% if (!bus) { %>
+        <div class="card p-4 mt-3">
+          <p class="text-muted mb-0">No bus has been assigned to you yet. Please contact the administrator.</p>
+        </div>
+      <% } else { %>
+        <div class="card p-3 mt-2">
+          <div id="map" style="height: 420px; border-radius: var(--radius-md, 14px); overflow: hidden;"></div>
+          <div class="row mt-3 text-center">
+            <div class="col-md-4">
+              <div class="text-muted small">Bus</div>
+              <div class="fw-bold"><%= bus.bus_number %></div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-muted small">Latitude</div>
+              <div class="fw-bold" id="latVal"><%= tracking ? tracking.latitude : '—' %></div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-muted small">Longitude</div>
+              <div class="fw-bold" id="lngVal"><%= tracking ? tracking.longitude : '—' %></div>
+            </div>
+          </div>
+          <p class="text-muted small mt-2 mb-0" id="lastUpdated">
+            <% if (tracking) { %>
+              Last updated: <%= new Date(tracking.updated_at).toLocaleString() %>
+            <% } else { %>
+              No location shared yet.
+            <% } %>
+          </p>
+        </div>
+      <% } %>
+
+    </div>
+  </div>
+
+   <%- include('footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="/js/script.js"></script>
+
+  <% if (bus) { %>
+  <script>
+    // ------- Initialize map -------
+    const startLat = <%= tracking ? tracking.latitude : 18.5204 %>;
+    const startLng = <%= tracking ? tracking.longitude : 73.8567 %>;
+
+    const map = L.map('map').setView([startLat, startLng], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    const busIcon = L.divIcon({
+      html: '<i class="bi bi-bus-front-fill" style="font-size:1.6rem;color:#1F5C4F;"></i>',
+      className: '',
+      iconSize: [24, 24]
+    });
+
+    let marker = L.marker([startLat, startLng], { icon: busIcon }).addTo(map);
+
+    // ------- Share live location using the browser's Geolocation API -------
+    let watchId = null;
+    let sharing = false;
+
+    const toggleBtn = document.getElementById('toggleShareBtn');
+    const statusBadge = document.getElementById('sharingStatus');
+
+    function updateDisplay(lat, lng) {
+      marker.setLatLng([lat, lng]);
+      map.panTo([lat, lng]);
+      document.getElementById('latVal').innerText = lat.toFixed(6);
+      document.getElementById('lngVal').innerText = lng.toFixed(6);
+      document.getElementById('lastUpdated').innerText = 'Last updated: ' + new Date().toLocaleString();
+    }
+
+    async function sendLocation(lat, lng, speed) {
+      try {
+        await fetch('/driver/live-location/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latitude: lat, longitude: lng, speed: speed || 0 })
+        });
+      } catch (err) {
+        console.error('Failed to send location:', err);
+      }
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by this browser.');
+        return;
+      }
+
+      if (!sharing) {
+        watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const { latitude, longitude, speed } = pos.coords;
+            updateDisplay(latitude, longitude);
+            sendLocation(latitude, longitude, speed ? (speed * 3.6) : 0); // m/s -> km/h
+          },
+          (err) => {
+            console.error(err);
+            alert('Unable to fetch your location. Please allow location access.');
+          },
+          { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+        );
+        sharing = true;
+        statusBadge.textContent = 'Sharing Live';
+        statusBadge.classList.remove('bg-secondary');
+        statusBadge.classList.add('bg-success');
+        toggleBtn.innerHTML = '<i class="bi bi-stop-circle"></i> Stop Sharing';
+      } else {
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        sharing = false;
+        statusBadge.textContent = 'Sharing Off';
+        statusBadge.classList.remove('bg-success');
+        statusBadge.classList.add('bg-secondary');
+        toggleBtn.innerHTML = '<i class="bi bi-broadcast"></i> Start Sharing';
+      }
+    });
+  </script>
+  <% } %>
+</body>
+</html>
