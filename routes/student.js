@@ -155,38 +155,115 @@ router.get('/payment-history', async (req, res) => {
 // ================= PROFILE =================
 router.get('/profile', async (req, res) => {
   try {
-    const [[user]] = await db.query('SELECT * FROM users WHERE id=?', [req.session.user.id]);
+
+    const [[user]] = await db.query(
+      'SELECT * FROM users WHERE id=?',
+      [req.session.user.id]
+    );
+
     const student = await getStudentRecord(req.session.user.id);
-    const profile = { ...user, ...student, name: user.name, email: user.email };
-    res.render('student/profile', { profile, message: null });
+
+    res.render('student/profile', {
+      user,
+      student
+    });
+
   } catch (err) {
     console.error(err);
     res.send('Error loading profile');
   }
 });
-
-router.put('/profile', async (req, res) => {
-  const { name, phone, password, department, year, address } = req.body;
+// ================= UPDATE PROFILE =================
+router.post('/profile', async (req, res) => {
   try {
-    if (password && password.trim() !== '') {
-      const hashed = await bcrypt.hash(password, 10);
-      await db.query('UPDATE users SET name=?, phone=?, password=? WHERE id=?', [name, phone, hashed, req.session.user.id]);
-    } else {
-      await db.query('UPDATE users SET name=?, phone=? WHERE id=?', [name, phone, req.session.user.id]);
-    }
-    await db.query('UPDATE students SET department=?, year=?, address=? WHERE user_id=?', [department, year, address, req.session.user.id]);
 
+    const {
+      name,
+      email,
+      phone,
+      address
+    } = req.body;
+
+    // Update users table
+    await db.query(
+      `
+      UPDATE users
+      SET
+        name = ?,
+        email = ?,
+        phone = ?
+      WHERE id = ?
+      `,
+      [
+        name,
+        email,
+        phone,
+        req.session.user.id
+      ]
+    );
+
+    // Update students table
+    await db.query(
+      `
+      UPDATE students
+      SET
+        address = ?
+      WHERE user_id = ?
+      `,
+      [
+        address,
+        req.session.user.id
+      ]
+    );
+
+    // Update session
     req.session.user.name = name;
-    const [[user]] = await db.query('SELECT * FROM users WHERE id=?', [req.session.user.id]);
-    const student = await getStudentRecord(req.session.user.id);
-    const profile = { ...user, ...student, name: user.name, email: user.email };
-    res.render('student/profile', { profile, message: 'Profile updated successfully!' });
+    req.session.user.email = email;
+
+    res.redirect('/student/profile');
+
   } catch (err) {
     console.error(err);
-    res.redirect('/student/profile');
+    res.send('Error updating profile');
   }
 });
 // ================= BUS DETAILS =================
+router.post('/request-bus-change', async (req, res) => {
+  try {
+
+    const student = await getStudentRecord(req.session.user.id);
+
+    const { requested_bus_id, message } = req.body;
+
+    // Find requested bus
+    const [[requestedBus]] = await db.query(
+      'SELECT bus_number, route_name FROM buses WHERE id = ?',
+      [requested_bus_id]
+    );
+
+    const subject = 'Bus Change Request';
+
+    const fullMessage =
+`Requested Bus: ${requestedBus.bus_number}
+Route: ${requestedBus.route_name}
+
+Reason:
+${message}`;
+
+    await db.query(
+      `INSERT INTO requests
+      (student_id, subject, message, status)
+      VALUES (?, ?, ?, 'pending')`,
+      [student.id, subject, fullMessage]
+    );
+
+    res.redirect('/student/requests');
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error submitting request');
+  }
+});
 router.get('/bus-details', async (req, res) => {
   try {
     const student = await getStudentRecord(req.session.user.id);
@@ -264,5 +341,85 @@ router.get('/seat-management', async (req, res) => {
     res.send('Error loading seat management');
   }
 });
+// ==============================
+// Request Bus Change
+// ==============================
+router.get('/request-bus-change', async (req, res) => {
+  try {
 
+    const student = await getStudentRecord(req.session.user.id);
+
+    let bus = null;
+
+    if (student && student.bus_id) {
+      const [[busRow]] = await db.query(
+        'SELECT * FROM buses WHERE id = ?',
+        [student.bus_id]
+      );
+
+      bus = busRow;
+    }
+
+    const [buses] = await db.query(
+      'SELECT * FROM buses WHERE status = "active" ORDER BY bus_number'
+    );
+
+    res.render('student/request-bus-change', {
+      student,
+      bus,
+      buses
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading bus change page');
+  }
+});
+// ==============================
+// Notifications
+// ==============================
+router.get('/notifications', async (req, res) => {
+  try {
+
+    const student = await getStudentRecord(req.session.user.id);
+
+    let notifications = [];
+
+    if (student && student.bus_id) {
+
+      const [rows] = await db.query(`
+        SELECT *
+        FROM notifications
+        WHERE
+            audience = 'all'
+            OR audience = 'students'
+            OR (audience = 'bus' AND bus_id = ?)
+        ORDER BY created_at DESC
+      `, [student.bus_id]);
+
+      notifications = rows;
+
+    } else {
+
+      const [rows] = await db.query(`
+        SELECT *
+        FROM notifications
+        WHERE
+            audience = 'all'
+            OR audience = 'students'
+        ORDER BY created_at DESC
+      `);
+
+      notifications = rows;
+    }
+
+    res.render('student/notifications', {
+      notifications
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading notifications');
+  }
+});
 module.exports = router;

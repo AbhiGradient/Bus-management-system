@@ -1,0 +1,117 @@
+<%- include('../partials/header', {
+  pageTitle: 'Request Status',
+  pageCss: []
+}) %>
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+    currentPage: 'request-status'
+  }) %>
+
+  <%- include('../partials/navbar', {
+    pageLabel: 'Request Status'
+  }) %>
+
+  <div class="app-main">
+    <main class="main-content">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>
+          <i class="bi bi-envelope-paper-fill text-secondary"></i>
+          My Requests
+        </h3>
+
+        <button
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#newRequestModal">
+          <i class="bi bi-plus-circle"></i>
+          New Request
+        </button>
+      </div>
+
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr><th>#</th><th>Subject</th><th>Message</th><th>Status</th><th>Submitted</th></tr>
+            </thead>
+            <tbody>
+
+              <% if (requests.length === 0) { %>
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-3">
+                    You haven't submitted any requests yet.
+                  </td>
+                </tr>
+              <% } %>
+
+              <% requests.forEach((r, i) => { %>
+                <tr>
+                  <td><%= i + 1 %></td>
+                  <td><%= r.subject %></td>
+                  <td><%= r.message %></td>
+                  <td>
+                    <span class="badge
+                      <%= r.status === 'approved' ? 'bg-success' : (r.status === 'rejected' ? 'bg-danger' : 'bg-warning text-dark') %>">
+                      <%= r.status %>
+                    </span>
+                  </td>
+                  <td><%= new Date(r.created_at).toLocaleDateString('en-IN') %></td>
+                </tr>
+              <% }) %>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+
+    <%- include('../partials/footer') %>
+
+  </div>
+</div>
+
+<!-- New Request Modal -->
+
+<div class="modal fade" id="newRequestModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form action="/student/requests" method="POST" class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">New Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="mb-2">
+          <label class="form-label">Subject</label>
+          <input type="text" name="subject" class="form-control" required>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Message</label>
+          <textarea name="message" rows="4" class="form-control" required></textarea>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-send"></i>
+          Submit
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/script.js"></script>
+
+</body>
+</html>
