@@ -3,92 +3,221 @@
   pageCss: []
 }) %>
 
+<style>
+  /* Custom Styles to make the profile pop */
+  .profile-avatar-wrapper {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border: 4px solid #fff;
+  }
+  .profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .avatar-upload-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.85rem;
+    padding: 8px 0;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .avatar-upload-overlay:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+  .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  }
+  .form-label {
+    font-weight: 500;
+    color: #4b5563;
+  }
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+</style>
+
 <div class="app-shell">
 
-  <%- include('../partials/sidebar', {
-    currentPage: 'profile'
-  }) %>
-
-  <%- include('../partials/navbar', {
-    pageLabel: 'My Profile'
-  }) %>
+  <%- include('../partials/sidebar', { currentPage: 'profile' }) %>
+  <%- include('../partials/navbar', { pageLabel: 'My Profile' }) %>
 
   <div class="app-main">
-
-    <main class="main-content">
-    
-      <h3 class="mb-3"><i class="bi bi-person-badge"></i> My Profile</h3>
+    <main class="main-content p-4">
+      
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <h3 class="mb-0 fw-bold"><i class="bi bi-person-badge text-primary me-2"></i> My Profile</h3>
+      </div>
 
       <% if (message) { %>
-        <div class="alert alert-success auto-alert"><%= message %></div>
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+          <i class="bi bi-check-circle-fill me-2"></i> <%= message %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
       <% } %>
 
-      <div class="row">
-        <div class="col-lg-7">
-          <div class="card p-4">
-            <form action="/admin/profile?_method=PUT" method="POST">
-              <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <input type="text" name="name" class="form-control" value="<%= profile.name %>" required />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Email (read-only)</label>
-                <input type="email" class="form-control" value="<%= profile.email %>" disabled />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Phone</label>
-                <input type="text" name="phone" class="form-control" value="<%= profile.phone || '' %>" />
+      <!-- Note the enctype="multipart/form-data" required for file uploads -->
+      <form action="/admin/profile?_method=PUT" method="POST" enctype="multipart/form-data">
+        <div class="row g-4">
+          
+          <!-- Left Column: Avatar & Summary -->
+          <div class="col-lg-4">
+            <div class="card p-4 text-center h-100">
+              
+              <!-- Avatar Upload Feature -->
+              <div class="profile-avatar-wrapper mb-3">
+                <!-- Fallback icon or current profile picture -->
+                <% if (profile.avatar_url) { %>
+                  <img src="<%= profile.avatar_url %>" alt="Profile Picture" class="profile-avatar" id="avatarPreview">
+                <% } else { %>
+                  <div class="d-flex align-items-center justify-content-center bg-light h-100 w-100" id="avatarPreviewContainer">
+                    <i class="bi bi-person-fill text-secondary" style="font-size: 5rem;"></i>
+                  </div>
+                  <img src="" alt="Profile Picture" class="profile-avatar d-none" id="avatarPreview">
+                <% } %>
+                
+                <!-- Hidden File Input -->
+                <input type="file" name="avatar" id="avatarInput" class="d-none" accept="image/jpeg, image/png, image/webp">
+                <!-- Overlay Trigger -->
+                <label for="avatarInput" class="avatar-upload-overlay">
+                  <i class="bi bi-camera-fill mb-1 d-block"></i> Update
+                </label>
               </div>
 
+              <h5 class="fw-bold mb-1"><%= profile.name %></h5>
+              <span class="badge bg-primary-subtle text-primary text-capitalize px-3 py-2 rounded-pill">
+                <%= user.role %>
+              </span>
+              
+              <p class="text-muted small mt-3">
+                Update your profile picture and personal details here. Keep your information up to date.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right Column: Form Fields -->
+          <div class="col-lg-8">
+            <div class="card p-4">
+              
+              <!-- Basic Info Section -->
+              <h5 class="section-title">Personal Information</h5>
+              <div class="row mb-3">
+                <div class="col-md-6 mb-3 mb-md-0">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" name="name" class="form-control bg-light" value="<%= profile.name %>" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone Number</label>
+                  <input type="text" name="phone" class="form-control bg-light" value="<%= profile.phone || '' %>" placeholder="+1 (555) 000-0000" />
+                </div>
+              </div>
+              <div class="row mb-4">
+                <div class="col-md-12">
+                  <label class="form-label">Email Address <i class="bi bi-lock-fill text-muted ms-1" title="Read-only"></i></label>
+                  <input type="email" class="form-control text-muted" value="<%= profile.email %>" disabled readonly />
+                </div>
+              </div>
+
+              <!-- Student Specific Section -->
               <% if (user.role === 'student') { %>
-                <div class="mb-3">
-                  <label class="form-label">Roll No (read-only)</label>
-                  <input type="text" class="form-control" value="<%= profile.roll_no || '' %>" disabled />
+                <h5 class="section-title mt-4">Academic Details</h5>
+                <div class="row mb-3">
+                  <div class="col-md-4 mb-3 mb-md-0">
+                    <label class="form-label">Roll No <i class="bi bi-lock-fill text-muted ms-1"></i></label>
+                    <input type="text" class="form-control text-muted" value="<%= profile.roll_no || '' %>" disabled readonly />
+                  </div>
+                  <div class="col-md-4 mb-3 mb-md-0">
+                    <label class="form-label">Department</label>
+                    <input type="text" name="department" class="form-control bg-light" value="<%= profile.department || '' %>" />
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Year</label>
+                    <input type="text" name="year" class="form-control bg-light" value="<%= profile.year || '' %>" placeholder="e.g., 2nd Year" />
+                  </div>
                 </div>
-                <div class="mb-3">
-                  <label class="form-label">Department</label>
-                  <input type="text" name="department" class="form-control" value="<%= profile.department || '' %>" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Year</label>
-                  <input type="text" name="year" class="form-control" value="<%= profile.year || '' %>" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Address</label>
-                  <textarea name="address" class="form-control" rows="2"><%= profile.address || '' %></textarea>
+                <div class="mb-4">
+                  <label class="form-label">Residential Address</label>
+                  <textarea name="address" class="form-control bg-light" rows="3" placeholder="Enter your full address..."><%= profile.address || '' %></textarea>
                 </div>
               <% } %>
 
-              <div class="mb-3">
-                <label class="form-label">New Password <small class="text-muted">(leave blank to keep current)</small></label>
-                <input type="password" name="password" class="form-control" placeholder="••••••••" />
+              <!-- Security Section -->
+              <h5 class="section-title mt-4">Security</h5>
+              <div class="mb-4">
+                <label class="form-label">New Password</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                  <input type="password" name="password" class="form-control bg-light" placeholder="Leave blank to keep current password" />
+                </div>
               </div>
 
-              <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Save Changes</button>
-            </form>
+              <hr class="my-4">
+              
+              <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-3 shadow-sm">
+                  <i class="bi bi-check2-circle me-1"></i> Save Changes
+                </button>
+              </div>
+
+            </div>
           </div>
+          
         </div>
+      </form>
 
-        <div class="col-lg-5">
-          <div class="card p-4 text-center">
-            <i class="bi bi-person-circle" style="font-size: 5rem; color: #1d4ed8;"></i>
-            <h5 class="mt-2 mb-0"><%= profile.name %></h5>
-            <span class="text-muted text-capitalize"><%= user.role %></span>
-          </div>
-        </div>
-      </div>
-
-       
-    </div>
-  </main>
-
-    
+    </main>
   </div> <!-- /.app-main -->
-<%- include('../partials/footer') %>
+  
+ 
 
 </div> <!-- /.app-shell -->
+ <%- include('../partials/footer') %>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/script.js"></script>
+
+<!-- Live Image Preview Script -->
+<script>
+  document.getElementById('avatarInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file type on client side
+      if (!file.type.match('image.*')) {
+        alert('Please select a valid image file (JPEG, PNG, WebP).');
+        this.value = ''; // Reset input
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('avatarPreview');
+        const container = document.getElementById('avatarPreviewContainer');
+        
+        preview.src = e.target.result;
+        preview.classList.remove('d-none');
+        if (container) container.classList.add('d-none');
+      }
+      reader.readAsDataURL(file);
+    }
+  });
+</script>
 </body>
 </html>
