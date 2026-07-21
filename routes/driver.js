@@ -227,10 +227,10 @@ router.get('/notifications', async (req, res) => {
 
     } catch (err) {
 
-        console.error(err);
-        res.send("Error loading notifications");
+    console.error(err);
+    res.send(err.message);
 
-    }
+}
 
 });
 // ================= PROFILE =================
