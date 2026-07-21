@@ -122,3 +122,76 @@ INSERT INTO requests (student_id, subject, message, status) VALUES
 (1, 'Route Timing Change', 'Can the bus arrive 10 minutes earlier at the City Center stop?', 'pending'),
 (2, 'Seat Issue', 'The seat near the window is broken on BUS-02.', 'approved'),
 (3, 'Bus Assignment Request', 'I have not been assigned a bus yet, please assign one for the Airport Road route.', 'pending');
+
+-- =====================================================
+-- FEATURE TABLES
+-- Added alongside services/attendanceService.js, paymentService.js,
+-- trackingService.js and notificationService.js. Kept as separate
+-- normalized tables (see CLAUDE.md "Database should remain normalized")
+-- rather than bolting extra columns onto existing tables.
+-- =====================================================
+
+-- ---------------------------------------------------
+-- Table: attendance  (QR boarding-pass scans, see views/qr/*.ejs)
+-- ---------------------------------------------------
+DROP TABLE IF EXISTS attendance;
+CREATE TABLE attendance (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL,
+  bus_id INT NOT NULL,
+  date DATE NOT NULL,
+  time_in TIME DEFAULT NULL,
+  status ENUM('present', 'absent') DEFAULT 'present',
+  marked_by INT DEFAULT NULL, -- users.id of the driver who scanned the pass
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+  FOREIGN KEY (bus_id) REFERENCES buses(id) ON DELETE CASCADE,
+  FOREIGN KEY (marked_by) REFERENCES users(id) ON DELETE SET NULL,
+  UNIQUE KEY unique_scan_per_day (student_id, bus_id, date) -- prevents duplicate scans
+);
+
+-- ---------------------------------------------------
+-- Table: payments  (Razorpay transactions against a fee record)
+-- ---------------------------------------------------
+DROP TABLE IF EXISTS payments;
+CREATE TABLE payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  fee_id INT NOT NULL,
+  student_id INT NOT NULL,
+  razorpay_order_id VARCHAR(100) NOT NULL,
+  razorpay_payment_id VARCHAR(100) DEFAULT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  status ENUM('created', 'success', 'failed') DEFAULT 'created',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (fee_id) REFERENCES fees(id) ON DELETE CASCADE,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------
+-- Table: tracking  (latest known GPS position per bus)
+-- ---------------------------------------------------
+DROP TABLE IF EXISTS tracking;
+CREATE TABLE tracking (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  bus_id INT NOT NULL UNIQUE, -- one live row per bus, upserted on every ping
+  latitude DECIMAL(10, 7) NOT NULL,
+  longitude DECIMAL(10, 7) NOT NULL,
+  speed_kmph DECIMAL(5, 2) DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (bus_id) REFERENCES buses(id) ON DELETE CASCADE
+);
+
+-- ---------------------------------------------------
+-- Table: notifications  (in-app alerts for any user role)
+-- ---------------------------------------------------
+DROP TABLE IF EXISTS notifications;
+CREATE TABLE notifications (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(150) NOT NULL,
+  message VARCHAR(500) NOT NULL,
+  type ENUM('info', 'success', 'warning', 'error') DEFAULT 'info',
+  is_read TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
