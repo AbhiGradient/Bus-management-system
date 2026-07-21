@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const upload = require('../config/multer');
 const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 
@@ -289,7 +290,10 @@ router.get('/profile', async (req, res) => {
     res.send('Error loading profile');
   }
 });
-router.put('/admin/profile', async (req, res) => {
+router.put(
+    '/profile',
+    upload.single('avatar'),
+    async (req, res) => {
   const { name, phone, password } = req.body;
 
   try {
