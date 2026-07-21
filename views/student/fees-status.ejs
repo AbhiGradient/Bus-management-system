@@ -1,0 +1,92 @@
+<%- include('../partials/header', {
+  pageTitle: 'Fee Status',
+  pageCss: []
+}) %>
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+    currentPage: 'fee-status'
+  }) %>
+
+  <%- include('../partials/navbar', {
+    pageLabel: 'Fee Status'
+  }) %>
+
+  <div class="app-main">
+    <main class="main-content">
+
+      <h3 class="mb-3">
+        <i class="bi bi-cash-coin text-warning"></i>
+        My Fee Status
+      </h3>
+
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <div class="card p-3 text-center">
+            <div class="text-muted small">Total Amount</div>
+            <div class="fs-3 fw-bold">₹<%= totalAmount.toLocaleString('en-IN') %></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 text-center">
+            <div class="text-muted small">Paid</div>
+            <div class="fs-3 fw-bold text-success">₹<%= paidAmount.toLocaleString('en-IN') %></div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 text-center">
+            <div class="text-muted small">Unpaid</div>
+            <div class="fs-3 fw-bold text-danger">₹<%= unpaidAmount.toLocaleString('en-IN') %></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-3">
+        <h5 class="mb-3">Fee History</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr><th>#</th><th>Amount</th><th>Status</th><th>Due Date</th><th>Paid Date</th></tr>
+            </thead>
+            <tbody>
+
+              <% if (fees.length === 0) { %>
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-3">
+                    No fee records found.
+                  </td>
+                </tr>
+              <% } %>
+
+              <% fees.forEach((f, i) => { %>
+                <tr>
+                  <td><%= i + 1 %></td>
+                  <td>₹<%= Number(f.amount).toLocaleString('en-IN') %></td>
+                  <td>
+                    <span class="badge <%= f.status === 'paid' ? 'bg-success' : 'bg-danger' %>">
+                      <%= f.status %>
+                    </span>
+                  </td>
+                  <td><%= f.due_date ? new Date(f.due_date).toLocaleDateString('en-IN') : '—' %></td>
+                  <td><%= f.paid_date ? new Date(f.paid_date).toLocaleDateString('en-IN') : '—' %></td>
+                </tr>
+              <% }) %>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+
+    <%- include('../partials/footer') %>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/script.js"></script>
+
+</body>
+</html>

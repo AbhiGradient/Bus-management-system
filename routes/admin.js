@@ -704,3 +704,22 @@ router.put(
 });
 
 module.exports = router;
+router.get('/settings', (req, res) => {
+
+    res.render('admin/settings', {
+
+        admin: {
+            name: 'Admin User',
+            email: 'admin@college.edu',
+            phone: '9000000001'
+        },
+
+        systemInfo: {
+            app_version: 'v1.0.0',
+            db_status: 'Connected',
+            server_status: 'Online'
+        }
+
+    });
+
+});

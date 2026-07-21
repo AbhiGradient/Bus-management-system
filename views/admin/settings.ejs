@@ -1,0 +1,489 @@
+<%- include('../partials/header', {
+  pageTitle: 'Settings',
+  pageCss: []
+}) %>
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+    currentPage: 'settings'
+  }) %>
+
+  <%- include('../partials/navbar', {
+    pageLabel: 'Settings'
+  }) %>
+
+  <div class="app-main">
+    <main class="main-content">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>
+          <i class="bi bi-gear-fill"></i>
+          Settings
+        </h3>
+      </div>
+
+      <div class="row g-3">
+
+        <!-- ================= 1. Admin Account ================= -->
+        <div class="col-lg-6">
+          <div class="card p-3 h-100">
+            <h5 class="mb-3">
+              <i class="bi bi-person-circle"></i>
+              Admin Account
+            </h5>
+
+            <form action="/admin/settings/account" method="POST" enctype="multipart/form-data">
+
+              <div class="text-center mb-3">
+                <img
+                  src="<%= locals.admin && admin.profile_pic ? admin.profile_pic : '../public/img/default-avatar.png' %>"
+                  alt="Profile Picture"
+                  class="rounded-circle border"
+                  style="width: 90px; height: 90px; object-fit: cover;">
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  value="<%= locals.admin ? admin.name : '' %>"
+                  required>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  class="form-control"
+                  value="<%= locals.admin ? admin.email : '' %>"
+                  required>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Phone Number</label>
+                <input
+                  type="text"
+                  name="phone"
+                  class="form-control"
+                  value="<%= locals.admin ? admin.phone : '' %>">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Profile Picture</label>
+                <input
+                  type="file"
+                  name="profile_picture"
+                  class="form-control"
+                  accept="image/*">
+                <div class="form-text">Optional. JPG or PNG recommended.</div>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle"></i>
+                Save Changes
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- ================= 2. Security ================= -->
+        <div class="col-lg-6">
+          <div class="card p-3 h-100">
+            <h5 class="mb-3">
+              <i class="bi bi-shield-lock-fill"></i>
+              Security
+            </h5>
+
+            <form action="/admin/settings/password" method="POST">
+
+              <div class="mb-2">
+                <label class="form-label">Current Password</label>
+                <input
+                  type="password"
+                  name="current_password"
+                  class="form-control"
+                  required>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">New Password</label>
+                <input
+                  type="password"
+                  name="new_password"
+                  class="form-control"
+                  required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Confirm New Password</label>
+                <input
+                  type="password"
+                  name="confirm_password"
+                  class="form-control"
+                  required>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-key-fill"></i>
+                Change Password
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- ================= 3. Notification Settings ================= -->
+        <div class="col-lg-6">
+          <div class="card p-3 h-100">
+            <h5 class="mb-3">
+              <i class="bi bi-bell-fill"></i>
+              Notification Settings
+            </h5>
+
+            <form action="/admin/settings/notifications" method="POST">
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <div class="fw-medium">Email Notifications</div>
+                  <div class="text-muted small">Receive updates via email</div>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    name="email_notifications"
+                    <%= (locals.settings && settings.email_notifications) ? 'checked' : '' %>>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <div class="fw-medium">System Notifications</div>
+                  <div class="text-muted small">In-app alerts and banners</div>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    name="system_notifications"
+                    <%= (locals.settings && settings.system_notifications) ? 'checked' : '' %>>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <div class="fw-medium">Student Request Alerts</div>
+                  <div class="text-muted small">Notify when a student submits a request</div>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    name="request_alerts"
+                    <%= (locals.settings && settings.request_alerts) ? 'checked' : '' %>>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <div class="fw-medium">Fee Reminder Alerts</div>
+                  <div class="text-muted small">Notify when fees are due or overdue</div>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    name="fee_reminder_alerts"
+                    <%= (locals.settings && settings.fee_reminder_alerts) ? 'checked' : '' %>>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle"></i>
+                Save Preferences
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- ================= 4. System Preferences ================= -->
+        <div class="col-lg-6">
+          <div class="card p-3 h-100">
+            <h5 class="mb-3">
+              <i class="bi bi-sliders"></i>
+              System Preferences
+            </h5>
+
+            <form action="/admin/settings/preferences" method="POST">
+
+              <div class="mb-2">
+                <label class="form-label">Theme</label>
+                <select name="theme" class="form-select">
+                  <option value="light" <%= (locals.settings && settings.theme === 'light') ? 'selected' : '' %>>Light</option>
+                  <option value="dark" <%= (locals.settings && settings.theme === 'dark') ? 'selected' : '' %>>Dark</option>
+                  <option value="system" <%= (locals.settings && settings.theme === 'system') ? 'selected' : '' %>>System</option>
+                </select>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Language</label>
+                <select name="language" class="form-select">
+                  <option value="en" selected>English</option>
+                </select>
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Time Zone</label>
+                <select name="timezone" class="form-select">
+                  <option value="Asia/Kolkata" <%= (locals.settings && settings.timezone === 'Asia/Kolkata') ? 'selected' : '' %>>(GMT+5:30) India Standard Time</option>
+                  <option value="Asia/Dubai" <%= (locals.settings && settings.timezone === 'Asia/Dubai') ? 'selected' : '' %>>(GMT+4:00) Gulf Standard Time</option>
+                  <option value="UTC" <%= (locals.settings && settings.timezone === 'UTC') ? 'selected' : '' %>>(GMT+0:00) UTC</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Date Format</label>
+                <select name="date_format" class="form-select">
+                  <option value="DD/MM/YYYY" <%= (locals.settings && settings.date_format === 'DD/MM/YYYY') ? 'selected' : '' %>>DD/MM/YYYY</option>
+                  <option value="MM/DD/YYYY" <%= (locals.settings && settings.date_format === 'MM/DD/YYYY') ? 'selected' : '' %>>MM/DD/YYYY</option>
+                  <option value="YYYY-MM-DD" <%= (locals.settings && settings.date_format === 'YYYY-MM-DD') ? 'selected' : '' %>>YYYY-MM-DD</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle"></i>
+                Save Preferences
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- ================= 5. Transport Defaults ================= -->
+        <div class="col-lg-6">
+          <div class="card p-3 h-100">
+            <h5 class="mb-3">
+              <i class="bi bi-bus-front-fill"></i>
+              Transport Defaults
+            </h5>
+
+            <form action="/admin/settings/transport-defaults" method="POST">
+
+              <div class="mb-2">
+                <label class="form-label">Default Bus Capacity</label>
+                <input
+                  type="number"
+                  name="default_bus_capacity"
+                  class="form-control"
+                  min="1"
+                  value="<%= locals.settings ? settings.default_bus_capacity : 40 %>">
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Default Fee Amount</label>
+                <div class="input-group">
+                  <span class="input-group-text">₹</span>
+                  <input
+                    type="number"
+                    name="default_fee_amount"
+                    class="form-control"
+                    min="0"
+                    step="0.01"
+                    value="<%= locals.settings ? settings.default_fee_amount : 5000 %>">
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Default Academic Year</label>
+                <input
+                  type="text"
+                  name="default_academic_year"
+                  class="form-control"
+                  placeholder="e.g. 2026-2027"
+                  value="<%= locals.settings ? settings.default_academic_year : '' %>">
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle"></i>
+                Save Defaults
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- ================= 6. Backup & Maintenance ================= -->
+        <div class="col-lg-6">
+          <div class="card p-3 h-100">
+            <h5 class="mb-3">
+              <i class="bi bi-hdd-stack-fill"></i>
+              Backup & Maintenance
+            </h5>
+
+            <p class="text-muted small">
+              These actions are UI placeholders only — no backend action is wired up yet.
+            </p>
+
+            <div class="d-flex flex-column gap-2">
+
+              <button type="button" class="btn btn-outline-primary">
+                <i class="bi bi-cloud-arrow-down-fill"></i>
+                Backup Database
+              </button>
+
+              <button type="button" class="btn btn-outline-secondary">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+                Restore Database
+              </button>
+
+              <button type="button" class="btn btn-outline-warning">
+                <i class="bi bi-trash3-fill"></i>
+                Clear Cache
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= 7. System Information (Read Only) ================= -->
+        <div class="col-lg-6">
+          <div class="card p-3 h-100">
+            <h5 class="mb-3">
+              <i class="bi bi-info-circle-fill"></i>
+              System Information
+            </h5>
+
+            <ul class="list-group list-group-flush">
+
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Application Version
+                <span class="badge bg-secondary"><%= locals.systemInfo ? systemInfo.app_version : 'v1.0.0' %></span>
+              </li>
+
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Database Status
+                <span class="badge <%= (locals.systemInfo && systemInfo.db_status === 'connected') ? 'bg-success' : 'bg-danger' %>">
+                  <%= locals.systemInfo ? systemInfo.db_status : 'connected' %>
+                </span>
+              </li>
+
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Server Status
+                <span class="badge <%= (locals.systemInfo && systemInfo.server_status === 'online') ? 'bg-success' : 'bg-danger' %>">
+                  <%= locals.systemInfo ? systemInfo.server_status : 'online' %>
+                </span>
+              </li>
+
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Last Backup Date
+                <span class="text-muted">
+                  <%= locals.systemInfo && systemInfo.last_backup_date
+                        ? new Date(systemInfo.last_backup_date).toLocaleString('en-IN')
+                        : '—' %>
+                </span>
+              </li>
+
+            </ul>
+          </div>
+        </div>
+
+        <!-- ================= 8. Danger Zone ================= -->
+        <div class="col-lg-12">
+          <div class="card p-3 border-danger">
+            <h5 class="mb-3 text-danger">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Danger Zone
+            </h5>
+
+            <div class="row g-3">
+
+              <div class="col-md-6 d-flex justify-content-between align-items-center border rounded p-3">
+                <div>
+                  <div class="fw-medium">Logout from All Devices</div>
+                  <div class="text-muted small">Signs you out everywhere except this session.</div>
+                </div>
+                <form action="/admin/settings/logout-all" method="POST">
+                  <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Logout All
+                  </button>
+                </form>
+              </div>
+
+              <div class="col-md-6 d-flex justify-content-between align-items-center border rounded p-3">
+                <div>
+                  <div class="fw-medium">Reset All Settings</div>
+                  <div class="text-muted small">Restores every preference above to default values.</div>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-danger"
+                  data-bs-toggle="modal"
+                  data-bs-target="#resetSettingsModal">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                  Reset Settings
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <%- include('../partials/footer') %>
+
+  </div>
+</div>
+
+<!-- Reset Settings Confirmation Modal -->
+
+<div class="modal fade" id="resetSettingsModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form action="/admin/settings/reset" method="POST" class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title text-danger">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          Confirm Reset
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>
+          This will reset <strong>all</strong> settings — notifications, preferences,
+          and transport defaults — back to their default values. This action cannot be undone.
+        </p>
+        <p class="mb-0">Are you sure you want to continue?</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-danger">
+          <i class="bi bi-arrow-counterclockwise"></i>
+          Yes, Reset Everything
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../public/js/script.js"></script>
+
+</body>
+</html>

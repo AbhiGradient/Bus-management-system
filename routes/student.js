@@ -32,19 +32,20 @@ router.get('/dashboard', async (req, res) => {
     const [[feeSummary]] = await db.query(
       "SELECT COUNT(*) AS unpaidCount FROM fees WHERE student_id=? AND status='unpaid'",
       [student ? student.id : 0]
-    );
+    ); 
 
     const [recentRequests] = await db.query(
       'SELECT * FROM requests WHERE student_id=? ORDER BY created_at DESC LIMIT 5',
       [student ? student.id : 0]
     );
 
-    res.render('student-dashboard', { student, bus, feeSummary, recentRequests });
+    res.render('student/student-dashboard', { student, bus, feeSummary, recentRequests });
   } catch (err) {
     console.error(err);
     res.send('Error loading dashboard');
   }
 });
+
 
 // ================= REQUESTS =================
 router.get('/requests', async (req, res) => {
@@ -54,7 +55,7 @@ router.get('/requests', async (req, res) => {
       'SELECT * FROM requests WHERE student_id=? ORDER BY created_at DESC',
       [student ? student.id : 0]
     );
-    res.render('requests', { requests });
+    res.render('student/requests', { requests });
   } catch (err) {
     console.error(err);
     res.send('Error loading requests');
@@ -77,27 +78,87 @@ router.post('/requests', async (req, res) => {
 });
 
 // ================= FEES =================
-router.get('/fees', async (req, res) => {
+// ================= FEE STATUS =================
+router.get('/fees-status', async (req, res) => {
   try {
+    // Get logged-in student's record
     const student = await getStudentRecord(req.session.user.id);
+
+    if (!student) {
+      return res.send('Student record not found');
+    }
+
+    // Get all fee records for this student
     const [fees] = await db.query(
-      'SELECT * FROM fees WHERE student_id=? ORDER BY due_date DESC',
-      [student ? student.id : 0]
+      `
+      SELECT *
+      FROM fees
+      WHERE student_id = ?
+      ORDER BY due_date DESC
+      `,
+      [student.id]
     );
-    res.render('fees', { fees, students: [] });
+
+    // Calculate totals
+    const totalAmount = fees.reduce(
+      (sum, fee) => sum + Number(fee.amount),
+      0
+    );
+
+    const paidAmount = fees
+      .filter(fee => fee.status === 'paid')
+      .reduce(
+        (sum, fee) => sum + Number(fee.amount),
+        0
+      );
+
+    const unpaidAmount = fees
+      .filter(fee => fee.status === 'unpaid')
+      .reduce(
+        (sum, fee) => sum + Number(fee.amount),
+        0
+      );
+
+    // Send everything to EJS
+    res.render('student/fees-status', {
+      student,
+      fees,
+      totalAmount,
+      paidAmount,
+      unpaidAmount
+    });
+
   } catch (err) {
-    console.error(err);
-    res.send('Error loading fees');
+    console.error('Error loading fee status:', err);
+    res.send('Error loading fee status');
   }
 });
+// ================= PAYMENT HISTORY =================
+router.get('/payment-history', async (req, res) => {
+  try {
+    const student = await getStudentRecord(req.session.user.id);
 
+    const [fees] = await db.query(
+      'SELECT * FROM fees WHERE student_id=? ORDER BY paid_date DESC',
+      [student ? student.id : 0]
+    );
+
+    res.render('student/payment-history', {
+      fees
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading payment history');
+  }
+});
 // ================= PROFILE =================
 router.get('/profile', async (req, res) => {
   try {
     const [[user]] = await db.query('SELECT * FROM users WHERE id=?', [req.session.user.id]);
     const student = await getStudentRecord(req.session.user.id);
     const profile = { ...user, ...student, name: user.name, email: user.email };
-    res.render('profile', { profile, message: null });
+    res.render('student/profile', { profile, message: null });
   } catch (err) {
     console.error(err);
     res.send('Error loading profile');
@@ -119,10 +180,88 @@ router.put('/profile', async (req, res) => {
     const [[user]] = await db.query('SELECT * FROM users WHERE id=?', [req.session.user.id]);
     const student = await getStudentRecord(req.session.user.id);
     const profile = { ...user, ...student, name: user.name, email: user.email };
-    res.render('profile', { profile, message: 'Profile updated successfully!' });
+    res.render('student/profile', { profile, message: 'Profile updated successfully!' });
   } catch (err) {
     console.error(err);
     res.redirect('/student/profile');
+  }
+});
+// ================= BUS DETAILS =================
+router.get('/bus-details', async (req, res) => {
+  try {
+    const student = await getStudentRecord(req.session.user.id);
+
+    let bus = null;
+
+    if (student && student.bus_id) {
+      const [[busRow]] = await db.query(`
+        SELECT b.*, u.name AS driver_name, u.phone AS driver_phone
+        FROM buses b
+        LEFT JOIN users u ON b.driver_id = u.id
+        WHERE b.id = ?
+      `, [student.bus_id]);
+
+      bus = busRow;
+    }
+
+    res.render('student/bus-details', {
+      student,
+      bus,
+      mySeatNo: null
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading bus details');
+  }
+});
+
+// ==============================
+// Seat Management
+// ==============================
+router.get('/seat-management', async (req, res) => {
+  try {
+    const student = await getStudentRecord(req.session.user.id);
+
+    if (!student || !student.bus_id) {
+      return res.render('student/seat-management', {
+        user: req.session.user,
+        student,
+        buses: [],
+        selectedBus: null,
+        allocatedStudents: []
+      });
+    }
+
+    // Get bus details
+    const [[selectedBus]] = await db.query(
+      'SELECT * FROM buses WHERE id = ?',
+      [student.bus_id]
+    );
+
+    // Get all students on this bus
+    const [allocatedStudents] = await db.query(`
+      SELECT
+        s.*,
+        u.name
+      FROM students s
+      JOIN users u
+        ON s.user_id = u.id
+      WHERE s.bus_id = ?
+      ORDER BY s.id
+    `, [student.bus_id]);
+
+    res.render('student/seat-management', {
+      user: req.session.user,
+      student,
+      buses: [],
+      selectedBus,
+      allocatedStudents
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading seat management');
   }
 });
 
