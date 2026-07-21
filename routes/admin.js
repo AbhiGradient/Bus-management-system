@@ -4,10 +4,8 @@ const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 
 // -------- Auth guard: only logged-in admins --------
-function isAdmin(req, res, next) {
-  if (req.session.user && req.session.user.role === 'admin') return next();
-  return res.redirect('/login');
-}
+const isAdmin = require('../middleware/adminAuth');
+
 router.use(isAdmin);
 
 // ================= DASHBOARD =================
@@ -19,7 +17,7 @@ router.get('/dashboard', async (req, res) => {
     const [[{ pendingRequests }]] = await db.query("SELECT COUNT(*) AS pendingRequests FROM requests WHERE status='pending'");
     const [[{ unpaidFees }]] = await db.query("SELECT COUNT(*) AS unpaidFees FROM fees WHERE status='unpaid'");
 
-    res.render('admin-dashboard', {
+    res.render('admin/admin-dashboard', {
       stats: { totalBuses, totalStudents, totalDrivers, pendingRequests, unpaidFees }
     });
   } catch (err) {
@@ -38,7 +36,7 @@ router.get('/buses', async (req, res) => {
       ORDER BY b.id DESC
     `);
     const [drivers] = await db.query("SELECT id, name FROM users WHERE role='driver'");
-    res.render('buses', { buses, drivers, error: null });
+    res.render('admin/buses', { buses, drivers, error: null });
   } catch (err) {
     console.error(err);
     res.send('Error loading buses');
@@ -94,7 +92,7 @@ router.get('/students', async (req, res) => {
       LEFT JOIN buses b ON s.bus_id = b.id
       ORDER BY s.id DESC
     `);
-    res.render('students', { students, error: null });
+    res.render('admin/students', { students, error: null });
   } catch (err) {
     console.error(err);
     res.send('Error loading students');
@@ -169,7 +167,7 @@ router.get('/assign-bus', async (req, res) => {
       ORDER BY b.bus_number
     `);
     const [drivers] = await db.query("SELECT id, name FROM users WHERE role='driver'");
-    res.render('assign-bus', { students, buses, drivers });
+    res.render('admin/assign-bus', { students, buses, drivers });
   } catch (err) {
     console.error(err);
     res.send('Error loading assign-bus page');
@@ -208,7 +206,7 @@ router.get('/requests', async (req, res) => {
       JOIN users u ON s.user_id = u.id
       ORDER BY r.created_at DESC
     `);
-    res.render('requests', { requests });
+    res.render('admin/requests', { requests });
   } catch (err) {
     console.error(err);
     res.send('Error loading requests');
@@ -239,7 +237,7 @@ router.get('/fees', async (req, res) => {
     const [students] = await db.query(`
       SELECT s.id, u.name, s.roll_no FROM students s JOIN users u ON s.user_id = u.id ORDER BY u.name
     `);
-    res.render('fees', { fees, students });
+    res.render('admin/fees', { fees, students });
   } catch (err) {
     console.error(err);
     res.send('Error loading fees');
@@ -275,26 +273,53 @@ router.put('/fees/:id', async (req, res) => {
 // ================= PROFILE =================
 router.get('/profile', async (req, res) => {
   try {
-    const [[admin]] = await db.query('SELECT * FROM users WHERE id=?', [req.session.user.id]);
-    res.render('profile', { profile: admin, message: null });
+    const [[admin]] = await db.query(
+      'SELECT * FROM users WHERE id=?',
+      [req.session.user.id]
+    );
+
+    res.render('admin/profile', {
+      user: req.session.user,
+      profile: admin,
+      message: null
+    });
+
   } catch (err) {
     console.error(err);
     res.send('Error loading profile');
   }
 });
-
-router.put('/profile', async (req, res) => {
+router.put('/admin/profile', async (req, res) => {
   const { name, phone, password } = req.body;
+
   try {
     if (password && password.trim() !== '') {
       const hashed = await bcrypt.hash(password, 10);
-      await db.query('UPDATE users SET name=?, phone=?, password=? WHERE id=?', [name, phone, hashed, req.session.user.id]);
+
+      await db.query(
+        'UPDATE users SET name=?, phone=?, password=? WHERE id=?',
+        [name, phone, hashed, req.session.user.id]
+      );
     } else {
-      await db.query('UPDATE users SET name=?, phone=? WHERE id=?', [name, phone, req.session.user.id]);
+      await db.query(
+        'UPDATE users SET name=?, phone=? WHERE id=?',
+        [name, phone, req.session.user.id]
+      );
     }
+
     req.session.user.name = name;
-    const [[admin]] = await db.query('SELECT * FROM users WHERE id=?', [req.session.user.id]);
-    res.render('profile', { profile: admin, message: 'Profile updated successfully!' });
+
+    const [[admin]] = await db.query(
+      'SELECT * FROM users WHERE id=?',
+      [req.session.user.id]
+    );
+
+    res.render('admin/profile', {
+      user: req.session.user,
+      profile: admin,
+      message: 'Profile updated successfully!'
+    });
+
   } catch (err) {
     console.error(err);
     res.redirect('/admin/profile');

@@ -1,0 +1,101 @@
+<%- include('../partials/header', { pageTitle: 'Admin Dashboard', pageCss: [] }) %>
+
+<div class="app-shell">
+  <%- include('../partials/sidebar', { currentPage: 'dashboard' }) %>
+  <%- include('../partials/navbar', { pageLabel: 'Dashboard' }) %>
+
+  <div class="app-main">
+    <main class="main-content">
+
+      <div class="dash-intro">
+        <h3>Welcome back, <%= user.name %></h3>
+        <p>Here's what's happening across the bus fleet today.</p>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="row g-3 mt-1">
+        <div class="col-6 col-md-4 col-xl">
+          <div class="stat-card bg-c1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="11" rx="2"/><path d="M3 12h18"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/></svg>
+            <h2><%= stats.totalBuses %></h2>
+            <div>Total Buses</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="stat-card bg-c2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5"/><circle cx="17.5" cy="9" r="2.6"/><path d="M15.5 14.3c2.4.3 4.3 2 5 5.7"/></svg>
+            <h2><%= stats.totalStudents %></h2>
+            <div>Total Students</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="stat-card bg-c5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M6 17c.5-1.8 1.7-2.6 3-2.6s2.5.8 3 2.6"/><path d="M14 10h4M14 13h4"/></svg>
+            <h2><%= stats.totalDrivers %></h2>
+            <div>Total Drivers</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="stat-card bg-c3">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M5 12L3 19a2 2 0 002 2h14a2 2 0 002-2l-2-7"/></svg>
+            <h2><%= stats.pendingRequests %></h2>
+            <div>Pending Requests</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="stat-card bg-c4">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M9.5 15c0 1.1 1 2 2.5 2s2.5-.8 2.5-2c0-2.5-5-1.5-5-4 0-1.2 1-2 2.5-2s2.5.9 2.5 2"/></svg>
+            <h2><%= stats.unpaidFees %></h2>
+            <div>Unpaid Fees</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions + overview -->
+      <div class="row mt-4 g-3">
+        <div class="col-md-6">
+          <div class="card p-4 h-100">
+            <div class="card-title-row">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h7l-1 8 11-14h-7l1-6z"/></svg>
+              <h5>Quick Actions</h5>
+            </div>
+            <div class="d-grid gap-2 mt-3">
+              <a href="/admin/buses" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Add / Manage Bus
+              </a>
+              <a href="/admin/students" class="btn btn-success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5"/><path d="M17 8v6M20 11h-6"/></svg>
+                Add / Manage Student
+              </a>
+              <a href="/admin/assign-bus" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 7l8 10"/></svg>
+                Assign Bus &amp; Driver
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-4 h-100">
+            <div class="card-title-row">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+              <h5>System Overview</h5>
+            </div>
+            <p class="text-muted mt-3 mb-0">
+              Use the sidebar to manage buses, students, driver assignments, transport requests
+              and fee records for the entire college transport system.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <%- include('../partials/footer') %>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/script.js"></script>
+</body>
+</html>

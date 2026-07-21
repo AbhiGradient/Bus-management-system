@@ -123,185 +123,6 @@ textarea:focus-visible {
 }
 
 /* ============================================================
-   LOGIN PAGE
-   ============================================================ */
-.login-wrapper {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background:
-    radial-gradient(900px 500px at 15% 10%, rgba(184,134,60,0.10), transparent 60%),
-    radial-gradient(900px 600px at 85% 90%, rgba(31,92,79,0.14), transparent 60%),
-    var(--pine-deep);
-}
-
-/* ticket-stub card: punched side-notches + dashed tear line under the header */
-.login-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lift);
-  overflow: visible;
-  max-width: 420px;
-  width: 100%;
-  background: var(--paper-raised);
-  position: relative;
-  animation: stamp-in .45s var(--ease-out) both;
-}
-
-.login-card::before,
-.login-card::after {
-  content: "";
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  background: var(--pine-deep);
-  border-radius: 50%;
-  top: 128px;
-  z-index: 2;
-}
-.login-card::before { left: -11px; }
-.login-card::after  { right: -11px; }
-
-.login-card .card-header {
-  background: linear-gradient(180deg, var(--pine) 0%, var(--pine-deep) 100%);
-  color: #F6F3EC;
-  text-align: center;
-  padding: 32px 20px 22px;
-  border: none;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  position: relative;
-}
-
-.login-card .card-header::after {
-  content: "";
-  position: absolute;
-  left: 24px; right: 24px; bottom: 0;
-  border-bottom: 1.5px dashed rgba(246,243,236,0.35);
-}
-
-.login-card .card-header .bus-icon {
-  font-size: 2.5rem;
-  color: var(--brass);
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
-}
-
-.login-card .card-body,
-.login-card form {
-  background: transparent;
-  padding: 30px 26px 30px;
-}
-
-.login-card label {
-  color: var(--ink-low);
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.login-card input.form-control,
-.login-card select.form-control,
-.login-card .form-control {
-  background: var(--paper-sunk);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  color: var(--ink-hi);
-  padding: 12px 16px;
-  transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out), background .2s;
-}
-
-.login-card .form-control::placeholder { color: var(--ink-low); }
-
-.login-card .form-control:focus {
-  background: #fff;
-  border-color: var(--pine);
-  box-shadow: 0 0 0 4px var(--pine-soft);
-  color: var(--ink-hi);
-  outline: none;
-}
-
-.login-card .btn-primary,
-.login-card button[type="submit"] {
-  width: 100%;
-  border: none;
-  border-radius: 10px;
-  padding: 13px 20px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #fff;
-  background: linear-gradient(135deg, var(--pine), var(--pine-deep));
-  box-shadow: 0 10px 24px rgba(31,92,79,0.28);
-  transition: transform .2s var(--ease-out), box-shadow .2s var(--ease-out), filter .2s;
-}
-
-.login-card .btn-primary:hover,
-.login-card button[type="submit"]:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.06);
-  box-shadow: 0 14px 30px rgba(31,92,79,0.36);
-}
-.login-card .btn-primary:active,
-.login-card button[type="submit"]:active { transform: translateY(0) scale(0.98); }
-
-/* ============================================================
-   NAVBAR
-   ============================================================ */
-.navbar {
-  background: var(--paper-raised) !important;
-  border-bottom: 1px solid var(--line);
-  padding: 12px 22px;
-  position: sticky;
-  top: 0;
-  z-index: 1030;
-  box-shadow: 0 1px 0 rgba(28,38,34,0.03);
-}
-
-.navbar-brand {
-  font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--ink-hi) !important;
-  letter-spacing: 0.01em;
-}
-
-.navbar-brand span {
-  color: var(--brass);
-}
-
-/* ============================================================
-   SIDEBAR — "manifest" panel
-   ============================================================ */
-.sidebar {
-  min-height: calc(100vh - 56px);
-  background: var(--pine-deep);
-  padding-top: 22px;
-  border-right: 1px solid var(--line);
-}
-
-.sidebar .nav-link {
-  color: rgba(246,243,236,0.72);
-  padding: 11px 18px;
-  border-radius: 10px;
-  margin: 3px 12px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background .2s var(--ease-out), color .2s, padding-left .2s;
-  position: relative;
-  border-left: 3px solid transparent;
-}
-
-.sidebar .nav-link.active,
-.sidebar .nav-link:hover {
-  background: rgba(184,134,60,0.14);
-  color: #fff;
-  border-left-color: var(--brass);
-  padding-left: 22px;
-}
-
-/* ============================================================
    MAIN CONTENT
    ============================================================ */
 .main-content {
@@ -520,16 +341,32 @@ label {
 }
 
 /* ============================================================
-   FOOTER
+   DASHBOARD HELPERS
    ============================================================ */
-footer.app-footer {
-  text-align: center;
-  padding: 18px;
+.dash-intro h3 {
+  margin-bottom: 2px;
+  font-size: 1.4rem;
+}
+
+.dash-intro p {
   color: var(--ink-low);
-  font-size: 0.85rem;
-  font-family: var(--font-mono);
-  border-top: 1px solid var(--line);
-  background: var(--paper-raised);
+  margin-bottom: 0;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.card-title-row svg {
+  color: var(--brass);
+  flex-shrink: 0;
+}
+
+.card-title-row h5 {
+  margin: 0;
+  font-size: 1.05rem;
 }
 
 /* ============================================================
@@ -540,166 +377,15 @@ footer.app-footer {
 }
 
 @media (max-width: 991px) {
-  .sidebar { min-height: auto; border-right: none; border-bottom: 1px solid var(--line); }
   .stat-card h2 { font-size: 1.7rem; }
 }
 
 @media (max-width: 767px) {
-  .login-card { max-width: 100%; border-radius: 18px; }
-  .login-card::before, .login-card::after { display: none; }
   .main-content { padding: 16px; }
   .table thead th, .table td { padding: 10px 12px; font-size: 13px; }
 }
 
 @media (max-width: 480px) {
-  .login-card .card-body, .login-card form { padding: 22px 18px 24px; }
   .stat-card { padding: 18px; }
   .stat-card::before, .stat-card::after { display: none; }
-}
-
-/* ============================================
-   FOOTER — Black & White Theme (Standalone)
-   Scoped entirely under .site-footer so it does
-   not require or touch any global stylesheet.
-   ============================================ */
-
-.site-footer {
-    background: #000000;
-    color: #ffffff;
-    border-radius: 12px 12px 0 0;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    padding-bottom: 1rem;
-}
-
-.site-footer .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-}
-
-/* ---- Layout: grid + flex helpers (scoped) ---- */
-.site-footer .content-grid {
-    display: grid;
-    gap: 2rem;
-}
-
-.site-footer .footer-layout {
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    margin-bottom: 2rem;
-}
-
-.site-footer .stack {
-    display: flex;
-    flex-direction: column;
-}
-
-.site-footer .flex-row {
-    display: flex;
-    flex-direction: row;
-}
-
-.site-footer .justify-between {
-    justify-content: space-between;
-}
-
-.site-footer .align-center {
-    align-items: center;
-}
-
-/* ---- Brand ---- */
-.site-footer .footer-brand .brand-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1.15rem;
-}
-
-.site-footer .brand-logo svg {
-    color: #ffffff;
-    stroke: #ffffff;
-}
-
-.site-footer .footer-description {
-    max-width: 300px;
-    margin-top: 0.5rem;
-    font-size: 0.95rem;
-    color: #ffffff;
-}
-
-/* ---- Link columns ---- */
-.site-footer .footer-title {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    color: #ffffff;
-    font-weight: 700;
-}
-
-.site-footer .footer-links ul {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-}
-
-.site-footer .footer-links a {
-    color: #ffffff;
-    font-size: 0.95rem;
-    text-decoration: none;
-}
-
-.site-footer .footer-links a:hover {
-    color: #ffffff;
-    text-decoration: underline;
-}
-
-/* ---- Bottom bar ---- */
-.site-footer .footer-bottom {
-    padding-top: 1rem;
-    border-top: 1px solid #ffffff;
-    font-size: 0.875rem;
-    color: #ffffff;
-}
-
-.site-footer .footer-bottom p {
-    margin: 0;
-    color: #ffffff;
-}
-
-.site-footer .legal-links {
-    gap: 1.5rem;
-}
-
-.site-footer .legal-links a {
-    color: #ffffff;
-    text-decoration: none;
-    font-size: 0.875rem;
-}
-
-.site-footer .legal-links a:hover {
-    text-decoration: underline;
-}
-
-/* ---- Responsive ---- */
-@media (max-width: 768px) {
-    .site-footer .footer-layout {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (max-width: 480px) {
-    .site-footer .footer-layout {
-        grid-template-columns: 1fr;
-    }
-    .site-footer .footer-bottom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
-    }
 }

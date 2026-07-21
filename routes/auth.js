@@ -8,7 +8,7 @@ router.get('/login', (req, res) => {
   if (req.session.user) {
     return res.redirect(`/${req.session.user.role}/dashboard`);
   }
-  res.render('login', { error: null });
+  res.render('auth/login', { error: null });
 });
 
 // -------- POST: Handle Login --------
@@ -22,14 +22,14 @@ router.post('/login', async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.render('login', { error: 'Invalid email or role. Please try again.' });
+      return res.render('auth/login', { error: 'Invalid email or role. Please try again.' });
     }
 
     const user = rows[0];
     const match = await bcrypt.compare(password, user.password);
 
     if (!match) {
-      return res.render('login', { error: 'Incorrect password. Please try again.' });
+      return res.render('auth/login', { error: 'Incorrect password. Please try again.' });
     }
 
     // Save minimal user info in session
@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
     res.redirect(`/${user.role}/dashboard`);
   } catch (err) {
     console.error(err);
-    res.render('login', { error: 'Something went wrong. Please try again later.' });
+    res.render('auth/login', { error: 'Something went wrong. Please try again later.' });
   }
 });
 

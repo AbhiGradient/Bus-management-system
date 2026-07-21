@@ -1,0 +1,32 @@
+<%
+/*
+  views/partials/header.ejs
+  Include at the very top of every page using EJS include syntax,
+  passing pageTitle and an optional pageCss array of stylesheet names.
+
+  Locals:
+    pageTitle (string, optional) — shown in the browser tab
+    pageCss   (array of strings, optional) — page-specific stylesheet names
+               from public/css/, WITHOUT the .css extension, loaded after
+               the shared main/navbar/footer css.
+*/
+%><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof pageTitle !== 'undefined' && pageTitle ? pageTitle + ' | CampusTransit' : 'CampusTransit | Smart College Bus' %></title>
+
+  <!-- BOOTSTRAP 5 CORE CSS (REQUIRED FOR DASHBOARD LAYOUT) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <link href="/css/main.css" rel="stylesheet" />
+  <link href="/css/navbar.css" rel="stylesheet" />
+  <link href="/css/footer.css" rel="stylesheet" />
+  <% if (typeof pageCss !== 'undefined' && pageCss && pageCss.length) { %>
+    <% pageCss.forEach(function(file) { %>
+  <link href="/css/<%= file %>.css" rel="stylesheet" />
+    <% }) %>
+  <% } %>
+</head>
+<body>

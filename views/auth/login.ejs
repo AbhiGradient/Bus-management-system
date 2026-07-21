@@ -1,0 +1,107 @@
+<%- include('../partials/header', { pageTitle: 'Login', pageCss: ['login'] }) %>
+
+<div class="login-shell">
+
+  <div class="login-side">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
+      </div>
+      <strong>CampusTransit</strong>
+    </div>
+
+    <div class="pitch">
+      <div class="eyebrow">Smart College Bus Management</div>
+      <h1>One boarding pass for your whole campus commute.</h1>
+      <p>Track buses live, manage seats and fees, and keep every route running on schedule — for admins, students and drivers alike.</p>
+    </div>
+
+    <div class="login-route-art">
+      <svg viewBox="0 0 460 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 65 C 120 65, 140 20, 230 20 S 340 65, 440 65" stroke="rgba(184,134,60,0.55)" stroke-width="2" stroke-dasharray="1 10" stroke-linecap="round"/>
+        <circle cx="20" cy="65" r="5" fill="#B8863C"/>
+        <circle cx="230" cy="20" r="5" fill="#B8863C"/>
+        <circle cx="440" cy="65" r="5" fill="#B8863C"/>
+        <g transform="translate(150,4)">
+          <rect x="0" y="0" width="34" height="20" rx="4" fill="#F6F3EC" fill-opacity="0.14"/>
+          <rect x="4" y="4" width="10" height="7" rx="1" fill="#F6F3EC" fill-opacity="0.5"/>
+          <rect x="17" y="4" width="10" height="7" rx="1" fill="#F6F3EC" fill-opacity="0.5"/>
+          <circle cx="8" cy="17" r="2" fill="#F6F3EC" fill-opacity="0.5"/>
+          <circle cx="26" cy="17" r="2" fill="#F6F3EC" fill-opacity="0.5"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="route-stops">
+      <div class="stop"><span class="dot"></span> <strong>Live GPS</strong>&nbsp;tracking on every route</div>
+      <div class="stop"><span class="dot"></span> <strong>Seats & fees</strong>&nbsp;managed in one place</div>
+      <div class="stop"><span class="dot"></span> <strong>Role-based</strong>&nbsp;dashboards for every user</div>
+    </div>
+  </div>
+
+  <div class="login-form-side">
+    <div class="login-ticket ticket-card">
+      <div class="ticket-head flex align-center gap-md">
+        <div class="ticket-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
+        </div>
+        <div>
+          <div class="eyebrow">Boarding Pass</div>
+          <h1>Sign in</h1>
+        </div>
+      </div>
+      <div class="ticket-tear"></div>
+
+      <div class="ticket-body">
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="alert alert-danger"><%= error %></div>
+        <% } %>
+
+        <form action="/login" method="POST">
+          <div class="role-tabs">
+            <label class="role-tab is-active" data-role="admin">
+              <input type="radio" name="role" value="admin" checked /> Admin
+            </label>
+            <label class="role-tab" data-role="student">
+              <input type="radio" name="role" value="student" /> Student
+            </label>
+            <label class="role-tab" data-role="driver">
+              <input type="radio" name="role" value="driver" /> Driver
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input class="input" type="email" id="email" name="email" placeholder="you@college.edu" required />
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input class="input" type="password" id="password" name="password" placeholder="••••••••" required />
+          </div>
+
+          <div class="flex justify-between align-center" style="margin-bottom:20px;">
+            <a href="/auth/forgot-password" class="mono" style="font-size:12.5px;color:var(--pine);font-weight:600;">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        </form>
+
+        <p class="login-foot-note">Trouble signing in? <a href="/home/contact">Contact your transport office</a>.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.role-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.role-tab').forEach(function (t) { t.classList.remove('is-active'); });
+      tab.classList.add('is-active');
+    });
+  });
+</script>
+
+</body>
+</html>

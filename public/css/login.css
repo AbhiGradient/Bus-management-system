@@ -1,0 +1,354 @@
+/* ==========================================================================
+   LOGIN.CSS — STANDALONE VERSION
+   Self-contained styles for views/auth/login.ejs.
+   Includes only the design tokens, resets, and shared primitives that the
+   login page actually depends on from main.css, so this file can be loaded
+   on its own with no other stylesheet required.
+   Theme: "Transit Ledger"
+   ========================================================================== */
+
+/* -------- Fonts --------
+   Display : Fraunces      — headings, ticket/ledger character
+   Body    : Inter         — body copy, labels, UI text
+   Mono    : IBM Plex Mono — eyebrows, timestamps, route codes
+------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+/* -------- Design tokens -------- */
+:root {
+  --paper:        #F6F3EC;
+  --paper-raised: #FFFFFF;
+  --paper-sunk:   #EFEAE0;
+
+  --pine:         #1F5C4F;
+  --pine-deep:    #16332C;
+  --pine-raised:  #1F3F36;
+  --pine-soft:    rgba(31, 92, 79, 0.10);
+  --pine-line:    rgba(246, 243, 236, 0.12);
+
+  --brass:        #B8863C;
+  --brass-soft:   rgba(184, 134, 60, 0.14);
+  --brass-ink:    #7A5A22;
+
+  --rust:         #B23B2E;
+  --rust-soft:    rgba(178, 59, 46, 0.12);
+
+  --moss:         #3F7D58;
+  --moss-soft:    rgba(63, 125, 88, 0.12);
+
+  --amber:        #C1862B;
+  --amber-soft:   rgba(193, 134, 43, 0.14);
+
+  --ink-hi:       #1C2622;
+  --ink-mid:      #4B5A54;
+  --ink-low:      #8A9591;
+  --text-on-ink:      #F6F3EC;
+  --text-on-ink-low:  rgba(246, 243, 236, 0.72);
+
+  --line:         rgba(28, 38, 34, 0.12);
+  --line-soft:    rgba(28, 38, 34, 0.07);
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+
+  --shadow-card: 0 1px 2px rgba(28,38,34,0.04), 0 12px 28px rgba(28,38,34,0.08);
+  --shadow-lift: 0 4px 10px rgba(28,38,34,0.06), 0 22px 40px rgba(28,38,34,0.12);
+  --shadow-nav:  0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 20px rgba(0,0,0,0.22);
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* -------- Reset (scoped to what the login page needs) -------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink-mid);
+  background: var(--paper);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+ul, ol { list-style: none; margin: 0; padding: 0; }
+h1, h2, h3, h4, h5, h6 { margin: 0; font-family: var(--font-display); color: var(--ink-hi); font-weight: 600; letter-spacing: 0.005em; }
+p { margin: 0; }
+input, select, textarea { font: inherit; color: inherit; }
+
+::selection { background: var(--brass-soft); color: var(--ink-hi); }
+
+:focus-visible {
+  outline: 2px solid var(--pine);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: var(--paper-sunk); }
+::-webkit-scrollbar-thumb { background: var(--pine); border-radius: 999px; border: 2px solid var(--paper-sunk); }
+::-webkit-scrollbar-thumb:hover { background: var(--pine-deep); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* -------- Animations -------- */
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes stamp-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+/* -------- Typography helper used on the login side panel -------- */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-low);
+}
+
+/* -------- Buttons (needed for the submit button) -------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), filter 0.2s, background 0.15s var(--ease-out);
+  white-space: nowrap;
+}
+.btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+.btn:active { transform: translateY(0) scale(0.98); }
+.btn-primary { background: linear-gradient(135deg, var(--pine), var(--pine-deep)); color: #fff; box-shadow: 0 8px 20px rgba(31,92,79,0.24); }
+.btn-block { width: 100%; }
+
+/* -------- Form fields (email / password / role inputs) -------- */
+.field { margin-bottom: 16px; }
+.field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-low);
+  margin-bottom: 6px;
+}
+.field .hint { font-size: 12px; color: var(--ink-low); margin-top: 4px; }
+.input, select.input, textarea.input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-hi);
+  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s;
+}
+.input:focus, select.input:focus, textarea.input:focus {
+  background: #fff;
+  border-color: var(--pine);
+  box-shadow: 0 0 0 4px var(--pine-soft);
+  outline: none;
+}
+.input::placeholder { color: var(--ink-low); }
+
+/* -------- Ticket-card base (login-ticket extends this signature shape) -------- */
+.ticket-card {
+  position: relative;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lift);
+  overflow: visible;
+  animation: stamp-in 0.45s var(--ease-out) both;
+}
+.ticket-card .ticket-head {
+  padding: 20px 24px 18px;
+  background: linear-gradient(180deg, var(--pine) 0%, var(--pine-deep) 100%);
+  color: var(--text-on-ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.ticket-card .ticket-head .eyebrow { color: var(--text-on-ink-low); }
+.ticket-card .ticket-tear {
+  position: relative;
+  height: 0;
+  border-top: 1.5px dashed rgba(246,243,236,0.35);
+  margin: 0 24px;
+}
+.ticket-card .ticket-tear::before,
+.ticket-card .ticket-tear::after {
+  content: '';
+  position: absolute;
+  top: -11px;
+  width: 22px; height: 22px;
+  background: var(--pine-deep);
+  border-radius: 50%;
+  z-index: 2;
+}
+.ticket-card .ticket-tear::before { left: -35px; }
+.ticket-card .ticket-tear::after { right: -35px; }
+.ticket-card .ticket-body { padding: 22px 24px; }
+
+/* ==========================================================================
+   PAGE-SPECIFIC — views/auth/login.ejs
+   ========================================================================== */
+
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+/* -------- Left panel: brand story + route illustration -------- */
+.login-side {
+  flex: 1.15;
+  background:
+    radial-gradient(1100px 620px at 10% -10%, rgba(184,134,60,0.16), transparent 55%),
+    radial-gradient(900px 700px at 100% 100%, rgba(63,125,88,0.14), transparent 55%),
+    linear-gradient(165deg, var(--pine-deep) 0%, #10241F 100%);
+  color: var(--text-on-ink);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 52px 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* faint dotted route-grid texture, purely decorative */
+.login-side::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(246,243,236,0.06) 1px, transparent 1px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(700px 500px at 70% 30%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(700px 500px at 70% 30%, #000 0%, transparent 75%);
+  pointer-events: none;
+}
+
+.login-side .brand { display: flex; align-items: center; gap: 11px; position: relative; z-index: 1; }
+.login-side .brand .brand-mark {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--brass), #D3A05C);
+  color: var(--pine-deep);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 16px rgba(184,134,60,0.35);
+}
+.login-side .brand strong { font-family: var(--font-display); font-size: 19px; letter-spacing: 0.01em; }
+
+.login-side .pitch { position: relative; z-index: 1; max-width: 30ch; margin-top: 8px; }
+.login-side .pitch .eyebrow { color: var(--brass); margin-bottom: 16px; opacity: 0.9; }
+.login-side .pitch h1 { color: var(--text-on-ink); font-size: 38px; line-height: 1.18; margin-bottom: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.login-side .pitch p { color: var(--text-on-ink-low); font-size: 15px; line-height: 1.7; }
+
+/* -------- Route illustration: a simple stylised transit line with stops -------- */
+.login-route-art { position: relative; z-index: 1; margin: 8px 0 2px; }
+.login-route-art svg { width: 100%; height: auto; display: block; }
+
+.login-side .route-stops { position: relative; z-index: 1; }
+.login-side .route-stops .stop {
+  display: flex; align-items: center; gap: 13px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-on-ink-low);
+  padding: 11px 0;
+}
+.login-side .route-stops .stop .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--brass);
+  box-shadow: 0 0 0 4px rgba(184,134,60,0.16);
+  flex-shrink: 0;
+}
+.login-side .route-stops .stop:not(:last-child) { border-bottom: 1px dashed var(--pine-line); }
+.login-side .route-stops .stop strong { color: var(--text-on-ink); font-weight: 500; }
+
+/* -------- Right panel: form -------- */
+.login-form-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: var(--paper);
+  position: relative;
+}
+
+/* ticket-stub login card: punched side-notches + dashed tear line */
+.login-ticket { width: 100%; max-width: 420px; animation: stamp-in 0.5s var(--ease-out) both; }
+
+.login-ticket .ticket-head {
+  padding: 26px 28px 22px;
+}
+.login-ticket .ticket-head h1 { color: #fff; font-size: 21px; font-family: var(--font-display); margin-top: 2px; }
+.login-ticket .ticket-head p { color: var(--text-on-ink-low); font-size: 12.5px; margin-top: 3px; }
+.login-ticket .ticket-head .ticket-icon {
+  width: 42px; height: 42px;
+  border-radius: 11px;
+  background: rgba(184,134,60,0.18);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.login-ticket .ticket-head .ticket-icon svg { color: var(--brass); }
+
+.login-ticket .ticket-body { padding: 26px 28px 30px; }
+
+/* segmented role control */
+.role-tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 22px;
+  background: var(--paper-sunk);
+  border: 1px solid var(--line-soft);
+  border-radius: 11px;
+  padding: 3px;
+}
+.role-tab {
+  flex: 1;
+  text-align: center;
+  padding: 9px 8px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink-low);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+}
+.role-tab input { display: none; }
+.role-tab.is-active {
+  background: var(--paper-raised);
+  color: var(--pine);
+  box-shadow: 0 2px 6px rgba(28,38,34,0.08);
+}
+
+.login-ticket .field label { display: flex; align-items: center; gap: 6px; }
+
+.login-foot-note {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-low);
+  margin-top: 22px;
+}
+.login-foot-note a { color: var(--pine); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .login-side { display: none; }
+  .login-form-side { padding: 32px 18px; }
+}

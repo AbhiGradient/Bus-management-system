@@ -4,10 +4,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 
 // -------- Auth guard: only logged-in students --------
-function isStudent(req, res, next) {
-  if (req.session.user && req.session.user.role === 'student') return next();
-  return res.redirect('/login');
-}
+const isStudent = require('../middleware/studentAuth');
 router.use(isStudent);
 
 // Helper: get the students.id row that belongs to the logged-in user

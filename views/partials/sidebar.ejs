@@ -1,0 +1,175 @@
+<%
+/*
+  views/partials/sidebar.ejs
+  Include as the first child of .app-shell, before .app-main.
+
+  Locals:
+    currentPage (string) — the key of the link to highlight as active.
+    res.locals.user is already available globally (set in server.js).
+
+  Nav links are grouped per role below. If a page is shared across roles
+  (e.g. seat-management, tracking) it appears in more than one role's list
+  but always points at the SAME file/route — never duplicate the view.
+  See CONTRIBUTING.md.
+*/
+const icons = {
+  grid:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>',
+  bus:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="11" rx="2"/><path d="M3 12h18"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/></svg>',
+  route:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 7l8 10"/></svg>',
+  pin:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s7-6.5 7-11a7 7 0 10-14 0c0 4.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>',
+  users:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5"/><circle cx="17.5" cy="9" r="2.6"/><path d="M15.5 14.3c2.4.3 4.3 2 5 5.7"/></svg>',
+  id:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M6 17c.5-1.8 1.7-2.6 3-2.6s2.5.8 3 2.6"/><path d="M14 10h4M14 13h4"/></svg>',
+  inbox:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h5l2 3h4l2-3h5"/><path d="M5 12L3 19a2 2 0 002 2h14a2 2 0 002-2l-2-7"/></svg>',
+  coin:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M9.5 15c0 1.1 1 2 2.5 2s2.5-.8 2.5-2c0-2.5-5-1.5-5-4 0-1.2 1-2 2.5-2s2.5.9 2.5 2"/></svg>',
+  chart:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>',
+  bell:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 10a6 6 0 1112 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z"/><path d="M9.5 19a2.5 2.5 0 005 0"/></svg>',
+  user:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.3"/><path d="M5 20c1-4 3.8-6 7-6s6 2 7 6"/></svg>',
+  gear:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.2-1.6l2-1.5-2-3.4-2.3.9a7 7 0 00-2.8-1.6L13.3 2h-2.6l-.4 2.8a7 7 0 00-2.8 1.6l-2.3-.9-2 3.4 2 1.5A7 7 0 005 12c0 .5 0 1 .2 1.6l-2 1.5 2 3.4 2.3-.9c.8.7 1.8 1.3 2.8 1.6l.4 2.8h2.6l.4-2.8a7 7 0 002.8-1.6l2.3.9 2-3.4-2-1.5c.1-.5.2-1 .2-1.6z"/></svg>',
+  clock:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+  ticket:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4V8z"/><path d="M9 6v12" stroke-dasharray="2 3"/></svg>',
+  seat:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 12V6a2 2 0 012-2h2a2 2 0 012 2v6"/><path d="M6 12h9a2 2 0 012 2v3H8a2 2 0 01-2-2v-3z"/><path d="M6 19h11"/></svg>',
+  card:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>'
+};
+
+const navConfig = {
+  admin: [
+    {
+      group: 'Overview',
+      links: [
+        { href: '/admin/dashboard', label: 'Dashboard', icon: 'grid', key: 'dashboard' }
+      ]
+    },
+    {
+      group: 'Fleet',
+      links: [
+        { href: '/admin/buses', label: 'Buses', icon: 'bus', key: 'buses' },
+        { href: '/admin/assign-bus', label: 'Assign Bus', icon: 'route', key: 'assign-bus' },
+        { href: '/tracking/live', label: 'Live Tracking', icon: 'pin', key: 'tracking' } // Future
+      ]
+    },
+    {
+      group: 'People',
+      links: [
+        { href: '/admin/students', label: 'Students', icon: 'users', key: 'students' },
+        { href: '/admin/drivers', label: 'Drivers', icon: 'id', key: 'drivers' } // Future
+      ]
+    },
+    {
+      group: 'Operations',
+      links: [
+        { href: '/seat/seat-management', label: 'Seat Management', icon: 'seat', key: 'seat-management' }, // Future
+        { href: '/admin/requests', label: 'Requests', icon: 'inbox', key: 'requests' },
+        { href: '/admin/fees', label: 'Fees', icon: 'coin', key: 'fees' },
+        { href: '/report/reports', label: 'Reports', icon: 'chart', key: 'reports' }, // Future
+        { href: '/admin/notifications', label: 'Notifications', icon: 'bell', key: 'notifications' } // Future
+      ]
+    },
+    {
+      group: 'Account',
+      links: [
+        { href: '/admin/profile', label: 'Profile', icon: 'user', key: 'profile' },
+        { href: '/admin/settings', label: 'Settings', icon: 'gear', key: 'settings' } // Future
+      ]
+    }
+  ],
+
+  student: [
+    {
+      group: 'Overview',
+      links: [
+        { href: '/student/dashboard', label: 'Dashboard', icon: 'grid', key: 'dashboard' }
+      ]
+    },
+    {
+      group: 'My Bus',
+      links: [
+        { href: '/student/bus-details', label: 'Bus Details', icon: 'bus', key: 'bus-details' }, // Future
+        { href: '/seat/seat-management', label: 'Seat Management', icon: 'seat', key: 'seat-management' }, // Future
+        { href: '/tracking/live', label: 'Live Tracking', icon: 'pin', key: 'tracking' }, // Future
+        { href: '/student/route-map', label: 'Route Map', icon: 'route', key: 'route-map' } // Future
+      ]
+    },
+    {
+      group: 'Attendance & Fees',
+      links: [
+        { href: '/student/attendance', label: 'Attendance', icon: 'clock', key: 'attendance' }, // Future
+        { href: '/student/fees', label: 'Fee Status', icon: 'coin', key: 'fee-status' },
+        { href: '/payment/payment-history', label: 'Payment History', icon: 'card', key: 'payment-history' } // Future
+      ]
+    },
+    {
+      group: 'Requests',
+      links: [
+        { href: '/student/request-bus-change', label: 'Request Bus Change', icon: 'ticket', key: 'request-bus-change' }, // Future
+        { href: '/student/requests', label: 'Request Status', icon: 'inbox', key: 'request-status' }
+      ]
+    },
+    {
+      group: 'Account',
+      links: [
+        { href: '/student/profile', label: 'Profile', icon: 'user', key: 'profile' },
+        { href: '/student/notifications', label: 'Notifications', icon: 'bell', key: 'notifications' } // Future
+      ]
+    }
+  ],
+
+  driver: [
+    {
+      group: 'Overview',
+      links: [
+        { href: '/driver/dashboard', label: 'Dashboard', icon: 'grid', key: 'dashboard' }
+      ]
+    },
+    {
+      group: 'Today',
+      links: [
+        { href: '/driver/today-route', label: "Today's Route", icon: 'route', key: 'today-route' }, // Future
+        { href: '/driver/trip-start', label: 'Start Trip', icon: 'bus', key: 'trip-start' }, // Future
+        { href: '/driver/trip-end', label: 'End Trip', icon: 'ticket', key: 'trip-end' }, // Future
+        { href: '/driver/live-location', label: 'Live Location', icon: 'pin', key: 'live-location' } // Future
+      ]
+    },
+    {
+      group: 'Students',
+      links: [
+        { href: '/driver/attendance', label: 'Attendance', icon: 'clock', key: 'attendance' } // Future
+      ]
+    },
+    {
+      group: 'Account',
+      links: [
+        { href: '/driver/profile', label: 'Profile', icon: 'user', key: 'profile' },
+        { href: '/driver/notifications', label: 'Notifications', icon: 'bell', key: 'notifications' } // Future
+      ]
+    }
+  ]
+};
+const role = (typeof user !== 'undefined' && user && navConfig[user.role]) ? user.role : 'admin';
+const active = typeof currentPage !== 'undefined' ? currentPage : '';
+const groups = navConfig[role];
+%>
+<aside class="sidebar" id="appSidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
+    </div>
+    <div class="brand-text">
+      <strong>CampusTransit</strong>
+      <span><%= role %></span>
+    </div>
+  </div>
+  <nav class="sidebar-scroll">
+    <% groups.forEach(function (group) { %>
+      <div class="sidebar-group">
+        <div class="sidebar-group-label"><%= group.group %></div>
+        <% group.links.forEach(function (link) { %>
+          <a href="<%= link.href %>" class="sidebar-link<%= active === link.key ? ' active' : '' %>">
+            <%- icons[link.icon] %>
+            <span><%= link.label %></span>
+          </a>
+        <% }) %>
+      </div>
+    <% }) %>
+  </nav>
+  <div class="sidebar-foot">v1.0 &middot; CampusTransit</div>
+</aside>

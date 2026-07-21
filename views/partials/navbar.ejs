@@ -1,0 +1,52 @@
+<%
+/*
+  views/partials/navbar.ejs
+  Include right after body opens (from header.ejs) on any logged-in
+  page, as the second child of .app-shell — paired with sidebar.ejs
+  and followed by .app-main containing the page content and footer.
+
+  Locals:
+    pageLabel (string, optional) — small heading shown in the navbar
+    res.locals.user is already available globally (set in server.js)
+*/
+%>
+<nav class="navbar">
+  <div class="flex align-center gap-md">
+    <button class="navbar-menu-btn" id="sidebarToggle" aria-label="Toggle menu" type="button">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="navbar-title">
+      <span class="eyebrow">CampusTransit</span>
+      <h2><%= typeof pageLabel !== 'undefined' ? pageLabel : 'Dashboard' %></h2>
+    </div>
+  </div>
+
+  <div class="navbar-right">
+    <% if (typeof user !== 'undefined' && user) { %>
+      <div class="navbar-user">
+        <div class="navbar-avatar"><%= user.name ? user.name.charAt(0).toUpperCase() : '?' %></div>
+        <div>
+          <div class="u-name"><%= user.name %></div>
+          <div class="u-role"><%= user.role %></div>
+        </div>
+      </div>
+    <% } %>
+    <a href="/logout" class="navbar-logout">Log out</a>
+  </div>
+</nav>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<script>
+  (function () {
+    var toggle = document.getElementById('sidebarToggle');
+    var overlay = document.getElementById('sidebarOverlay');
+    var sidebar = document.querySelector('.sidebar');
+    if (!toggle || !sidebar) return;
+    function close() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+    toggle.addEventListener('click', function () {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+    overlay.addEventListener('click', close);
+  })();
+</script>

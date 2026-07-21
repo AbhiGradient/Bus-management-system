@@ -4,10 +4,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 
 // -------- Auth guard: only logged-in drivers --------
-function isDriver(req, res, next) {
-  if (req.session.user && req.session.user.role === 'driver') return next();
-  return res.redirect('/login');
-}
+const isDriver = require("../middleware/driverAuth");
 router.use(isDriver);
 
 // ================= DASHBOARD =================
