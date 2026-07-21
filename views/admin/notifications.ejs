@@ -1,0 +1,203 @@
+<%- include('../partials/header', {
+  pageTitle: 'Notifications',
+  pageCss: []
+}) %>
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+    currentPage: 'notifications'
+  }) %>
+
+  <%- include('../partials/navbar', {
+    pageLabel: 'Notifications'
+  }) %>
+
+  <div class="app-main">
+    <main class="main-content">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>
+          <i class="bi bi-bell-fill"></i>
+          Notifications
+        </h3>
+
+        <button
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#addNotificationModal">
+
+          <i class="bi bi-send-plus"></i>
+          New Notification
+        </button>
+      </div>
+
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Message</th>
+                <th>Audience</th>
+                <th>Sent</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              <% if (notifications.length === 0) { %>
+
+              <tr>
+                <td colspan="6" class="text-center text-muted py-3">
+                  No notifications sent yet.
+                </td>
+              </tr>
+
+              <% } %>
+
+              <% notifications.forEach((n, i) => { %>
+
+              <tr>
+                <td><%= i + 1 %></td>
+                <td><%= n.title %></td>
+                <td><%= n.message %></td>
+                <td>
+                  <% if (n.audience === 'all') { %>
+                    <span class="badge bg-primary">Everyone</span>
+                  <% } else if (n.audience === 'students') { %>
+                    <span class="badge bg-info text-dark">All Students</span>
+                  <% } else if (n.audience === 'drivers') { %>
+                    <span class="badge bg-warning text-dark">All Drivers</span>
+                  <% } else if (n.audience === 'bus') { %>
+                    <span class="badge bg-secondary"><%= n.bus_number %> Riders</span>
+                  <% } %>
+                </td>
+                <td><%= new Date(n.created_at).toLocaleString('en-IN') %></td>
+
+                <td class="text-end">
+
+                  <form
+                    action="/admin/notifications/<%= n.id %>?_method=DELETE"
+                    method="POST"
+                    class="d-inline confirm-delete">
+
+                    <button class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash"></i>
+                    </button>
+
+                  </form>
+
+                </td>
+              </tr>
+
+              <% }) %>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+
+    <%- include('../partials/footer') %>
+
+  </div>
+</div>
+
+<!-- Add Notification Modal -->
+
+<div
+  class="modal fade"
+  id="addNotificationModal"
+  tabindex="-1">
+
+  <div class="modal-dialog">
+
+    <form
+      action="/admin/notifications"
+      method="POST"
+      class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Send New Notification
+        </h5>
+
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="mb-2">
+          <label class="form-label">Title</label>
+          <input
+            type="text"
+            name="title"
+            class="form-control"
+            required>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Message</label>
+          <textarea
+            name="message"
+            rows="3"
+            class="form-control"
+            required></textarea>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label">Send To</label>
+          <select
+            name="audience"
+            id="audienceSelect"
+            class="form-select"
+            required
+            onchange="document.getElementById('busSelectWrap').style.display = (this.value === 'bus') ? 'block' : 'none';">
+            <option value="all">Everyone</option>
+            <option value="students">All Students</option>
+            <option value="drivers">All Drivers</option>
+            <option value="bus">Students on a Specific Bus</option>
+          </select>
+        </div>
+
+        <div class="mb-2" id="busSelectWrap" style="display: none;">
+          <label class="form-label">Select Bus</label>
+          <select name="bus_id" class="form-select">
+            <option value="">-- Choose a bus --</option>
+            <% buses.forEach(b => { %>
+              <option value="<%= b.id %>">
+                <%= b.bus_number %> — <%= b.route_name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="submit"
+          class="btn btn-primary">
+          <i class="bi bi-send"></i>
+          Send Notification
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../public/js/script.js"></script>
+
+</body>
+</html>

@@ -453,6 +453,197 @@ router.get('/seat-management', async (req, res) => {
     res.send('Error loading seat management');
   }
 });
+// ================= REPORTS =================
+
+router.get('/reports', async (req, res) => {
+  try {
+
+    // Dashboard summary
+    const [[{ totalStudents }]] =
+      await db.query("SELECT COUNT(*) AS totalStudents FROM students");
+
+    const [[{ totalBuses, activeBuses }]] =
+      await db.query(`
+        SELECT
+          COUNT(*) AS totalBuses,
+          SUM(status='active') AS activeBuses
+        FROM buses
+      `);
+
+    // Fee totals
+    const [feeTotals] =
+      await db.query(`
+        SELECT status, SUM(amount) AS total
+        FROM fees
+        GROUP BY status
+      `);
+
+    let feesCollected = 0;
+    let feesPending = 0;
+
+    feeTotals.forEach(f => {
+      if (f.status === "paid") feesCollected = Number(f.total || 0);
+      if (f.status === "unpaid") feesPending = Number(f.total || 0);
+    });
+
+    // Bus report
+    const [busReport] =
+      await db.query(`
+        SELECT
+          b.id,
+          b.bus_number,
+          b.route_name,
+          b.capacity,
+          b.status,
+          u.name AS driver_name,
+          COUNT(s.id) AS allocated
+        FROM buses b
+        LEFT JOIN users u ON b.driver_id = u.id
+        LEFT JOIN students s ON s.bus_id = b.id
+        GROUP BY
+          b.id,
+          b.bus_number,
+          b.route_name,
+          b.capacity,
+          b.status,
+          u.name
+        ORDER BY b.bus_number
+      `);
+
+    // Fee report
+    const [feeReport] =
+      await db.query(`
+        SELECT
+          u.name,
+          s.roll_no,
+          f.amount,
+          f.status,
+          f.due_date,
+          f.paid_date
+        FROM fees f
+        JOIN students s ON f.student_id = s.id
+        JOIN users u ON s.user_id = u.id
+        ORDER BY f.due_date DESC
+      `);
+
+    // Request report
+    const [requestReport] =
+      await db.query(`
+        SELECT
+          u.name,
+          r.subject,
+          r.message,
+          r.status,
+          r.created_at
+        FROM requests r
+        JOIN students s ON r.student_id = s.id
+        JOIN users u ON s.user_id = u.id
+        ORDER BY r.created_at DESC
+      `);
+
+    res.render("admin/reports", {
+      totalStudents,
+      totalBuses,
+      activeBuses,
+      feesCollected,
+      feesPending,
+      busReport,
+      feeReport,
+      requestReport
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error loading reports");
+  }
+});
+// ================= NOTIFICATIONS =================
+
+// View Notifications
+router.get('/notifications', async (req, res) => {
+  try {
+
+    const [notifications] = await db.query(`
+      SELECT
+        n.*,
+        b.bus_number
+      FROM notifications n
+      LEFT JOIN buses b
+        ON n.bus_id = b.id
+      ORDER BY n.created_at DESC
+    `);
+
+    const [buses] = await db.query(`
+      SELECT
+        id,
+        bus_number,
+        route_name
+      FROM buses
+      ORDER BY bus_number
+    `);
+
+    res.render('admin/notifications', {
+      notifications,
+      buses
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading notifications');
+  }
+});
+
+
+// Add Notification
+router.post('/notifications', async (req, res) => {
+
+  const {
+    title,
+    message,
+    audience,
+    bus_id
+  } = req.body;
+
+  try {
+
+    await db.query(
+      `INSERT INTO notifications
+      (title, message, audience, bus_id)
+      VALUES (?, ?, ?, ?)`,
+      [
+        title,
+        message,
+        audience,
+        audience === 'bus' ? bus_id : null
+      ]
+    );
+
+    res.redirect('/admin/notifications');
+
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/notifications');
+  }
+});
+
+
+// Delete Notification
+router.delete('/notifications/:id', async (req, res) => {
+
+  try {
+
+    await db.query(
+      `DELETE FROM notifications WHERE id=?`,
+      [req.params.id]
+    );
+
+    res.redirect('/admin/notifications');
+
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/notifications');
+  }
+});
 // ================= PROFILE =================
 router.get('/profile', async (req, res) => {
   try {

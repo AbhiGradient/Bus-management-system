@@ -1,0 +1,242 @@
+<%- include('../partials/header', {
+  pageTitle: 'Reports',
+  pageCss: []
+}) %>
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+    currentPage: 'reports'
+  }) %>
+
+  <%- include('../partials/navbar', {
+    pageLabel: 'Reports & Analytics'
+  }) %>
+
+  <div class="app-main">
+    <main class="main-content">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>
+          <i class="bi bi-bar-chart-line-fill"></i>
+          Reports & Analytics
+        </h3>
+
+        <button
+          class="btn btn-primary"
+          onclick="window.print()">
+          <i class="bi bi-printer"></i>
+          Print / Export
+        </button>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+          <div class="card p-3 text-center">
+            <div class="text-muted small">Total Students</div>
+            <div class="fs-3 fw-bold"><%= totalStudents %></div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card p-3 text-center">
+            <div class="text-muted small">Active Buses</div>
+            <div class="fs-3 fw-bold"><%= activeBuses %> / <%= totalBuses %></div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card p-3 text-center">
+            <div class="text-muted small">Fees Collected</div>
+            <div class="fs-3 fw-bold text-success">₹<%= feesCollected.toLocaleString('en-IN') %></div>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <div class="card p-3 text-center">
+            <div class="text-muted small">Fees Pending</div>
+            <div class="fs-3 fw-bold text-danger">₹<%= feesPending.toLocaleString('en-IN') %></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bus-wise Occupancy Report -->
+      <div class="card p-3 mb-4">
+        <h5 class="mb-3">
+          <i class="bi bi-bus-front"></i>
+          Bus-wise Occupancy
+        </h5>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Bus No.</th>
+                <th>Route</th>
+                <th>Driver</th>
+                <th>Capacity</th>
+                <th>Allocated</th>
+                <th>Vacant</th>
+                <th>Occupancy</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <% if (busReport.length === 0) { %>
+                <tr>
+                  <td colspan="9" class="text-center text-muted py-3">
+                    No buses added yet.
+                  </td>
+                </tr>
+              <% } %>
+
+              <% busReport.forEach((b, i) => { %>
+                <% const pct = b.capacity ? Math.round((b.allocated / b.capacity) * 100) : 0; %>
+                <tr>
+                  <td><%= i + 1 %></td>
+                  <td><%= b.bus_number %></td>
+                  <td><%= b.route_name %></td>
+                  <td><%= b.driver_name || '—' %></td>
+                  <td><%= b.capacity %></td>
+                  <td><%= b.allocated %></td>
+                  <td><%= b.capacity - b.allocated %></td>
+                  <td style="min-width: 140px;">
+                    <div class="progress" style="height: 18px;">
+                      <div
+                        class="progress-bar <%= pct >= 90 ? 'bg-danger' : (pct >= 60 ? 'bg-warning' : 'bg-success') %>"
+                        style="width: <%= pct %>%;">
+                        <%= pct %>%
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge <%= b.status === 'active' ? 'bg-success' : 'bg-secondary' %>">
+                      <%= b.status %>
+                    </span>
+                  </td>
+                </tr>
+              <% }) %>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Fee Status Report -->
+      <div class="card p-3 mb-4">
+        <h5 class="mb-3">
+          <i class="bi bi-cash-coin"></i>
+          Fee Status
+        </h5>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>Roll No</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Paid Date</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <% if (feeReport.length === 0) { %>
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-3">
+                    No fee records found.
+                  </td>
+                </tr>
+              <% } %>
+
+              <% feeReport.forEach((f, i) => { %>
+                <tr>
+                  <td><%= i + 1 %></td>
+                  <td><%= f.name %></td>
+                  <td><%= f.roll_no %></td>
+                  <td>₹<%= Number(f.amount).toLocaleString('en-IN') %></td>
+                  <td>
+                    <span class="badge <%= f.status === 'paid' ? 'bg-success' : 'bg-danger' %>">
+                      <%= f.status %>
+                    </span>
+                  </td>
+                  <td><%= f.due_date ? new Date(f.due_date).toLocaleDateString('en-IN') : '—' %></td>
+                  <td><%= f.paid_date ? new Date(f.paid_date).toLocaleDateString('en-IN') : '—' %></td>
+                </tr>
+              <% }) %>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Requests Report -->
+      <div class="card p-3">
+        <h5 class="mb-3">
+          <i class="bi bi-chat-left-text"></i>
+          Student Requests
+        </h5>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>Subject</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <% if (requestReport.length === 0) { %>
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-3">
+                    No requests submitted yet.
+                  </td>
+                </tr>
+              <% } %>
+
+              <% requestReport.forEach((r, i) => { %>
+                <tr>
+                  <td><%= i + 1 %></td>
+                  <td><%= r.name %></td>
+                  <td><%= r.subject %></td>
+                  <td><%= r.message %></td>
+                  <td>
+                    <span class="badge
+                      <%= r.status === 'approved' ? 'bg-success' : (r.status === 'rejected' ? 'bg-danger' : 'bg-warning text-dark') %>">
+                      <%= r.status %>
+                    </span>
+                  </td>
+                  <td><%= new Date(r.created_at).toLocaleDateString('en-IN') %></td>
+                </tr>
+              <% }) %>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+
+    <%- include('../partials/footer') %>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../public/js/script.js"></script>
+
+</body>
+</html>
