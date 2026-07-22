@@ -77,8 +77,41 @@ router.get('/admin/attendance-report', isAdmin, async (req, res) => {
 // ================= DRIVER: QR SCANNER =================
 router.get('/driver/qr-scanner', isDriver, async (req, res) => {
   try {
-    const [[bus]] = await db.query('SELECT * FROM buses WHERE driver_id = ?', [req.session.user.id]);
-    res.render('qr/qr-scanner', { bus });
+
+    // Driver's bus
+    const [[bus]] = await db.query(
+      'SELECT * FROM buses WHERE driver_id = ?',
+      [req.session.user.id]
+    );
+
+    if (!bus) {
+      return res.render('qr/qr-scanner', {
+        bus: null,
+        totalStudents: 0,
+        boardedCount: 0
+      });
+    }
+
+    // Total students assigned to this bus
+    const [[studentResult]] = await db.query(
+      'SELECT COUNT(*) AS totalStudents FROM students WHERE bus_id = ?',
+      [bus.id]
+    );
+
+    // Students boarded today
+    const [[attendanceResult]] = await db.query(
+      `SELECT COUNT(*) AS boardedCount
+       FROM attendance
+       WHERE bus_id = ? AND date = CURDATE()`,
+      [bus.id]
+    );
+
+    res.render('qr/qr-scanner', {
+      bus,
+      totalStudents: studentResult.totalStudents,
+      boardedCount: attendanceResult.boardedCount
+    });
+
   } catch (err) {
     console.error(err);
     res.send('Error loading QR scanner');

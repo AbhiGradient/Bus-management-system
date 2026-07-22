@@ -57,11 +57,15 @@ const navConfig = {
     {
       group: 'Operations',
       links: [
-        { href: '/admin/seat-management', label: 'Seat Management', icon: 'seat', key: 'seat-management' }, // Future
+        { href: '/admin/seat-management', label: 'Seat Management', icon: 'seat', key: 'seat-management' },
         { href: '/admin/requests', label: 'Requests', icon: 'inbox', key: 'requests' },
         { href: '/admin/fees', label: 'Fees', icon: 'coin', key: 'fees' },
-        { href: '/admin/reports', label: 'Reports', icon: 'chart', key: 'reports' }, // Future
-        { href: '/admin/notifications', label: 'Notifications', icon: 'bell', key: 'notifications' } // Future
+
+        { href: '/admin/qr-generator', label: 'QR Generator', icon: 'ticket', key: 'qr-generator' },
+        { href: '/admin/attendance-report', label: 'Attendance Report', icon: 'clock', key: 'attendance-report' },
+
+        { href: '/admin/reports', label: 'Reports', icon: 'chart', key: 'reports' },
+        { href: '/admin/notifications', label: 'Notifications', icon: 'bell', key: 'notifications' }
       ]
     },
     {
@@ -132,7 +136,7 @@ const navConfig = {
     {
       group: 'Students',
       links: [
-        { href: '/driver/attendance', label: 'Attendance', icon: 'clock', key: 'attendance' } // Future
+        { href: "/driver/qr-scanner", label: "QR Attendance", icon: 'clock', key: 'attendance' } 
       ]
     },
     {
