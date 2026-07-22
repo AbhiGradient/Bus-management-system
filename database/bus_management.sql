@@ -50,8 +50,10 @@ CREATE TABLE students (
   year VARCHAR(30),
   address VARCHAR(255),
   bus_id INT DEFAULT NULL,
+  seat_no VARCHAR(10) DEFAULT NULL, -- seat number on bus_id, set via Admin > Seat Management
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (bus_id) REFERENCES buses(id) ON DELETE SET NULL
+  FOREIGN KEY (bus_id) REFERENCES buses(id) ON DELETE SET NULL,
+  UNIQUE KEY unique_seat_per_bus (bus_id, seat_no) -- prevents two students sharing a seat on the same bus
 );
 
 -- ---------------------------------------------------

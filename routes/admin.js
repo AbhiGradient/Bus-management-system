@@ -74,7 +74,7 @@ router.put('/buses/:id', async (req, res) => {
 
 router.delete('/buses/:id', async (req, res) => {
   try {
-    await db.query('UPDATE students SET bus_id = NULL WHERE bus_id = ?', [req.params.id]);
+    await db.query('UPDATE students SET bus_id = NULL, seat_no = NULL WHERE bus_id = ?', [req.params.id]);
     await db.query('DELETE FROM buses WHERE id = ?', [req.params.id]);
     res.redirect('/admin/buses');
   } catch (err) {
@@ -178,7 +178,10 @@ router.get('/assign-bus', async (req, res) => {
 router.post('/assign-bus/student', async (req, res) => {
   const { student_id, bus_id } = req.body;
   try {
-    await db.query('UPDATE students SET bus_id=? WHERE id=?', [bus_id || null, student_id]);
+    // Changing (or clearing) a student's bus also clears their seat_no —
+    // a seat number only means something relative to the bus it was
+    // assigned on, so it can't survive a bus switch. See Seat Management.
+    await db.query('UPDATE students SET bus_id=?, seat_no=NULL WHERE id=?', [bus_id || null, student_id]);
     res.redirect('/admin/assign-bus');
   } catch (err) {
     console.error(err);
@@ -401,24 +404,39 @@ router.delete('/drivers/:id', async (req, res) => {
 
 router.get('/seat-management', async (req, res) => {
   try {
-    const { bus_id } = req.query;
+    const { bus_id, edit_student } = req.query;
 
-    // Get all buses
+    // Get all buses (for the bus selector)
     const [buses] = await db.query(`
       SELECT id, bus_number, route_name, capacity
       FROM buses
       ORDER BY bus_number
     `);
 
+    // System-wide totals for the summary cards at the top of the page
+    const [[overallStats]] = await db.query(`
+      SELECT
+        COUNT(*) AS totalBuses,
+        COALESCE(SUM(capacity), 0) AS totalCapacity,
+        (SELECT COUNT(*) FROM students WHERE seat_no IS NOT NULL) AS totalOccupied
+      FROM buses
+    `);
+    overallStats.totalBuses = Number(overallStats.totalBuses);
+    overallStats.totalCapacity = Number(overallStats.totalCapacity);
+    overallStats.totalOccupied = Number(overallStats.totalOccupied);
+    overallStats.totalAvailable = overallStats.totalCapacity - overallStats.totalOccupied;
+
     let selectedBus = null;
-    let allocatedStudents = [];
+    let busStudents = [];       // every student on the selected bus (seated or not)
+    let unseatedStudents = [];  // students on this bus still needing a seat
 
     if (bus_id) {
 
       const [[bus]] = await db.query(
-        `SELECT id, bus_number, route_name, capacity
-         FROM buses
-         WHERE id = ?`,
+        `SELECT b.id, b.bus_number, b.route_name, b.capacity, u.name AS driver_name
+         FROM buses b
+         LEFT JOIN users u ON b.driver_id = u.id
+         WHERE b.id = ?`,
         [bus_id]
       );
 
@@ -427,30 +445,99 @@ router.get('/seat-management', async (req, res) => {
       if (selectedBus) {
         const [students] = await db.query(`
           SELECT
-            u.name,
+            s.id,
             s.roll_no,
             s.department,
-            s.year
+            s.year,
+            s.seat_no,
+            u.name
           FROM students s
-          JOIN users u
-            ON s.user_id = u.id
+          JOIN users u ON s.user_id = u.id
           WHERE s.bus_id = ?
           ORDER BY u.name
         `, [bus_id]);
 
-        allocatedStudents = students;
+        busStudents = students;
+        unseatedStudents = students.filter(s => !s.seat_no);
       }
     }
 
+    // Recent seat allocations across every bus, for the table at the bottom
+    const [recentAllocations] = await db.query(`
+      SELECT
+        s.id,
+        s.seat_no,
+        s.roll_no,
+        u.name,
+        b.id AS bus_id,
+        b.bus_number,
+        b.route_name
+      FROM students s
+      JOIN users u ON s.user_id = u.id
+      JOIN buses b ON s.bus_id = b.id
+      WHERE s.seat_no IS NOT NULL
+      ORDER BY s.id DESC
+      LIMIT 20
+    `);
+
     res.render('admin/seat-management', {
       buses,
+      overallStats,
       selectedBus,
-      allocatedStudents
+      busStudents,
+      unseatedStudents,
+      recentAllocations,
+      editStudentId: edit_student ? Number(edit_student) : null,
+      seatError: req.query.error || null
     });
 
   } catch (err) {
     console.error(err);
     res.send('Error loading seat management');
+  }
+});
+
+// Assign (or change) a seat for a student already on the given bus
+router.post('/seat-management/assign', async (req, res) => {
+  const { bus_id, student_id, seat_no } = req.body;
+
+  try {
+    if (!bus_id || !student_id || !seat_no) {
+      return res.redirect(`/admin/seat-management?bus_id=${bus_id || ''}`);
+    }
+
+    // Make sure this seat isn't already taken by a DIFFERENT student on the same bus
+    const [[taken]] = await db.query(
+      `SELECT id FROM students WHERE bus_id = ? AND seat_no = ? AND id != ?`,
+      [bus_id, seat_no, student_id]
+    );
+
+    if (taken) {
+      return res.redirect(`/admin/seat-management?bus_id=${bus_id}&error=seat_taken`);
+    }
+
+    await db.query(
+      `UPDATE students SET seat_no = ? WHERE id = ? AND bus_id = ?`,
+      [seat_no, student_id, bus_id]
+    );
+
+    res.redirect(`/admin/seat-management?bus_id=${bus_id}`);
+  } catch (err) {
+    console.error(err);
+    res.redirect(`/admin/seat-management?bus_id=${bus_id || ''}`);
+  }
+});
+
+// Cancel a student's seat allocation (keeps them on the bus, frees the seat)
+router.post('/seat-management/cancel', async (req, res) => {
+  const { student_id, bus_id } = req.body;
+
+  try {
+    await db.query(`UPDATE students SET seat_no = NULL WHERE id = ?`, [student_id]);
+    res.redirect(`/admin/seat-management?bus_id=${bus_id || ''}`);
+  } catch (err) {
+    console.error(err);
+    res.redirect(`/admin/seat-management?bus_id=${bus_id || ''}`);
   }
 });
 // ================= REPORTS =================
@@ -561,69 +648,74 @@ router.get('/reports', async (req, res) => {
 
 // View Notifications
 router.get('/notifications', async (req, res) => {
-  try {
 
-    const [notifications] = await db.query(`
-      SELECT
-        n.*,
-        b.bus_number
-      FROM notifications n
-      LEFT JOIN buses b
-        ON n.bus_id = b.id
-      ORDER BY n.created_at DESC
-    `);
+    try {
 
-    const [buses] = await db.query(`
-      SELECT
-        id,
-        bus_number,
-        route_name
-      FROM buses
-      ORDER BY bus_number
-    `);
+        const [notifications] = await db.query(`
+            SELECT
+                n.*,
+                b.bus_number
+            FROM notifications n
+            LEFT JOIN buses b
+                ON n.bus_id = b.id
+            ORDER BY n.created_at DESC
+        `);
 
-    res.render('admin/notifications', {
-      notifications,
-      buses
-    });
+        const [buses] = await db.query(`
+            SELECT *
+            FROM buses
+            ORDER BY bus_number
+        `);
 
-  } catch (err) {
-    console.error(err);
-    res.send('Error loading notifications');
-  }
+        res.render('admin/notifications', {
+            notifications,
+            buses
+        });
+
+    } catch (err) {
+
+        console.error(err);
+        res.send(err.message);
+
+    }
+
 });
 
 
 // Add Notification
 router.post('/notifications', async (req, res) => {
 
-  const {
-    title,
-    message,
-    audience,
-    bus_id
-  } = req.body;
-
-  try {
-
-    await db.query(
-      `INSERT INTO notifications
-      (title, message, audience, bus_id)
-      VALUES (?, ?, ?, ?)`,
-      [
+    const {
         title,
         message,
         audience,
-        audience === 'bus' ? bus_id : null
-      ]
-    );
+        bus_id
+    } = req.body;
 
-    res.redirect('/admin/notifications');
+    try {
 
-  } catch (err) {
-    console.error(err);
-    res.redirect('/admin/notifications');
-  }
+        await db.query(`
+            INSERT INTO notifications
+            (title,message,audience,bus_id)
+            VALUES (?,?,?,?)
+        `,[
+            title,
+            message,
+            audience,
+            audience === 'bus'
+                ? bus_id
+                : null
+        ]);
+
+        res.redirect('/admin/notifications');
+
+    } catch(err){
+
+        console.error(err);
+        res.send(err.message);
+
+    }
+
 });
 
 

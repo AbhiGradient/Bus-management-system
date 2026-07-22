@@ -370,6 +370,84 @@ label {
 }
 
 /* ============================================================
+   SEAT MANAGEMENT (Admin > Seat Management)
+   ============================================================ */
+.driver-box {
+  width: 160px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, var(--pine), var(--pine-deep));
+  color: #fff;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.driver-box .driver-label {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+/* Seats render as a vertical stack of bus rows (1,2 | aisle | 3,4 then
+   5,6 | aisle | 7,8 …), matching a real coach layout. */
+.seat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.seat-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.seat {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform .2s var(--ease-out), box-shadow .2s var(--ease-out);
+  -webkit-user-select: none;
+  user-select: none;
+  border: 2px solid transparent;
+  box-shadow: var(--shadow-card);
+  color: #fff;
+}
+
+.seat:hover { transform: scale(1.06); }
+
+.seat.available { background: linear-gradient(135deg, var(--moss), #5A9A73); }
+
+.seat.occupied {
+  background: linear-gradient(135deg, var(--rust), #C9584A);
+  cursor: not-allowed;
+}
+
+.seat.selected {
+  background: linear-gradient(135deg, var(--pine), var(--pine-deep));
+  border-color: var(--brass);
+}
+
+.seat-container .aisle {
+  width: 28px;
+  flex: 0 0 28px;
+}
+
+.row-highlight {
+  background: var(--brass-soft) !important;
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1200px) {

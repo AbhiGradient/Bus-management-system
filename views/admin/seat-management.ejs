@@ -3,10 +3,12 @@
   pageCss: []
 }) %>
 
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
 <div class="app-shell">
 
   <%- include('../partials/sidebar', {
-    currentPage: 'seats'
+    currentPage: 'seat-management'
   }) %>
 
   <%- include('../partials/navbar', {
@@ -16,17 +18,46 @@
   <div class="app-main">
     <main class="main-content">
 
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>
-          <i class="bi bi-grid-3x3-gap-fill"></i>
-          Seat Management
-        </h3>
+      <div class="dash-intro mb-4">
+        <h3><i class="bi bi-grid-3x3-gap-fill"></i> Seat Management</h3>
+        <p>Assign, change and track student seat allocation across the fleet.</p>
+      </div>
+
+      <!-- Fleet-wide summary -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="stat-card bg-c1">
+            <i class="bi bi-bus-front fs-4"></i>
+            <h2><%= overallStats.totalBuses %></h2>
+            <div>Total Buses</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card bg-c3">
+            <i class="bi bi-grid-3x3-gap fs-4"></i>
+            <h2><%= overallStats.totalCapacity %></h2>
+            <div>Total Seats</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card bg-c4">
+            <i class="bi bi-person-fill-check fs-4"></i>
+            <h2><%= overallStats.totalOccupied %></h2>
+            <div>Occupied Seats</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card bg-c5">
+            <i class="bi bi-check-circle fs-4"></i>
+            <h2><%= overallStats.totalAvailable %></h2>
+            <div>Available Seats</div>
+          </div>
+        </div>
       </div>
 
       <!-- Bus Selector -->
-      <div class="card p-3 mb-3">
+      <div class="card p-3 mb-4">
         <form action="/admin/seat-management" method="GET" class="row g-2 align-items-end">
-
           <div class="col-md-5">
             <label class="form-label">Select Bus</label>
             <select
@@ -53,127 +84,211 @@
               View Seats
             </button>
           </div>
-
         </form>
       </div>
 
       <% if (!selectedBus) { %>
 
         <div class="card p-4 text-center text-muted">
-          Select a bus above to view its seat allocation.
+          Select a bus above to view and assign its seat layout.
         </div>
 
       <% } else { %>
 
-        <!-- Summary -->
-        <div class="row mb-3 g-3">
+        <% const occupiedCount = busStudents.filter(s => s.seat_no).length; %>
+        <% const availableCount = selectedBus.capacity - occupiedCount; %>
 
-          <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="text-muted small">Total Capacity</div>
-              <div class="fs-3 fw-bold"><%= selectedBus.capacity %></div>
+        <% if (seatError === 'seat_taken') { %>
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            That seat is already occupied on this bus. Please choose another seat.
+          </div>
+        <% } %>
+
+        <div class="row g-4">
+
+          <!-- Assign Seat + Layout -->
+          <div class="col-lg-8">
+            <div class="card p-3 p-md-4" id="assign-seat">
+              <h5 class="mb-3">Assign Seat</h5>
+
+              <form
+                id="assignSeatForm"
+                action="/admin/seat-management/assign"
+                method="POST"
+                class="row g-3">
+
+                <input type="hidden" name="bus_id" value="<%= selectedBus.id %>" />
+                <input type="hidden" name="seat_no" id="seatNoInput" value="" />
+
+                <div class="col-md-6">
+                  <label class="form-label">Select Student</label>
+                  <select name="student_id" id="studentSelect" class="form-select" required>
+                    <option value="" disabled <%= !editStudentId ? 'selected' : '' %>>-- Choose a student --</option>
+
+                    <% busStudents.forEach(s => { %>
+                      <% if (!s.seat_no || s.id === editStudentId) { %>
+                        <option
+                          value="<%= s.id %>"
+                          <%= editStudentId === s.id ? 'selected' : '' %>>
+                          <%= s.name %> (<%= s.roll_no %>)<%= s.seat_no ? ' — currently seat ' + s.seat_no : '' %>
+                        </option>
+                      <% } %>
+                    <% }) %>
+                  </select>
+                  <% if (unseatedStudents.length === 0 && !editStudentId) { %>
+                    <div class="form-text">Every student on this bus already has a seat.</div>
+                  <% } %>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Route</label>
+                  <input type="text" class="form-control" value="<%= selectedBus.route_name %>" disabled />
+                </div>
+
+                <div class="col-12">
+                  <div class="alert alert-info d-flex justify-content-between align-items-center mb-0">
+                    <span>Selected Seat: <strong id="selectedSeatText">None</strong></span>
+                    <button type="submit" class="btn btn-primary btn-sm" id="assignBtn" disabled>
+                      <i class="bi bi-check-circle"></i>
+                      Assign Selected Seat
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <hr class="my-4">
+
+              <h6 class="mb-3">Bus Seat Layout</h6>
+
+              <div class="driver-box text-center mb-4">
+                <i class="bi bi-steering-wheel fs-3"></i>
+                <div class="driver-label">DRIVER</div>
+              </div>
+
+              <div class="seat-container" id="seatContainer">
+                <% for (let rowStart = 1; rowStart <= selectedBus.capacity; rowStart += 4) { %>
+                  <div class="seat-row">
+                    <% for (let seatNo = rowStart; seatNo <= Math.min(rowStart + 3, selectedBus.capacity); seatNo++) { %>
+
+                      <% const occupant = busStudents.find(s => Number(s.seat_no) === seatNo); %>
+
+                      <% if (occupant) { %>
+                        <div
+                          class="seat occupied"
+                          data-bs-toggle="tooltip"
+                          title="<%= occupant.name %> (<%= occupant.roll_no %>)">
+                          <%= seatNo %>
+                        </div>
+                      <% } else { %>
+                        <div class="seat available" data-seat="<%= seatNo %>">
+                          <%= seatNo %>
+                        </div>
+                      <% } %>
+
+                      <% if (seatNo - rowStart === 1) { %>
+                        <div class="aisle"></div>
+                      <% } %>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+
+              <div class="legend mt-4">
+                <span class="badge bg-success p-2">Available</span>
+                <span class="badge bg-danger p-2">Occupied</span>
+                <span class="badge bg-primary p-2">Selected</span>
+              </div>
             </div>
           </div>
 
-          <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="text-muted small">Allocated Seats</div>
-              <div class="fs-3 fw-bold text-danger"><%= allocatedStudents.length %></div>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="text-muted small">Vacant Seats</div>
-              <div class="fs-3 fw-bold text-success">
-                <%= selectedBus.capacity - allocatedStudents.length %>
+          <!-- Bus Information -->
+          <div class="col-lg-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">Bus Information</h5>
+              </div>
+              <div class="card-body">
+                <p><strong>Bus Number:</strong> <%= selectedBus.bus_number %></p>
+                <hr>
+                <p><strong>Driver:</strong> <%= selectedBus.driver_name || '—' %></p>
+                <hr>
+                <p><strong>Route:</strong> <%= selectedBus.route_name %></p>
+                <hr>
+                <p><strong>Capacity:</strong> <%= selectedBus.capacity %> Seats</p>
+                <hr>
+                <p><strong>Occupied:</strong> <%= occupiedCount %> Seats</p>
+                <hr>
+                <p><strong>Available:</strong> <%= availableCount %> Seats</p>
               </div>
             </div>
           </div>
 
         </div>
 
-        <!-- Seat Grid -->
-        <div class="card p-3">
+      <% } %>
 
-          <h5 class="mb-3">
-            <%= selectedBus.bus_number %> — <%= selectedBus.route_name %>
-          </h5>
-
-          <div class="d-flex gap-3 mb-3">
-            <span>
-              <span class="badge bg-danger">&nbsp;</span>
-              Allocated
-            </span>
-            <span>
-              <span class="badge bg-success">&nbsp;</span>
-              Vacant
-            </span>
+      <!-- Recent Seat Allocations -->
+      <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Recent Seat Allocations</h5>
+          <div class="d-flex gap-2">
+            <input
+              type="search"
+              id="allocationSearch"
+              class="form-control form-control-sm"
+              placeholder="Search student..."
+              style="width: 200px;">
+            <button class="btn btn-success btn-sm" id="exportBtn" type="button">
+              <i class="bi bi-download"></i> Export
+            </button>
           </div>
-
-          <div class="seat-grid d-flex flex-wrap gap-2">
-
-            <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
-
-              <% const student = allocatedStudents[seatNo - 1]; %>
-
-              <% if (student) { %>
-
-                <div
-                  class="seat seat-occupied"
-                  data-bs-toggle="tooltip"
-                  title="<%= student.name %> (<%= student.roll_no %>)">
-                  <i class="bi bi-person-fill"></i>
-                  <small><%= seatNo %></small>
-                </div>
-
-              <% } else { %>
-
-                <div class="seat seat-vacant">
-                  <i class="bi bi-person"></i>
-                  <small><%= seatNo %></small>
-                </div>
-
-              <% } %>
-
-            <% } %>
-
-          </div>
-
         </div>
-
-        <!-- Student list for this bus -->
-        <div class="card p-3 mt-3">
-          <h5 class="mb-3">Students Allocated to <%= selectedBus.bus_number %></h5>
-
+        <div class="card-body">
           <div class="table-responsive">
-            <table class="table table-hover align-middle">
+            <table class="table table-hover align-middle" id="allocationTable">
               <thead>
                 <tr>
-                  <th>Seat #</th>
-                  <th>Name</th>
+                  <th>#</th>
+                  <th>Student Name</th>
                   <th>Roll No</th>
-                  <th>Department</th>
-                  <th>Year</th>
+                  <th>Bus</th>
+                  <th>Seat No</th>
+                  <th>Route</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
 
-                <% if (allocatedStudents.length === 0) { %>
+                <% if (recentAllocations.length === 0) { %>
                   <tr>
-                    <td colspan="5" class="text-center text-muted py-3">
-                      No students allocated to this bus yet.
-                    </td>
+                    <td colspan="7" class="text-center text-muted py-3">No seats have been assigned yet.</td>
                   </tr>
                 <% } %>
 
-                <% allocatedStudents.forEach((s, i) => { %>
+                <% recentAllocations.forEach((a, i) => { %>
                   <tr>
                     <td><%= i + 1 %></td>
-                    <td><%= s.name %></td>
-                    <td><%= s.roll_no %></td>
-                    <td><%= s.department %></td>
-                    <td><%= s.year %></td>
+                    <td><%= a.name %></td>
+                    <td><%= a.roll_no %></td>
+                    <td><%= a.bus_number %></td>
+                    <td><%= a.seat_no %></td>
+                    <td><%= a.route_name %></td>
+                    <td>
+                      <a
+                        href="/admin/seat-management?bus_id=<%= a.bus_id %>&edit_student=<%= a.id %>#assign-seat"
+                        class="btn btn-warning btn-sm">
+                        Change
+                      </a>
+                      <form
+                        action="/admin/seat-management/cancel"
+                        method="POST"
+                        class="d-inline confirm-delete">
+                        <input type="hidden" name="student_id" value="<%= a.id %>" />
+                        <input type="hidden" name="bus_id" value="<%= a.bus_id %>" />
+                        <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                      </form>
+                    </td>
                   </tr>
                 <% }) %>
 
@@ -181,8 +296,7 @@
             </table>
           </div>
         </div>
-
-      <% } %>
+      </div>
 
     </main>
 
@@ -191,33 +305,71 @@
   </div>
 </div>
 
-<style>
-  .seat {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    color: #fff;
-    cursor: default;
-  }
-  .seat-occupied {
-    background-color: var(--bs-danger, #dc3545);
-  }
-  .seat-vacant {
-    background-color: var(--bs-success, #198754);
-  }
-</style>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/script.js"></script>
 <script>
-  const tooltipEls = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  tooltipEls.forEach(el => new bootstrap.Tooltip(el));
+  // Tooltips for occupied seats
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+
+  // ---------- Seat selection ----------
+  const seatNoInput = document.getElementById('seatNoInput');
+  const selectedSeatText = document.getElementById('selectedSeatText');
+  const assignBtn = document.getElementById('assignBtn');
+
+  document.querySelectorAll('.seat.available').forEach(seat => {
+    seat.addEventListener('click', function () {
+      document.querySelectorAll('.seat.available').forEach(s => s.classList.remove('selected'));
+      this.classList.add('selected');
+
+      seatNoInput.value = this.dataset.seat;
+      selectedSeatText.textContent = this.dataset.seat;
+      assignBtn.disabled = false;
+    });
+  });
+
+  document.getElementById('assignSeatForm')?.addEventListener('submit', function (e) {
+    const studentSelect = document.getElementById('studentSelect');
+    if (!studentSelect.value || !seatNoInput.value) {
+      e.preventDefault();
+      alert('Please select both a student and a seat before assigning.');
+    }
+  });
+
+  // ---------- Search within the allocation table ----------
+  const searchBox = document.getElementById('allocationSearch');
+  if (searchBox) {
+    searchBox.addEventListener('input', function () {
+      const term = this.value.trim().toLowerCase();
+      let firstMatch = null;
+
+      document.querySelectorAll('#allocationTable tbody tr').forEach(row => {
+        const name = (row.cells[1]?.textContent || '').toLowerCase();
+        const matches = term !== '' && name.includes(term);
+
+        row.classList.toggle('row-highlight', matches);
+        if (matches && !firstMatch) firstMatch = row;
+      });
+
+      if (firstMatch) {
+        firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+
+  // ---------- Export table to Excel-readable file ----------
+  document.getElementById('exportBtn')?.addEventListener('click', function () {
+    const table = document.getElementById('allocationTable').outerHTML;
+    const blob = new Blob([table], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'SeatAllocation.xls';
+    a.click();
+
+    URL.revokeObjectURL(url);
+  });
 </script>
-<script src="../public/js/script.js"></script>
 
 </body>
 </html>

@@ -94,7 +94,7 @@
 
           <div class="seat-grid d-flex flex-wrap gap-2">
             <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
-              <% const s = allocatedStudents[seatNo - 1]; %>
+              <% const s = allocatedStudents.find(a => Number(a.seat_no) === seatNo); %>
               <% const isMine = user.role === 'student' && s && s.id === student.id; %>
               <% if (s) { %>
                 <div
@@ -126,9 +126,12 @@
                 <% if (allocatedStudents.length === 0) { %>
                   <tr><td colspan="5" class="text-center text-muted py-3">No students allocated to this bus yet.</td></tr>
                 <% } %>
-                <% allocatedStudents.forEach((s, i) => { %>
+                <% allocatedStudents
+                    .slice()
+                    .sort((a, b) => Number(a.seat_no) - Number(b.seat_no))
+                    .forEach((s) => { %>
                   <tr>
-                    <td><%= i + 1 %></td>
+                    <td><%= s.seat_no %></td>
                     <td><%= s.name %></td>
                     <td><%= s.roll_no %></td>
                     <td><%= s.department %></td>
