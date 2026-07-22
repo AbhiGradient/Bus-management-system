@@ -93,6 +93,48 @@
 
         </div>
 
+        <!-- Driver Details -->
+        <div class="card p-3 mb-3">
+          <div class="card-title-row mb-3">
+            <i class="bi bi-person-badge-fill"></i>
+            <h5>Driver Details</h5>
+          </div>
+
+          <% if (selectedBus.driver_name) { %>
+            <div class="driver-details-row">
+              <div class="driver-avatar">
+                <i class="bi bi-person-vcard-fill"></i>
+              </div>
+              <div class="driver-info">
+                <div class="driver-name"><%= selectedBus.driver_name %></div>
+                <div class="driver-meta">
+                  <span>
+                    <i class="bi bi-telephone-fill"></i>
+                    <%= selectedBus.driver_phone || 'Not available' %>
+                  </span>
+                  <span>
+                    <i class="bi bi-bus-front-fill"></i>
+                    <%= selectedBus.bus_number %>
+                  </span>
+                </div>
+              </div>
+              <span class="badge-status ms-auto">On Duty</span>
+            </div>
+          <% } else { %>
+            <div class="driver-details-row driver-unassigned">
+              <div class="driver-avatar driver-avatar-empty">
+                <i class="bi bi-person-x-fill"></i>
+              </div>
+              <div class="driver-info">
+                <div class="driver-name text-muted">No Driver Assigned</div>
+                <div class="driver-meta">
+                  <span>This bus currently has no driver linked to it.</span>
+                </div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+
         <!-- Seat Grid -->
         <div class="card p-3">
 
@@ -111,32 +153,54 @@
             </span>
           </div>
 
-          <div class="seat-grid d-flex flex-wrap gap-2">
+          <!-- Bus body wrapper: gate + driver front + seat rows -->
+          <div class="bus-layout-wrapper">
 
-            <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
+            <div class="bus-front-row">
+              <div class="bus-gate-icon" title="Entry Gate">
+                <i class="bi bi-door-open-fill"></i>
+                <small>Gate</small>
+              </div>
 
-              <% const student = allocatedStudents[seatNo - 1]; %>
+              <div class="bus-driver-icon" title="Driver">
+                <i class="bi bi-steering-wheel"></i>
+                <small>Driver</small>
+              </div>
+            </div>
 
-              <% if (student) { %>
+            <div class="seat-grid">
 
-                <div
-                  class="seat seat-occupied"
-                  data-bs-toggle="tooltip"
-                  title="<%= student.name %> (<%= student.roll_no %>)">
-                  <i class="bi bi-person-fill"></i>
-                  <small><%= seatNo %></small>
-                </div>
+              <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
 
-              <% } else { %>
+                <% const student = allocatedStudents[seatNo - 1]; %>
+                <% const posInRow = ((seatNo - 1) % 4) + 1; %>
 
-                <div class="seat seat-vacant">
-                  <i class="bi bi-person"></i>
-                  <small><%= seatNo %></small>
-                </div>
+                <% if (student) { %>
+
+                  <div
+                    class="seat seat-occupied"
+                    data-bs-toggle="tooltip"
+                    title="<%= student.name %> (<%= student.roll_no %>)">
+                    <i class="bi bi-person-fill"></i>
+                    <small><%= seatNo %></small>
+                  </div>
+
+                <% } else { %>
+
+                  <div class="seat seat-vacant">
+                    <i class="bi bi-person"></i>
+                    <small><%= seatNo %></small>
+                  </div>
+
+                <% } %>
+
+                <% if (posInRow === 2) { %>
+                  <div class="seat-aisle"></div>
+                <% } %>
 
               <% } %>
 
-            <% } %>
+            </div>
 
           </div>
 
@@ -192,6 +256,76 @@
 </div>
 
 <style>
+  /* Bus body container */
+  .bus-layout-wrapper {
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 18px 16px 20px;
+    border: 1px solid var(--line, #dee2e6);
+    border-radius: 22px;
+    background: var(--paper-sunk, #f4f4f4);
+  }
+
+  /* Front row: gate on left, driver on right */
+  .bus-front-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .bus-gate-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--brass-soft, rgba(184,134,60,0.14));
+    border: 1px dashed var(--brass, #B8863C);
+    color: var(--brass, #B8863C);
+    font-size: 1rem;
+  }
+  .bus-gate-icon small {
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .bus-driver-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--paper-raised, #fff);
+    border: 1px solid var(--line, #dee2e6);
+    color: var(--ink-low, #8A9591);
+    font-size: 1rem;
+  }
+  .bus-driver-icon small {
+    font-size: 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /* Seat grid: 2 seats | aisle | 2 seats, wraps into rows automatically */
+  .seat-grid {
+    display: grid;
+    grid-template-columns: 48px 48px 24px 48px 48px;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .seat-aisle {
+    width: 24px;
+  }
+
   .seat {
     width: 48px;
     height: 48px;
@@ -209,6 +343,75 @@
   }
   .seat-vacant {
     background-color: var(--bs-success, #198754);
+  }
+
+  /* Driver Details card */
+  .driver-details-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .driver-avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--pine, #1F5C4F), var(--pine-deep, #16332C));
+    box-shadow: 0 8px 20px rgba(31,92,79,0.24);
+  }
+
+  .driver-avatar-empty {
+    background: linear-gradient(135deg, #8A9591, #6b7570);
+    box-shadow: none;
+  }
+
+  .driver-name {
+    font-family: var(--font-display, 'Fraunces', serif);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink-hi, #1C2622);
+  }
+
+  .driver-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--ink-low, #8A9591);
+  }
+
+  .driver-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .driver-unassigned {
+    opacity: 0.85;
+  }
+
+  @media (max-width: 480px) {
+    .bus-layout-wrapper {
+      max-width: 100%;
+    }
+    .seat-grid {
+      grid-template-columns: 42px 42px 20px 42px 42px;
+      gap: 8px;
+    }
+    .seat {
+      width: 42px;
+      height: 42px;
+    }
+    .driver-details-row {
+      flex-wrap: wrap;
+    }
   }
 </style>
 
