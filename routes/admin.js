@@ -728,3 +728,40 @@ router.get('/settings', (req, res) => {
     });
 
 });
+// ================= ATTENDANCE REPORT =================
+
+router.get('/attendance-report', async (req, res) => {
+  try {
+
+    const [buses] = await db.query(`
+      SELECT id, bus_number
+      FROM buses
+      ORDER BY bus_number
+    `);
+
+    res.render('admin/attendance-report', {
+      user: req.session.user,
+
+      buses,
+
+      filters: {
+        date: req.query.date || '',
+        bus_id: req.query.bus_id || '',
+        status: req.query.status || ''
+      },
+
+      stats: {
+        total: 0,
+        present: 0,
+        absent: 0,
+        rate: 0
+      },
+
+      records: []
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading attendance report');
+  }
+});
