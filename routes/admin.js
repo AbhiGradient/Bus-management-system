@@ -415,19 +415,12 @@ router.get('/seat-management', async (req, res) => {
 
     if (bus_id) {
 
-      const [[bus]] = await db.query(`
-    SELECT
-        b.id,
-        b.bus_number,
-        b.route_name,
-        b.capacity,
-        u.name AS driver_name,
-        u.phone AS driver_phone
-    FROM buses b
-    LEFT JOIN users u
-        ON b.driver_id = u.id
-    WHERE b.id = ?
-`, [bus_id]);
+      const [[bus]] = await db.query(
+        `SELECT id, bus_number, route_name, capacity
+         FROM buses
+         WHERE id = ?`,
+        [bus_id]
+      );
 
       selectedBus = bus;
 
@@ -448,7 +441,7 @@ router.get('/seat-management', async (req, res) => {
         allocatedStudents = students;
       }
     }
-    console.log(selectedBus);
+
     res.render('admin/seat-management', {
       buses,
       selectedBus,
