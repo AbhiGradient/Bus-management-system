@@ -34,11 +34,13 @@ const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const studentRoutes = require('./routes/student');
 const driverRoutes = require('./routes/driver');
+const qrRoutes = require('./routes/qr');
 
 app.use('/', authRoutes);
 app.use('/admin', adminRoutes);
 app.use('/student', studentRoutes);
 app.use('/driver', driverRoutes);
+app.use('/', qrRoutes);
 
 // Root -> login page
 app.get('/', (req, res) => res.redirect('/login'));
