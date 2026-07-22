@@ -25,7 +25,67 @@
           </button>
         <% } %>
       </div>
+<div class="row g-3 mb-4">
 
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0">
+      <div class="card-body text-center">
+        <i class="bi bi-people-fill fs-2 text-primary"></i>
+        <h3 class="mt-2">
+          <%= user.role === 'admin' ? fees.length : 1 %>
+        </h3>
+        <p class="text-muted mb-0">Total Students</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0">
+      <div class="card-body text-center">
+        <i class="bi bi-check-circle-fill fs-2 text-success"></i>
+        <h3>
+          <%= fees.filter(f => f.status === 'paid').length %>
+        </h3>
+        <p class="text-muted mb-0">Paid</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0">
+      <div class="card-body text-center">
+        <i class="bi bi-exclamation-circle-fill fs-2 text-danger"></i>
+        <h3>
+          <%= fees.filter(f => f.status === 'unpaid').length %>
+        </h3>
+        <p class="text-muted mb-0">Pending</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card shadow-sm border-0">
+      <div class="card-body text-center">
+        <i class="bi bi-cash-stack fs-2 text-warning"></i>
+        <h3>
+          ₹<%= fees
+            .filter(f => f.status === 'paid')
+            .reduce((sum, f) => sum + Number(f.amount), 0) %>
+        </h3>
+        <p class="text-muted mb-0">Collection</p>
+      </div>
+    </div>
+  </div>
+
+</div><div class="row mb-3">
+    <div class="col-md-6">
+        <input
+            type="text"
+            id="searchFee"
+            class="form-control"
+            placeholder="Search Student Name or Roll No">
+    </div>
+</div>
       <div class="card p-3">
         <div class="table-responsive">
           <table class="table table-hover align-middle">
@@ -61,18 +121,48 @@
                   </td>
                   <% if (user.role === 'admin') { %>
                     <td class="text-end">
-                      <form action="/admin/fees/<%= f.id %>?_method=PUT" method="POST" class="d-inline">
-                        <select name="status" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
-                          <option value="unpaid" <%= f.status === 'unpaid' ? 'selected' : '' %>>Unpaid</option>
-                          <option value="paid" <%= f.status === 'paid' ? 'selected' : '' %>>Paid</option>
-                        </select>
-                      </form>
-                    </td>
-                  <% } %>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
+
+<div class="d-flex gap-2 justify-content-end">
+
+<form action="/admin/fees/<%= f.id %>?_method=PUT" method="POST">
+
+<select
+name="status"
+class="form-select form-select-sm"
+onchange="this.form.submit()">
+
+<option value="unpaid" <%= f.status=="unpaid"?"selected":"" %>>Unpaid</option>
+
+<option value="paid" <%= f.status=="paid"?"selected":"" %>>Paid</option>
+
+</select>
+
+</form>
+
+<button
+    class="btn btn-success btn-sm receipt-btn"
+    data-student="<%= f.student_name %>"
+    data-roll="<%= f.roll_no %>"
+    data-amount="<%= f.amount %>"
+    data-status="<%= f.status %>"
+    data-due="<%= f.due_date || '' %>"
+    data-paid="<%= f.paid_date || '' %>">
+
+    <i class="bi bi-receipt"></i> Receipt
+</button>
+
+</div>
+
+</td>
+
+<% } %>
+
+</tr>
+
+<% }) %>
+
+</tbody>
+</table>
         </div>
       </div>
 
@@ -103,10 +193,49 @@
               <input type="number" step="0.01" name="amount" class="form-control" required />
             </div>
             <div class="mb-2">
-              <label class="form-label">Due Date</label>
-              <input type="date" name="due_date" class="form-control" required />
-            </div>
-          </div>
+  <label class="form-label">Due Date</label>
+  <input type="date" name="due_date" class="form-control" required />
+</div>
+
+<div class="mb-2">
+    <label class="form-label">Payment Method</label>
+
+    <select class="form-select" name="payment_method" id="paymentMethod">
+        <option value="Cash">Cash</option>
+        <option value="UPI">UPI / QR Code</option>
+        <option value="Google Pay">Google Pay</option>
+        <option value="PhonePe">PhonePe</option>
+        <option value="Paytm">Paytm</option>
+        <option value="Debit Card">Debit Card</option>
+        <option value="Credit Card">Credit Card</option>
+        <option value="Net Banking">Net Banking</option>
+    </select>
+</div>
+
+<div class="mb-2">
+    <label class="form-label">Transaction ID</label>
+    <input
+        type="text"
+        name="transaction_id"
+        class="form-control"
+        placeholder="Enter Transaction ID">
+</div>
+
+<div class="mb-3 text-center" id="qrSection" style="display:none;">
+    <h5>Scan QR Code</h5>
+
+    <img
+        src="/images/collegeQR.png"
+        width="220"
+        class="img-fluid">
+
+    <p class="mt-2">
+        <strong>UPI ID:</strong><br>
+        collegebus@upi
+    </p>
+</div>
+
+</div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Add Record</button>
           </div>
@@ -115,13 +244,17 @@
     </div>
   <% } %> 
 
-   <%- include('../partials/footer') %>
+   
 
   </div> <!-- /.app-main -->
+  
 
 </div> <!-- /.app-shell -->
 
+<%- include('../partials/footer') %>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/js/script.js"></script>
 </body>
 </html>

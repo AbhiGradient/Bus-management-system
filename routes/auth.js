@@ -41,17 +41,18 @@ router.post('/login', async (req, res) => {
     };
 
     res.redirect(`/${user.role}/dashboard`);
-  } catch (err) {
-    console.error(err);
-    res.render('auth/login', { error: 'Something went wrong. Please try again later.' });
-  }
-});
+  } 
+ catch (err) {
+    console.error("LOGIN ERROR:", err);
+    res.render('auth/login', { error: err.message });
+}
+});   // <-- THIS LINE IS MISSING
 
 // -------- GET: Logout --------
 router.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/login');
-  });
+    req.session.destroy(() => {
+        res.redirect('/login');
+    });
 });
 
 module.exports = router;
