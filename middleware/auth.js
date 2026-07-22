@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+const { sendMail } = require('../config/mailer');
 /*
   middleware/auth.js
   Core session guards. Role-specific files (adminAuth.js, studentAuth.js,
@@ -7,6 +9,12 @@
   use these instead.
 */
 
+router.get('/forgot-password', (req, res) => {
+    res.render('auth/forgot-password', {
+        error: null,
+        success: null
+    });
+});
 // Any logged-in user, regardless of role
 function requireLogin(req, res, next) {
   if (req.session && req.session.user) return next();
