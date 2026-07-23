@@ -134,23 +134,20 @@ router.get('/fees-status', async (req, res) => {
   }
 });
 // ================= PAYMENT HISTORY =================
-router.get('/payment-history', isStudent, async (req, res) => {
+// ================= PAYMENT HISTORY =================
+router.get('/payment-history', async (req, res) => {
   try {
-    const [[student]] = await db.query(
-      "SELECT * FROM students WHERE user_id = ?",
-      [req.session.user.id]
-    );
 
-    const [payments] = await db.query(
-      `SELECT *
-       FROM fees
-       WHERE student_id = ?
-       ORDER BY id DESC`,
-      [student.id]
-    );
+    const student = await getStudentRecord(req.session.user.id);
 
-    res.render("student/payment-history", {
-      user: req.session.user,
+    const [payments] = await db.query(`
+      SELECT *
+      FROM fees
+      WHERE student_id = ?
+      ORDER BY due_date DESC
+    `, [student.id]);
+
+    res.render('student/payment-history', {
       payments
     });
 

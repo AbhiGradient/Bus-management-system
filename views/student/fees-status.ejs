@@ -14,6 +14,7 @@
   }) %>
 
   <div class="app-main">
+
     <main class="main-content">
 
       <h3 class="mb-3">
@@ -21,61 +22,148 @@
         My Fee Status
       </h3>
 
-      <div class="row g-3 mb-3">
+      <!-- Summary Cards -->
+      <div class="row g-3 mb-4">
+
         <div class="col-md-4">
           <div class="card p-3 text-center">
             <div class="text-muted small">Total Amount</div>
-            <div class="fs-3 fw-bold">₹<%= totalAmount.toLocaleString('en-IN') %></div>
+            <div class="fs-3 fw-bold">
+              ₹<%= Number(totalAmount).toLocaleString('en-IN') %>
+            </div>
           </div>
         </div>
+
         <div class="col-md-4">
           <div class="card p-3 text-center">
             <div class="text-muted small">Paid</div>
-            <div class="fs-3 fw-bold text-success">₹<%= paidAmount.toLocaleString('en-IN') %></div>
+            <div class="fs-3 fw-bold text-success">
+              ₹<%= Number(paidAmount).toLocaleString('en-IN') %>
+            </div>
           </div>
         </div>
+
         <div class="col-md-4">
           <div class="card p-3 text-center">
             <div class="text-muted small">Unpaid</div>
-            <div class="fs-3 fw-bold text-danger">₹<%= unpaidAmount.toLocaleString('en-IN') %></div>
+            <div class="fs-3 fw-bold text-danger">
+              ₹<%= Number(unpaidAmount).toLocaleString('en-IN') %>
+            </div>
           </div>
         </div>
+
       </div>
 
+      <!-- Fee History -->
       <div class="card p-3">
-        <h5 class="mb-3">Fee History</h5>
+
+        <h5 class="mb-3">
+          <i class="bi bi-clock-history"></i>
+          Fee History
+        </h5>
+
         <div class="table-responsive">
+
           <table class="table table-hover align-middle">
+
             <thead>
-              <tr><th>#</th><th>Amount</th><th>Status</th><th>Due Date</th><th>Paid Date</th></tr>
+              <tr>
+                <th>#</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th>Paid Date</th>
+                <th class="text-center">Action</th>
+              </tr>
             </thead>
+
             <tbody>
 
-              <% if (fees.length === 0) { %>
+              <% if (!fees || fees.length === 0) { %>
+
                 <tr>
-                  <td colspan="5" class="text-center text-muted py-3">
+                  <td colspan="6" class="text-center text-muted py-4">
                     No fee records found.
                   </td>
                 </tr>
+
               <% } %>
 
               <% fees.forEach((f, i) => { %>
+
                 <tr>
-                  <td><%= i + 1 %></td>
-                  <td>₹<%= Number(f.amount).toLocaleString('en-IN') %></td>
+
                   <td>
-                    <span class="badge <%= f.status === 'paid' ? 'bg-success' : 'bg-danger' %>">
-                      <%= f.status %>
-                    </span>
+                    <%= i + 1 %>
                   </td>
-                  <td><%= f.due_date ? new Date(f.due_date).toLocaleDateString('en-IN') : '—' %></td>
-                  <td><%= f.paid_date ? new Date(f.paid_date).toLocaleDateString('en-IN') : '—' %></td>
+
+                  <td>
+                    ₹<%= Number(f.amount).toLocaleString('en-IN') %>
+                  </td>
+
+                  <td>
+
+                    <% if (f.status === 'paid') { %>
+
+                      <span class="badge bg-success">
+                        Paid
+                      </span>
+
+                    <% } else { %>
+
+                      <span class="badge bg-danger">
+                        Unpaid
+                      </span>
+
+                    <% } %>
+
+                  </td>
+
+                  <td>
+                    <%= f.due_date
+                      ? new Date(f.due_date).toLocaleDateString('en-IN')
+                      : '—'
+                    %>
+                  </td>
+
+                  <td>
+                    <%= f.paid_date
+                      ? new Date(f.paid_date).toLocaleDateString('en-IN')
+                      : '—'
+                    %>
+                  </td>
+
+                  <td class="text-center">
+
+                    <% if (f.status === 'unpaid') { %>
+
+                      <a href="/payment/<%= f.id %>"
+                         class="btn btn-success btn-sm">
+                        <i class="bi bi-credit-card"></i>
+                        Pay Now
+                      </a>
+
+                    <% } else { %>
+
+                      <span class="text-success fw-semibold">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Paid
+                      </span>
+
+                    <% } %>
+
+                  </td>
+
                 </tr>
+
               <% }) %>
 
             </tbody>
+
           </table>
+
         </div>
+
       </div>
 
     </main>
@@ -83,6 +171,7 @@
     <%- include('../partials/footer') %>
 
   </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

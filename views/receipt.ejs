@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Receipt - <%= payment.receipt_number %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <style>
+    /* Standalone printable receipt */
+    body{
+      background:var(--paper-sunk);
+      padding:30px 15px;
+    }
+
+    .receipt-wrap{
+      max-width:720px;
+      margin:auto;
+    }
+
+    .receipt-card{
+      background:var(--paper-raised);
+      border:1px solid var(--line);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-card);
+      padding:40px;
+    }
+
+    .receipt-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      border-bottom:2px solid var(--brass);
+      padding-bottom:18px;
+      margin-bottom:25px;
+    }
+
+    .receipt-brand h2{
+      margin:0;
+      color:var(--pine);
+      font-size:28px;
+    }
+
+    .receipt-brand p{
+      margin:3px 0 0;
+      color:var(--ink-low);
+      font-size:13px;
+    }
+
+    .receipt-status{
+      background:var(--moss-soft);
+      color:var(--moss);
+      border:1px solid var(--moss);
+      padding:6px 18px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.05em;
+      font-family:var(--font-mono);
+    }
+
+    .section-title{
+      color:var(--pine);
+      font-size:13px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      border-bottom:1px solid var(--line-soft);
+      padding-bottom:6px;
+      margin:25px 0 10px;
+    }
+
+    .receipt-row{
+      display:flex;
+      justify-content:space-between;
+      padding:7px 0;
+      font-size:14px;
+    }
+
+    .receipt-row .label{
+      color:var(--ink-low);
+    }
+
+    .receipt-row .value{
+      color:var(--ink-hi);
+      font-weight:600;
+    }
+
+    .amount-box{
+      margin-top:25px;
+      padding:18px 20px;
+      border-radius:var(--radius-md);
+      border:1px solid var(--brass);
+      background:var(--paper-sunk);
+
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .amount{
+      font-size:28px;
+      font-weight:700;
+      color:var(--pine);
+    }
+
+    .receipt-footer{
+      margin-top:30px;
+      padding-top:18px;
+      border-top:1px solid var(--line-soft);
+      text-align:center;
+      color:var(--ink-low);
+      font-size:12px;
+    }
+
+    .receipt-actions{
+      max-width:720px;
+      margin:20px auto;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+    }
+
+    @media print{
+
+      body{
+        background:white;
+        padding:0;
+      }
+
+      .receipt-actions{
+        display:none;
+      }
+
+      .receipt-card{
+        border:none;
+        box-shadow:none;
+      }
+
+    }
+  </style>
+
+</head>
+
+<body>
+
+<div class="receipt-actions">
+
+  <button class="btn btn-secondary" onclick="window.print()">
+    <i class="bi bi-printer"></i>
+    Print
+  </button>
+
+  <a href="/payment/receipt/<%= payment.receipt_number %>/download"
+     class="btn btn-primary">
+    <i class="bi bi-download"></i>
+    Download PDF
+  </a>
+
+  <a href="/student/payment-history"
+     class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+    Back
+  </a>
+
+</div>
+
+<div class="receipt-wrap">
+
+  <div class="receipt-card">
+
+    <div class="receipt-header">
+
+      <div class="receipt-brand">
+        <h2>CampusTransit</h2>
+        <p>Smart College Bus Management System</p>
+      </div>
+
+      <span class="receipt-status">
+        <%= payment.status.toUpperCase() %>
+      </span>
+
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Receipt Number</span>
+      <span class="value" style="font-family:var(--font-mono)">
+        <%= payment.receipt_number %>
+      </span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Payment Date</span>
+      <span class="value">
+        <%= new Date(payment.payment_date).toLocaleDateString('en-IN') %>
+      </span>
+    </div>
+
+    <div class="section-title">
+      Student Details
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Student Name</span>
+      <span class="value">
+        <%= student.name %>
+      </span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Roll Number</span>
+      <span class="value">
+        <%= student.roll_no %>
+      </span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Department</span>
+      <span class="value">
+        <%= student.department || '—' %>
+      </span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Bus Route</span>
+      <span class="value">
+        <%= bus ? bus.route_name : '—' %>
+      </span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Bus Number</span>
+      <span class="value">
+        <%= bus ? bus.bus_number : '—' %>
+      </span>
+    </div>
+
+    <div class="section-title">
+      Payment Details
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Transaction ID</span>
+      <span class="value" style="font-family:var(--font-mono)">
+        <%= payment.transaction_id %>
+      </span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Payment Method</span>
+      <span class="value">
+        <%= payment.payment_method %>
+      </span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Fee Due Date</span>
+      <span class="value">
+        <%= fee.due_date ? new Date(fee.due_date).toLocaleDateString('en-IN') : '—' %>
+      </span>
+    </div>
+
+    <div class="receipt-row">
+      <span class="label">Payment Status</span>
+      <span class="value">
+        <%= payment.status.toUpperCase() %>
+      </span>
+    </div>
+
+    <div class="amount-box">
+
+      <span style="font-weight:600;color:var(--ink-mid)">
+        Total Amount Paid
+      </span>
+
+      <span class="amount">
+        ₹<%= Number(payment.amount).toLocaleString('en-IN') %>
+      </span>
+
+    </div>
+
+    <div class="receipt-footer">
+
+      This is a computer-generated receipt for the Smart College Bus Management System and does not require a physical signature.
+
+      <br><br>
+
+      <strong>CampusTransit</strong> · Smart College Bus Management System
+
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>
