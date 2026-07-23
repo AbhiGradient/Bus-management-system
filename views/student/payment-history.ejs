@@ -14,6 +14,7 @@
   }) %>
 
   <div class="app-main">
+
     <main class="main-content">
 
       <h3 class="mb-3">
@@ -22,36 +23,110 @@
       </h3>
 
       <div class="card p-3">
+
         <div class="table-responsive">
+
           <table class="table table-hover align-middle">
+
             <thead>
-              <tr><th>#</th><th>Amount</th><th>Paid Date</th><th>Due Date</th><th>Status</th></tr>
+              <tr>
+                <th>#</th>
+                <th>Receipt No.</th>
+                <th>Amount</th>
+                <th>Payment Date</th>
+                <th>Method</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th>
+              </tr>
             </thead>
+
             <tbody>
 
-              <% const paidFees = fees.filter(f => f.status === 'paid'); %>
+              <% if (!payments || payments.length === 0) { %>
 
-              <% if (paidFees.length === 0) { %>
                 <tr>
-                  <td colspan="5" class="text-center text-muted py-3">
-                    No payments recorded yet.
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No payment records found.
                   </td>
                 </tr>
+
               <% } %>
 
-              <% paidFees.forEach((f, i) => { %>
+              <% payments.forEach((payment, index) => { %>
+
                 <tr>
-                  <td><%= i + 1 %></td>
-                  <td>₹<%= Number(f.amount).toLocaleString('en-IN') %></td>
-                  <td><%= f.paid_date ? new Date(f.paid_date).toLocaleDateString('en-IN') : '—' %></td>
-                  <td><%= f.due_date ? new Date(f.due_date).toLocaleDateString('en-IN') : '—' %></td>
-                  <td><span class="badge bg-success">paid</span></td>
+
+                  <td>
+                    <%= index + 1 %>
+                  </td>
+
+                  <td style="font-family: monospace;">
+                    <%= payment.receipt_no %>
+                  </td>
+
+                  <td>
+                    ₹<%= Number(payment.amount).toLocaleString('en-IN') %>
+                  </td>
+
+                  <td>
+                    <%= payment.transaction_date
+                      ? new Date(payment.transaction_date).toLocaleDateString('en-IN')
+                      : '—'
+                    %>
+                  </td>
+
+                  <td>
+                    <%= payment.payment_method || 'UPI' %>
+                  </td>
+
+                  <td>
+
+                    <% if (payment.status === 'success') { %>
+
+                      <span class="badge bg-success">
+                        Success
+                      </span>
+
+                    <% } else { %>
+
+                      <span class="badge bg-warning text-dark">
+                        <%= payment.status %>
+                      </span>
+
+                    <% } %>
+
+                  </td>
+
+                  <td class="text-center">
+
+                    <a href="/payment/receipt/<%= payment.receipt_no %>"
+                       class="btn btn-outline-primary btn-sm me-1">
+
+                      <i class="bi bi-receipt"></i>
+                      Receipt
+
+                    </a>
+
+                    <a href="/payment/receipt/<%= payment.receipt_no %>/download"
+                       class="btn btn-success btn-sm">
+
+                      <i class="bi bi-download"></i>
+                      PDF
+
+                    </a>
+
+                  </td>
+
                 </tr>
+
               <% }) %>
 
             </tbody>
+
           </table>
+
         </div>
+
       </div>
 
     </main>
@@ -59,6 +134,7 @@
     <%- include('../partials/footer') %>
 
   </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payment Receipt</title>
+</head>
+<body style="margin:0; padding:0; background-color:#F6F3EC; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F6F3EC; padding:30px 0;">
+    <tr>
+      <td align="center">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF; border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(28,38,34,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#1F5C4F,#16332C); padding:28px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <span style="color:#FFFFFF; font-size:22px; font-weight:700; font-family:Georgia, serif;">CampusTransit</span><br>
+                    <span style="color:#D7E4DF; font-size:12px;">Smart College Bus Management System</span>
+                  </td>
+                  <td align="right">
+                    <span style="background-color:rgba(255,255,255,0.15); color:#FFFFFF; font-size:11px; font-weight:700; letter-spacing:0.06em; padding:6px 14px; border-radius:999px; border:1px solid rgba(255,255,255,0.4);">
+                      PAYMENT SUCCESS
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px;">
+
+              <p style="margin:0 0 4px; color:#1C2622; font-size:16px; font-weight:600;">
+                Hi <%= studentName %>,
+              </p>
+              <p style="margin:0 0 22px; color:#4B5A54; font-size:14px; line-height:1.6;">
+                Your bus fee payment has been received and recorded successfully. Please find your payment summary below.
+              </p>
+
+              <!-- Amount box -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F6F3EC; border:1px solid #B8863C; border-radius:10px; margin-bottom:24px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="color:#4B5A54; font-size:13px; font-weight:600;">Total Amount Paid</td>
+                        <td align="right" style="color:#1F5C4F; font-size:22px; font-weight:700; font-family:Georgia, serif;"><%= amount %></td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Details table -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-bottom:10px;">
+                <tr>
+                  <td style="padding:9px 0; border-bottom:1px solid #EFEAE0; color:#8A9591; font-size:13px; width:45%;">Receipt Number</td>
+                  <td style="padding:9px 0; border-bottom:1px solid #EFEAE0; color:#1C2622; font-size:13px; font-weight:600; font-family:'Courier New', monospace;"><%= receiptNo %></td>
+                </tr>
+                <tr>
+                  <td style="padding:9px 0; border-bottom:1px solid #EFEAE0; color:#8A9591; font-size:13px;">Transaction ID (UTR)</td>
+                  <td style="padding:9px 0; border-bottom:1px solid #EFEAE0; color:#1C2622; font-size:13px; font-weight:600; font-family:'Courier New', monospace;"><%= transactionId %></td>
+                </tr>
+                <tr>
+                  <td style="padding:9px 0; border-bottom:1px solid #EFEAE0; color:#8A9591; font-size:13px;">Roll Number</td>
+                  <td style="padding:9px 0; border-bottom:1px solid #EFEAE0; color:#1C2622; font-size:13px; font-weight:600;"><%= rollNo %></td>
+                </tr>
+                <tr>
+                  <td style="padding:9px 0; border-bottom:1px solid #EFEAE0; color:#8A9591; font-size:13px;">Bus Route</td>
+                  <td style="padding:9px 0; border-bottom:1px solid #EFEAE0; color:#1C2622; font-size:13px; font-weight:600;"><%= routeName %></td>
+                </tr>
+                <tr>
+                  <td style="padding:9px 0; color:#8A9591; font-size:13px;">Payment Date</td>
+                  <td style="padding:9px 0; color:#1C2622; font-size:13px; font-weight:600;"><%= paymentDate %></td>
+                </tr>
+              </table>
+
+              <p style="margin:22px 0 0; color:#8A9591; font-size:12px; line-height:1.6;">
+                A detailed PDF receipt is available for download from your Payment History page in the CampusTransit portal. This is a system-generated confirmation for a simulated payment and does not require a physical signature.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#16332C; padding:18px 32px; text-align:center;">
+              <span style="color:#9FB8AF; font-size:11.5px;">
+                &copy; CampusTransit &middot; Smart College Bus Management System
+              </span>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

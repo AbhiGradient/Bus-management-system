@@ -1,0 +1,360 @@
+/* ==========================================================
+   PAYMENT PAGE
+   ========================================================== */
+
+.payment-page{
+    padding:24px;
+}
+
+/* ==========================================================
+   PAGE HEADING
+   ========================================================== */
+
+.page-heading{
+    margin-bottom:28px;
+}
+
+.page-heading h1{
+    font-size:30px;
+    font-weight:700;
+    color:var(--brand-primary);
+    margin-bottom:8px;
+}
+
+.page-heading p{
+    color:var(--text-secondary);
+    font-size:15px;
+}
+
+
+/* ==========================================================
+   GRID
+   ========================================================== */
+
+.payment-grid{
+
+    display:grid;
+
+    grid-template-columns:1fr 420px;
+
+    gap:24px;
+
+    margin-bottom:24px;
+
+}
+
+
+/* ==========================================================
+   CARD
+   ========================================================== */
+
+.payment-card{
+
+    background:var(--paper-raised);
+
+    border:1px solid var(--line);
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 8px 24px rgba(0,0,0,.06);
+
+}
+
+
+.payment-card h2{
+
+    font-size:22px;
+
+    margin-bottom:20px;
+
+    color:var(--brand-primary);
+
+}
+
+
+/* ==========================================================
+   TABLE
+   ========================================================== */
+
+.payment-card table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+.payment-card table tr{
+
+    border-bottom:1px solid var(--line);
+
+}
+
+.payment-card table td{
+
+    padding:15px 0;
+
+    font-size:15px;
+
+}
+
+.payment-card table td:first-child{
+
+    width:180px;
+
+    font-weight:600;
+
+    color:var(--text-secondary);
+
+}
+
+.payment-card table td:last-child{
+
+    color:var(--text-primary);
+
+}
+
+
+/* ==========================================================
+   STATUS BADGES
+   ========================================================== */
+
+.badge{
+
+    display:inline-block;
+
+    padding:7px 14px;
+
+    border-radius:30px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.badge.success{
+
+    background:#d1fae5;
+
+    color:#047857;
+
+}
+
+.badge.danger{
+
+    background:#fee2e2;
+
+    color:#b91c1c;
+
+}
+
+
+/* ==========================================================
+   QR
+   ========================================================== */
+
+.qr-box{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    margin-bottom:25px;
+
+}
+
+.qr-box img{
+
+    width:240px;
+
+    height:240px;
+
+    object-fit:contain;
+
+    border-radius:14px;
+
+    border:1px solid var(--line);
+
+    background:white;
+
+    padding:10px;
+
+}
+
+
+/* ==========================================================
+   UPI
+   ========================================================== */
+
+.upi-box{
+
+    margin-top:10px;
+
+}
+
+.upi-box p{
+
+    margin-bottom:8px;
+
+    font-size:15px;
+
+}
+
+.upi-box input{
+
+    width:100%;
+
+    padding:13px;
+
+    border:1px solid var(--line);
+
+    border-radius:10px;
+
+    background:#f8fafc;
+
+    font-size:15px;
+
+}
+
+
+/* ==========================================================
+   FORM
+   ========================================================== */
+
+.form-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:24px;
+
+    margin-top:15px;
+
+}
+
+
+.form-grid label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    font-weight:600;
+
+    color:var(--text-primary);
+
+}
+
+
+.form-grid input[type=file],
+
+.form-grid select{
+
+    width:100%;
+
+    padding:12px 14px;
+
+    border:1px solid var(--line);
+
+    border-radius:10px;
+
+    background:white;
+
+    font-size:15px;
+
+}
+
+
+.form-grid select:focus,
+
+.form-grid input:focus{
+
+    outline:none;
+
+    border-color:var(--brand-primary);
+
+}
+
+
+/* ==========================================================
+   BUTTON
+   ========================================================== */
+
+.pay-btn{
+
+    margin-top:28px;
+
+    width:100%;
+
+    padding:15px;
+
+    background:var(--brand-primary);
+
+    color:white;
+
+    border:none;
+
+    border-radius:12px;
+
+    font-size:17px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+
+.pay-btn:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 25px rgba(29,78,216,.25);
+
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media(max-width:992px){
+
+    .payment-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+
+@media(max-width:768px){
+
+    .form-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .payment-page{
+
+        padding:15px;
+
+    }
+
+    .payment-card{
+
+        padding:18px;
+
+    }
+
+}
