@@ -134,22 +134,29 @@ router.get('/fees-status', async (req, res) => {
   }
 });
 // ================= PAYMENT HISTORY =================
-router.get('/payment-history', async (req, res) => {
+router.get('/payment-history', isStudent, async (req, res) => {
   try {
-    const student = await getStudentRecord(req.session.user.id);
-
-    const [fees] = await db.query(
-      'SELECT * FROM fees WHERE student_id=? ORDER BY paid_date DESC',
-      [student ? student.id : 0]
+    const [[student]] = await db.query(
+      "SELECT * FROM students WHERE user_id = ?",
+      [req.session.user.id]
     );
 
-    res.render('student/payment-history', {
-      fees
+    const [payments] = await db.query(
+      `SELECT *
+       FROM fees
+       WHERE student_id = ?
+       ORDER BY id DESC`,
+      [student.id]
+    );
+
+    res.render("student/payment-history", {
+      user: req.session.user,
+      payments
     });
 
   } catch (err) {
     console.error(err);
-    res.send('Error loading payment history');
+    res.redirect("/student/dashboard");
   }
 });
 // ================= PROFILE =================
