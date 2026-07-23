@@ -18,7 +18,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-
+const { sendMail } = require('../config/mailer');
 const isStudent = require('../middleware/studentAuth');
 
 /* -------------------------------------------------------------------------- */

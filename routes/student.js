@@ -153,7 +153,7 @@ router.get('/payment-history', async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.send('Error loading payment history');
+    res.redirect("/student/dashboard");
   }
 });
 // ================= PROFILE =================
