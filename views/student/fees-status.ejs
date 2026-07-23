@@ -17,50 +17,94 @@
 
     <main class="main-content">
 
-      <h3 class="mb-3">
-        <i class="bi bi-cash-coin text-warning"></i>
-        My Fee Status
-      </h3>
+      <!-- ================= PAGE HEADER ================= -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 class="mb-1">
+            <i class="bi bi-cash-coin text-warning"></i>
+            My Fee Status
+          </h3>
+          <p class="text-muted mb-0">
+            View your transport fee details and make payments.
+          </p>
+        </div>
 
-      <!-- Summary Cards -->
+        <a href="/student/payment-history" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-clock-history"></i>
+          Payment History
+        </a>
+      </div>
+
+
+      <!-- ================= SUMMARY CARDS ================= -->
       <div class="row g-3 mb-4">
 
+        <!-- Total Amount -->
         <div class="col-md-4">
-          <div class="card p-3 text-center">
-            <div class="text-muted small">Total Amount</div>
+          <div class="card p-3 text-center h-100">
+
+            <div class="text-muted small">
+              Total Amount
+            </div>
+
             <div class="fs-3 fw-bold">
-              ₹<%= Number(totalAmount).toLocaleString('en-IN') %>
+              ₹<%= Number(totalAmount || 0).toLocaleString('en-IN') %>
             </div>
+
           </div>
         </div>
 
+
+        <!-- Paid Amount -->
         <div class="col-md-4">
-          <div class="card p-3 text-center">
-            <div class="text-muted small">Paid</div>
+          <div class="card p-3 text-center h-100">
+
+            <div class="text-muted small">
+              Paid
+            </div>
+
             <div class="fs-3 fw-bold text-success">
-              ₹<%= Number(paidAmount).toLocaleString('en-IN') %>
+              ₹<%= Number(paidAmount || 0).toLocaleString('en-IN') %>
             </div>
+
           </div>
         </div>
 
+
+        <!-- Unpaid Amount -->
         <div class="col-md-4">
-          <div class="card p-3 text-center">
-            <div class="text-muted small">Unpaid</div>
-            <div class="fs-3 fw-bold text-danger">
-              ₹<%= Number(unpaidAmount).toLocaleString('en-IN') %>
+          <div class="card p-3 text-center h-100">
+
+            <div class="text-muted small">
+              Unpaid
             </div>
+
+            <div class="fs-3 fw-bold text-danger">
+              ₹<%= Number(unpaidAmount || 0).toLocaleString('en-IN') %>
+            </div>
+
           </div>
         </div>
 
       </div>
 
-      <!-- Fee History -->
+
+      <!-- ================= FEE HISTORY ================= -->
       <div class="card p-3">
 
-        <h5 class="mb-3">
-          <i class="bi bi-clock-history"></i>
-          Fee History
-        </h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+          <h5 class="mb-0">
+            <i class="bi bi-clock-history"></i>
+            Fee History
+          </h5>
+
+          <span class="text-muted small">
+            <%= fees ? fees.length : 0 %> Record(s)
+          </span>
+
+        </div>
+
 
         <div class="table-responsive">
 
@@ -68,95 +112,153 @@
 
             <thead>
               <tr>
+
                 <th>#</th>
+
                 <th>Amount</th>
+
                 <th>Status</th>
+
                 <th>Due Date</th>
+
                 <th>Paid Date</th>
-                <th class="text-center">Action</th>
+
+                <th class="text-center">
+                  Action
+                </th>
+
               </tr>
             </thead>
 
+
             <tbody>
 
+              <!-- ================= NO FEES ================= -->
               <% if (!fees || fees.length === 0) { %>
 
                 <tr>
-                  <td colspan="6" class="text-center text-muted py-4">
-                    No fee records found.
+
+                  <td colspan="6" class="text-center text-muted py-5">
+
+                    <i
+                      class="bi bi-receipt"
+                      style="font-size: 2rem;"
+                    ></i>
+
+                    <div class="mt-2">
+                      No fee records found.
+                    </div>
+
                   </td>
+
                 </tr>
+
+              <% } else { %>
+
+
+                <!-- ================= FEE LOOP ================= -->
+                <% fees.forEach((f, i) => { %>
+
+                  <tr>
+
+                    <!-- Serial Number -->
+                    <td>
+                      <%= i + 1 %>
+                    </td>
+
+
+                    <!-- Amount -->
+                    <td>
+
+                      <strong>
+                        ₹<%= Number(f.amount || 0).toLocaleString('en-IN') %>
+                      </strong>
+
+                    </td>
+
+
+                    <!-- Status -->
+                    <td>
+
+                      <% if (f.status === 'paid') { %>
+
+                        <span class="badge bg-success">
+                          <i class="bi bi-check-circle-fill"></i>
+                          Paid
+                        </span>
+
+                      <% } else { %>
+
+                        <span class="badge bg-danger">
+                          <i class="bi bi-exclamation-circle-fill"></i>
+                          Unpaid
+                        </span>
+
+                      <% } %>
+
+                    </td>
+
+
+                    <!-- Due Date -->
+                    <td>
+
+                      <%= f.due_date
+                        ? new Date(f.due_date).toLocaleDateString('en-IN')
+                        : '—'
+                      %>
+
+                    </td>
+
+
+                    <!-- Paid Date -->
+                    <td>
+
+                      <%= f.paid_date
+                        ? new Date(f.paid_date).toLocaleDateString('en-IN')
+                        : '—'
+                      %>
+
+                    </td>
+
+
+                    <!-- ================= ACTION ================= -->
+                    <td class="text-center">
+
+                      <% if (f.status === 'unpaid') { %>
+
+                        <!-- IMPORTANT:
+                             Use f.id because the loop variable is "f".
+                             Do NOT use fee.id here.
+                        -->
+
+                        <button
+  type="button"
+  class="btn btn-primary pay-now-btn"
+  data-fee-id="<%= f.id %>"
+>
+  <i class="bi bi-credit-card"></i>
+  Pay Now
+</button>
+
+                      <% } else { %>
+
+                        <span class="text-success fw-semibold">
+
+                          <i class="bi bi-check-circle-fill"></i>
+
+                          Paid
+
+                        </span>
+
+                      <% } %>
+
+                    </td>
+
+                  </tr>
+
+                <% }) %>
 
               <% } %>
-
-              <% fees.forEach((f, i) => { %>
-
-                <tr>
-
-                  <td>
-                    <%= i + 1 %>
-                  </td>
-
-                  <td>
-                    ₹<%= Number(f.amount).toLocaleString('en-IN') %>
-                  </td>
-
-                  <td>
-
-                    <% if (f.status === 'paid') { %>
-
-                      <span class="badge bg-success">
-                        Paid
-                      </span>
-
-                    <% } else { %>
-
-                      <span class="badge bg-danger">
-                        Unpaid
-                      </span>
-
-                    <% } %>
-
-                  </td>
-
-                  <td>
-                    <%= f.due_date
-                      ? new Date(f.due_date).toLocaleDateString('en-IN')
-                      : '—'
-                    %>
-                  </td>
-
-                  <td>
-                    <%= f.paid_date
-                      ? new Date(f.paid_date).toLocaleDateString('en-IN')
-                      : '—'
-                    %>
-                  </td>
-
-                  <td class="text-center">
-
-                    <% if (f.status === 'unpaid') { %>
-
-                      <a href="/payment/<%= f.id %>"
-                         class="btn btn-success btn-sm">
-                        <i class="bi bi-credit-card"></i>
-                        Pay Now
-                      </a>
-
-                    <% } else { %>
-
-                      <span class="text-success fw-semibold">
-                        <i class="bi bi-check-circle-fill"></i>
-                        Paid
-                      </span>
-
-                    <% } %>
-
-                  </td>
-
-                </tr>
-
-              <% }) %>
 
             </tbody>
 
@@ -168,14 +270,198 @@
 
     </main>
 
+
+    <!-- ================= FOOTER ================= -->
+
     <%- include('../partials/footer') %>
 
   </div>
 
 </div>
 
+
+<!-- ================= SCRIPTS ================= -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script src="/js/script.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  const payButtons = document.querySelectorAll('.pay-now-btn');
+
+  payButtons.forEach(function (button) {
+
+    button.addEventListener('click', async function () {
+
+      const feeId = this.dataset.feeId;
+
+      if (!feeId) {
+        alert('Fee ID is missing.');
+        return;
+      }
+
+      // Prevent multiple clicks
+      this.disabled = true;
+      const originalText = this.innerHTML;
+      this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+
+      try {
+
+        // STEP 1: Create Razorpay Order
+        const response = await fetch('/payment/create-order/' + feeId, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+const responseText = await response.text();
+
+console.log('Payment server response:', responseText);
+
+let data;
+
+try {
+  data = JSON.parse(responseText);
+} catch (jsonError) {
+  console.error('Server returned HTML instead of JSON:', responseText);
+
+  throw new Error(
+    'Server returned an error instead of payment data. Check your Node.js terminal.'
+  );
+}
+
+if (!response.ok || !data.success) {
+  throw new Error(data.message || 'Could not create payment order.');
+}
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Could not create payment order.');
+        }
+
+        // STEP 2: Open Razorpay Checkout
+        const options = {
+
+          key: data.key_id,
+
+          amount: data.order.amount,
+
+          currency: data.order.currency || 'INR',
+
+          name: 'CampusTransit',
+
+          description: 'College Bus Fee Payment',
+
+          order_id: data.order.id,
+
+          handler: async function (paymentResponse) {
+
+            try {
+
+              // STEP 3: Verify Payment
+              const verifyResponse = await fetch('/payment/verify', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: paymentResponse.razorpay_order_id,
+                  razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                  razorpay_signature: paymentResponse.razorpay_signature
+                })
+              });
+
+              const verifyData = await verifyResponse.json();
+
+              if (!verifyResponse.ok || !verifyData.success) {
+                throw new Error(
+                  verifyData.message || 'Payment verification failed.'
+                );
+              }
+
+              // STEP 4: Payment successful
+              alert('Payment successful!');
+
+              // Redirect to payment success page
+              if (verifyData.payment && verifyData.payment.receipt_no) {
+
+                window.location.href =
+                  '/payment/success/' +
+                  verifyData.payment.receipt_no;
+
+              } else {
+
+                window.location.href = '/student/fees-status';
+
+              }
+
+            } catch (error) {
+
+              console.error('Payment verification error:', error);
+
+              alert(
+                'Payment was completed, but verification failed. Please contact the administrator.'
+              );
+
+              button.disabled = false;
+              button.innerHTML = originalText;
+            }
+
+          },
+
+          modal: {
+            ondismiss: function () {
+              button.disabled = false;
+              button.innerHTML = originalText;
+            }
+          },
+
+          theme: {
+            color: '#1f4d3a'
+          }
+
+        };
+
+        const razorpay = new Razorpay(options);
+
+        razorpay.on('payment.failed', function (response) {
+
+          console.error('Razorpay payment failed:', response.error);
+
+          alert(
+            'Payment failed: ' +
+            (response.error.description || 'Unknown error')
+          );
+
+          button.disabled = false;
+          button.innerHTML = originalText;
+
+        });
+
+        razorpay.open();
+
+      } catch (error) {
+
+        console.error('Payment error:', error);
+
+        alert(error.message || 'Could not start payment.');
+
+        button.disabled = false;
+        button.innerHTML = originalText;
+
+      }
+
+    });
+
+  });
+
+});
+</script>
 
 </body>
 </html>
