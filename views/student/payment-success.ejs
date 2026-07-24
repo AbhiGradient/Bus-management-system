@@ -1,3 +1,4 @@
+```ejs
 <%- include('../partials/header', {
   pageTitle: 'Payment Successful',
   pageCss: []
@@ -17,72 +18,127 @@
 
     <main class="main-content">
 
-      <div class="card text-center p-5">
+      <div class="container py-4">
 
-        <div class="mb-4">
-          <i class="bi bi-check-circle-fill text-success" style="font-size:80px;"></i>
-        </div>
+        <div class="card shadow border-0">
 
-        <h2 class="text-success mb-3">
-          Payment Successful
-        </h2>
+          <div class="card-body text-center p-5">
 
-        <p class="text-muted">
-          Your transport fee payment has been recorded successfully.
-        </p>
+            <div class="mb-4">
+              <i class="bi bi-check-circle-fill text-success"
+                 style="font-size:90px;"></i>
+            </div>
 
-        <% if (payment) { %>
+            <h2 class="fw-bold text-success">
+              Payment Successful
+            </h2>
 
-          <table class="table table-bordered w-auto mx-auto mt-4">
+            <p class="text-muted mb-4">
+              Your bus fee payment has been received successfully.
+            </p>
 
-            <tr>
-              <th>Receipt No.</th>
-              <td><%= payment.receipt_no %></td>
-            </tr>
+            <% if (payment) { %>
 
-            <tr>
-              <th>Amount</th>
-              <td>₹<%= Number(payment.amount).toLocaleString('en-IN') %></td>
-            </tr>
+              <div class="table-responsive">
 
-            <tr>
-              <th>Status</th>
-              <td>
-                <span class="badge bg-success">Success</span>
-              </td>
-            </tr>
+                <table class="table table-bordered align-middle w-auto mx-auto">
 
-          </table>
+                  <tbody>
 
-          <div class="mt-4">
+                    <tr>
+                      <th>Receipt No.</th>
+                      <td>
+                        <%= payment.receipt_no %>
+                      </td>
+                    </tr>
 
-            <a href="/payment/receipt/<%= payment.receipt_no %>"
-               class="btn btn-primary me-2">
+                    <tr>
+                      <th>Amount Paid</th>
+                      <td>
+                        ₹<%= Number(payment.amount).toLocaleString('en-IN') %>
+                      </td>
+                    </tr>
 
-              <i class="bi bi-receipt"></i>
-              View Receipt
+                    <tr>
+                      <th>Payment Status</th>
+                      <td>
+                        <span class="badge bg-success fs-6">
+                          Success
+                        </span>
+                      </td>
+                    </tr>
 
-            </a>
+                    <% if(payment.razorpay_payment_id){ %>
+
+                    <tr>
+                      <th>Transaction ID</th>
+                      <td>
+                        <%= payment.razorpay_payment_id %>
+                      </td>
+                    </tr>
+
+                    <% } %>
+
+                    <% if(payment.created_at){ %>
+
+                    <tr>
+                      <th>Payment Date</th>
+                      <td>
+                        <%= new Date(payment.created_at).toLocaleString('en-IN') %>
+                      </td>
+                    </tr>
+
+                    <% } %>
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+              <div class="mt-4">
+
+                <a href="/payment/receipt/<%= payment.receipt_no %>"
+                   class="btn btn-primary">
+
+                  <i class="bi bi-receipt me-1"></i>
+                  View Receipt
+
+                </a>
+
+              </div>
+
+            <% } else { %>
+
+              <div class="alert alert-warning mt-3">
+                Payment details could not be loaded.
+              </div>
+
+            <% } %>
+
+            <hr class="my-4">
+
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+
+              <a href="/student/payment-history"
+                 class="btn btn-outline-primary">
+
+                <i class="bi bi-clock-history me-1"></i>
+                Payment History
+
+              </a>
+
+              <a href="/student/fees-status"
+                 class="btn btn-outline-secondary">
+
+                <i class="bi bi-arrow-left me-1"></i>
+                Back to Fee Status
+
+              </a>
+
+            </div>
 
           </div>
-
-        <% } %>
-
-        <div class="mt-3">
-
-          <a href="/student/payment-history"
-             class="btn btn-outline-primary me-2">
-
-            Payment History
-
-          </a>
-
-          <a href="/student/fees-status"
-             class="btn btn-outline-secondary">
-
-            Back to Fee Status
-
-          </a>
 
         </div>
 
@@ -101,3 +157,4 @@
 
 </body>
 </html>
+
