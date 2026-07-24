@@ -4,558 +4,218 @@ const router = express.Router();
 const db = require('../config/db');
 
 
-// =====================================================
-// LOGIN CHECK
-// =====================================================
+/* =========================================================
+   AUTHENTICATION
+   ========================================================= */
 
 function requireLogin(req, res, next) {
+
     if (!req.session || !req.session.user) {
         return res.redirect('/login');
     }
 
     next();
 }
-// =====================================================
-// PAYMENT HISTORY
-// GET /payment/history
-// =====================================================
 
-router.get('/history', requireLogin, async (req, res) => {
-    try {
-        const userId = req.session.user.id;
 
-        console.log('📜 Loading payment history for user:', userId);
+/* =========================================================
+   GET CURRENT STUDENT
+   =========================================================
 
-        // Find student linked to logged-in user
-        const [studentRows] = await db.query(
-            `
-            SELECT *
-            FROM students
-            WHERE user_id = ?
-            LIMIT 1
-            `,
-            [userId]
-        );
+   We only depend on students.user_id.
 
-        if (!studentRows || studentRows.length === 0) {
-            return res.status(404).send(`
-                <h2>Student record not found.</h2>
-                <a href="/student/dashboard">Go to Dashboard</a>
+   We do NOT assume roll_number or department columns exist.
+
+   Student name and email are obtained from users table.
+
+   ========================================================= */
+
+async function getStudentForUser(userId) {
+
+    const [rows] = await db.query(
+        `
+        SELECT
+            s.*,
+            u.name AS student_name,
+            u.email AS student_email
+
+        FROM students s
+
+        LEFT JOIN users u
+            ON s.user_id = u.id
+
+        WHERE s.user_id = ?
+
+        LIMIT 1
+        `,
+        [userId]
+    );
+
+    if (!rows || rows.length === 0) {
+        return null;
+    }
+
+    return rows[0];
+}
+
+
+/* =========================================================
+   1. PAYMENT HISTORY
+   =========================================================
+
+   IMPORTANT:
+
+   This route MUST appear BEFORE:
+
+   /:feeId
+
+   Otherwise:
+
+   /payment/history
+
+   will be interpreted as:
+
+   feeId = "history"
+
+   ========================================================= */
+
+router.get(
+    '/history',
+    requireLogin,
+    async (req, res) => {
+
+        try {
+
+            const userId = req.session.user.id;
+
+            console.log(
+                '📜 Loading payment history for user:',
+                userId
+            );
+
+
+            const student =
+                await getStudentForUser(userId);
+
+
+            if (!student) {
+
+                return res.status(404).send(`
+                    <div style="
+                        font-family:Arial;
+                        text-align:center;
+                        margin-top:80px;
+                    ">
+
+                        <h2>Student Record Not Found</h2>
+
+                        <p>
+                            Your student account could not
+                            be found.
+                        </p>
+
+                        <a href="/student/dashboard">
+                            Go Back to Dashboard
+                        </a>
+
+                    </div>
+                `);
+
+            }
+
+
+            /*
+            =================================================
+            GET PAYMENT HISTORY
+            =================================================
+            */
+
+            const [payments] = await db.query(
+                `
+                SELECT
+                    p.*,
+                    f.due_date
+
+                FROM payments p
+
+                LEFT JOIN fees f
+                    ON p.fee_id = f.id
+
+                WHERE p.student_id = ?
+
+                ORDER BY
+                    COALESCE(
+                        p.transaction_date,
+                        p.created_at
+                    ) DESC
+                `,
+                [student.id]
+            );
+
+
+            console.log(
+                `✅ Found ${payments.length} payment records`
+            );
+
+
+            return res.render(
+                'student/payment-history',
+                {
+                    payments: payments,
+                    student: student
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                '❌ Payment history error:',
+                error
+            );
+
+
+            return res.status(500).send(`
+                <div style="
+                    font-family:Arial;
+                    text-align:center;
+                    margin-top:80px;
+                ">
+
+                    <h2>
+                        Unable to Load Payment History
+                    </h2>
+
+                    <p>
+                        Please try again later.
+                    </p>
+
+                    <a href="/student/dashboard">
+                        Go Back to Dashboard
+                    </a>
+
+                </div>
             `);
-        }
-
-        const student = studentRows[0];
-
-        // Get all payment records for this student
-        const [payments] = await db.query(
-            `
-            SELECT
-                p.*,
-                f.due_date
-            FROM payments p
-            LEFT JOIN fees f
-                ON p.fee_id = f.id
-            WHERE p.student_id = ?
-            ORDER BY p.created_at DESC
-            `,
-            [student.id]
-        );
-
-        console.log(
-            `✅ Found ${payments.length} payment records`
-        );
-
-        return res.render(
-            'student/payment-history',
-            {
-                payments: payments,
-                student: student
-            }
-        );
-
-    } catch (error) {
-
-        console.error(
-            '❌ Payment history error:',
-            error
-        );
-
-        return res.status(500).send(`
-            <div style="
-                font-family: Arial;
-                text-align: center;
-                margin-top: 80px;
-            ">
-
-                <h2>Unable to load payment history</h2>
-
-                <p>
-                    Please try again later.
-                </p>
-
-                <a href="/student/dashboard">
-                    Go Back to Dashboard
-                </a>
-
-            </div>
-        `);
-    }
-});
-
-// =====================================================
-// GET PAYMENT PAGE
-// URL: /payment/:feeId
-// =====================================================
-
-router.get('/:feeId', requireLogin, async (req, res) => {
-
-    try {
-
-        const feeId = req.params.feeId;
-        const userId = req.session.user.id;
-
-        console.log('Opening payment page');
-        console.log('Fee ID:', feeId);
-        console.log('User ID:', userId);
-
-
-        // -------------------------------------------------
-        // GET FEE
-        // -------------------------------------------------
-
-        const [feeRows] = await db.query(
-            `
-            SELECT
-                id,
-                student_id,
-                amount,
-                status,
-                due_date,
-                paid_date
-            FROM fees
-            WHERE id = ?
-            LIMIT 1
-            `,
-            [feeId]
-        );
-
-
-        if (feeRows.length === 0) {
-
-            return res.status(404).send(
-                'Fee record not found.'
-            );
 
         }
-
-
-        const fee = feeRows[0];
-
-
-        // -------------------------------------------------
-        // GET STUDENT
-        // -------------------------------------------------
-
-        const [studentRows] = await db.query(
-            `
-            SELECT
-                s.*,
-                u.name AS student_name,
-                u.email AS user_email
-            FROM students s
-            LEFT JOIN users u
-                ON s.user_id = u.id
-            WHERE s.user_id = ?
-            LIMIT 1
-            `,
-            [userId]
-        );
-
-
-        if (studentRows.length === 0) {
-
-            return res.status(404).send(
-                'Student record not found.'
-            );
-
-        }
-
-
-        const student = studentRows[0];
-
-
-        // -------------------------------------------------
-        // NORMALIZE DATA
-        // -------------------------------------------------
-
-        student.student_name =
-            student.student_name ||
-            student.name ||
-            'Student';
-
-        student.email =
-            student.email ||
-            student.user_email ||
-            '';
-
-
-        console.log('Payment page loaded successfully');
-
-
-        // -------------------------------------------------
-        // RENDER
-        // -------------------------------------------------
-
-        return res.render(
-            'student/payment',
-            {
-                fee: fee,
-                student: student
-            }
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            'Payment page error:',
-            error.message
-        );
-
-        return res.status(500).send(
-            'Unable to open payment page.'
-        );
 
     }
+);
 
-});
 
+/* =========================================================
+   2. PAYMENT SUCCESS PAGE
+   =========================================================
 
-// =====================================================
-// SIMULATED PAYMENT
-// POST /payment/:feeId/pay
-// =====================================================
+   URL:
 
-router.post('/:feeId/pay', requireLogin, async (req, res) => {
+   /payment/success/:paymentId
 
-    try {
+   Example:
 
-        const feeId = req.params.feeId;
-        const userId = req.session.user.id;
+   /payment/success/11
 
-        const {
-            payment_method,
-            upi_id,
-            utr_number,
-            bank_name,
-            wallet_name
-        } = req.body;
-
-
-        console.log('-----------------------------');
-        console.log('SIMULATED PAYMENT');
-        console.log('Fee ID:', feeId);
-        console.log('User ID:', userId);
-        console.log('Method:', payment_method);
-        console.log('-----------------------------');
-
-
-        // -------------------------------------------------
-        // VALID PAYMENT METHODS
-        // -------------------------------------------------
-
-        const allowedMethods = [
-            'UPI',
-            'CARD',
-            'NETBANKING',
-            'WALLET',
-            'RTGS_NEFT'
-        ];
-
-
-        if (!allowedMethods.includes(payment_method)) {
-
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid payment method.'
-            });
-
-        }
-
-
-        // -------------------------------------------------
-        // GET FEE
-        // -------------------------------------------------
-
-        const [feeRows] = await db.query(
-            `
-            SELECT
-                id,
-                student_id,
-                amount,
-                status
-            FROM fees
-            WHERE id = ?
-            LIMIT 1
-            `,
-            [feeId]
-        );
-
-
-        if (feeRows.length === 0) {
-
-            return res.status(404).json({
-                success: false,
-                message: 'Fee record not found.'
-            });
-
-        }
-
-
-        const fee = feeRows[0];
-
-
-        // -------------------------------------------------
-        // CHECK ALREADY PAID
-        // -------------------------------------------------
-
-        if (
-            fee.status &&
-            String(fee.status).toLowerCase() === 'paid'
-        ) {
-
-            return res.status(400).json({
-                success: false,
-                message: 'This fee has already been paid.'
-            });
-
-        }
-
-
-        // -------------------------------------------------
-        // VERIFY STUDENT
-        // -------------------------------------------------
-
-        const [studentRows] = await db.query(
-            `
-            SELECT
-                id
-            FROM students
-            WHERE user_id = ?
-            LIMIT 1
-            `,
-            [userId]
-        );
-
-
-        if (studentRows.length === 0) {
-
-            return res.status(404).json({
-                success: false,
-                message: 'Student record not found.'
-            });
-
-        }
-
-
-        const studentId = studentRows[0].id;
-
-
-        // -------------------------------------------------
-        // SECURITY CHECK
-        // MAKE SURE FEE BELONGS TO STUDENT
-        // -------------------------------------------------
-
-        if (
-            Number(fee.student_id) !==
-            Number(studentId)
-        ) {
-
-            return res.status(403).json({
-                success: false,
-                message: 'This fee does not belong to your account.'
-            });
-
-        }
-
-
-        // -------------------------------------------------
-        // GENERATE SIMULATED TRANSACTION
-        // -------------------------------------------------
-
-        const transactionId =
-            'SIM' +
-            Date.now() +
-            Math.floor(
-                Math.random() * 10000
-            );
-
-
-        // -------------------------------------------------
-        // GENERATE RECEIPT NUMBER
-        // -------------------------------------------------
-
-        const receiptNo =
-            'BUS-' +
-            Date.now();
-
-
-        // -------------------------------------------------
-        // INSERT PAYMENT
-        //
-        // IMPORTANT:
-        // These column names exactly match
-        // your current payments table.
-        // -------------------------------------------------
-
-        const [paymentResult] = await db.query(
-            `
-            INSERT INTO payments
-            (
-                fee_id,
-                student_id,
-                razorpay_order_id,
-                razorpay_payment_id,
-                razorpay_signature,
-                amount,
-                currency,
-                payment_method,
-                status,
-                receipt_no,
-                transaction_date,
-                screenshot
-            )
-            VALUES
-            (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                NOW(),
-                ?
-            )
-            `,
-            [
-
-                feeId,
-
-                studentId,
-
-                // Old Razorpay field.
-                // We use it to store our simulated reference.
-                'SIM_ORDER_' + transactionId,
-
-                // Simulated payment ID
-                transactionId,
-
-                // No Razorpay signature needed
-                null,
-
-                // Amount
-                fee.amount,
-
-                // Currency
-                'INR',
-
-                // Payment method
-                payment_method,
-
-                // Your ENUM accepts:
-                // created, pending, success, failed
-                'success',
-
-                // Receipt number
-                receiptNo,
-
-                // Screenshot
-                null
-
-            ]
-        );
-
-
-        // -------------------------------------------------
-        // UPDATE FEES TABLE
-        // -------------------------------------------------
-
-        await db.query(
-            `
-            UPDATE fees
-            SET
-                status = 'paid',
-                paid_date = CURDATE()
-            WHERE id = ?
-            `,
-            [feeId]
-        );
-
-
-        console.log(
-            'Payment successful:',
-            transactionId
-        );
-
-
-        // -------------------------------------------------
-        // SUCCESS
-        // -------------------------------------------------
-
-        return res.json({
-
-            success: true,
-
-            message:
-                'Payment completed successfully.',
-
-            paymentId:
-                paymentResult.insertId,
-
-            transactionId:
-                transactionId,
-
-            receiptNo:
-                receiptNo,
-
-            amount:
-                fee.amount
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            'SIMULATED PAYMENT ERROR:',
-            error
-        );
-
-
-        return res.status(500).json({
-
-            success: false,
-
-            message:
-                'Unable to process payment.',
-
-            error:
-                error.message
-
-        });
-
-    }
-
-});
-
-
-// =====================================================
-// PAYMENT SUCCESS PAGE
-// =====================================================
+   ========================================================= */
 
 router.get(
     '/success/:paymentId',
@@ -567,35 +227,161 @@ router.get(
             const paymentId =
                 req.params.paymentId;
 
+            const userId =
+                req.session.user.id;
 
-            const [rows] = await db.query(
-                `
-                SELECT
-                    p.*,
-                    f.amount AS fee_amount
-                FROM payments p
-                LEFT JOIN fees f
-                    ON p.fee_id = f.id
-                WHERE p.id = ?
-                LIMIT 1
-                `,
-                [paymentId]
+
+            console.log(
+                '✅ Loading payment success:',
+                paymentId
             );
 
 
-            if (rows.length === 0) {
+            /*
+            =================================================
+            GET STUDENT
+            =================================================
+            */
+
+            const student =
+                await getStudentForUser(userId);
+
+
+            if (!student) {
 
                 return res.status(404).send(
-                    'Payment not found.'
+                    'Student record not found.'
                 );
 
             }
 
 
+            /*
+            =================================================
+            GET PAYMENT
+
+            We verify BOTH:
+
+            payment ID
+            AND
+            logged-in student
+
+            This prevents another student from viewing
+            someone else's payment.
+            =================================================
+            */
+
+            const [rows] = await db.query(
+                `
+                SELECT
+                    p.*,
+                    f.due_date
+
+                FROM payments p
+
+                LEFT JOIN fees f
+                    ON p.fee_id = f.id
+
+                WHERE
+                    p.id = ?
+
+                    AND
+
+                    p.student_id = ?
+
+                LIMIT 1
+                `,
+                [
+                    paymentId,
+                    student.id
+                ]
+            );
+
+
+            if (!rows || rows.length === 0) {
+
+                return res.status(404).send(`
+                    <div style="
+                        font-family:Arial;
+                        text-align:center;
+                        margin-top:80px;
+                    ">
+
+                        <h2>
+                            Payment Not Found
+                        </h2>
+
+                        <p>
+                            The requested payment could
+                            not be found.
+                        </p>
+
+                        <a href="/student/dashboard">
+                            Go to Dashboard
+                        </a>
+
+                    </div>
+                `);
+
+            }
+
+
+            /*
+            =================================================
+            COMBINE STUDENT + PAYMENT DATA
+
+            This makes EJS access easy:
+
+            payment.student_name
+            payment.student_email
+            payment.roll_number
+            payment.department
+
+            We use fallback values if those columns
+            don't exist in your students table.
+            =================================================
+            */
+
+            const payment = {
+
+                ...rows[0],
+
+                student_name:
+                    student.student_name ||
+                    student.name ||
+                    'N/A',
+
+                student_email:
+                    student.student_email ||
+                    student.email ||
+                    'N/A',
+
+                roll_number:
+                    student.roll_number ||
+                    student.roll_no ||
+                    student.registration_number ||
+                    student.enrollment_number ||
+                    'N/A',
+
+                department:
+                    student.department ||
+                    student.dept ||
+                    student.branch ||
+                    'N/A'
+
+            };
+
+
+            console.log(
+                '✅ Payment success details:',
+                payment
+            );
+
+
             return res.render(
                 'student/payment-success',
                 {
-                    payment: rows[0]
+                    payment: payment
                 }
             );
 
@@ -603,100 +389,190 @@ router.get(
         } catch (error) {
 
             console.error(
-                'Payment success error:',
+                '❌ Payment success page error:',
                 error
             );
 
-            return res.status(500).send(
-                'Unable to open payment success page.'
-            );
+
+            return res.status(500).send(`
+                <div style="
+                    font-family:Arial;
+                    text-align:center;
+                    margin-top:80px;
+                ">
+
+                    <h2>
+                        Unable to Open Payment Success Page
+                    </h2>
+
+                    <p>
+                        Please try again later.
+                    </p>
+
+                    <a href="/student/dashboard">
+                        Go to Dashboard
+                    </a>
+
+                </div>
+            `);
 
         }
 
     }
 );
-// =====================================================
-// DOWNLOAD PAYMENT RECEIPT
-// GET /payment/receipt/:paymentId
-// =====================================================
-
-router.get('/receipt/:paymentId', requireLogin, async (req, res) => {
-
-    try {
-
-        const paymentId = req.params.paymentId;
-        const userId = req.session.user.id;
-
-        console.log('Generating receipt for payment:', paymentId);
 
 
-        // -------------------------------------------------
-        // GET PAYMENT + FEE + STUDENT
-        // -------------------------------------------------
+/* =========================================================
+   3. PAYMENT RECEIPT
+   =========================================================
 
-        const [rows] = await db.query(
-            `
-            SELECT
-                p.id AS payment_id,
-                p.fee_id,
-                p.student_id,
-                p.amount,
-                p.currency,
-                p.payment_method,
-                p.status,
-                p.receipt_no,
-                p.razorpay_payment_id,
-                p.transaction_date,
+   URL:
 
-                f.due_date,
+   /payment/receipt/:paymentId
 
-                u.name AS student_name,
-                u.email AS student_email
+   Example:
 
-            FROM payments p
+   /payment/receipt/11
 
-            LEFT JOIN fees f
-                ON p.fee_id = f.id
+   This opens an HTML receipt.
 
-            LEFT JOIN students s
-                ON p.student_id = s.id
+   User can:
 
-            LEFT JOIN users u
-                ON s.user_id = u.id
+   CTRL + P
 
-            WHERE p.id = ?
-            AND s.user_id = ?
+   or
 
-            LIMIT 1
-            `,
-            [
-                paymentId,
-                userId
-            ]
-        );
+   Print → Save as PDF
+
+   ========================================================= */
+
+router.get(
+    '/receipt/:paymentId',
+    requireLogin,
+    async (req, res) => {
+
+        try {
+
+            const paymentId =
+                req.params.paymentId;
+
+            const userId =
+                req.session.user.id;
 
 
-        // -------------------------------------------------
-        // PAYMENT NOT FOUND
-        // -------------------------------------------------
+            const student =
+                await getStudentForUser(userId);
 
-        if (rows.length === 0) {
 
-            return res.status(404).send(
-                'Payment receipt not found.'
+            if (!student) {
+
+                return res.status(404).send(
+                    'Student record not found.'
+                );
+
+            }
+
+
+            /*
+            =================================================
+            GET PAYMENT
+            =================================================
+            */
+
+            const [rows] = await db.query(
+                `
+                SELECT
+                    p.*,
+                    f.due_date
+
+                FROM payments p
+
+                LEFT JOIN fees f
+                    ON p.fee_id = f.id
+
+                WHERE
+                    p.id = ?
+
+                    AND
+
+                    p.student_id = ?
+
+                LIMIT 1
+                `,
+                [
+                    paymentId,
+                    student.id
+                ]
             );
 
-        }
+
+            if (!rows || rows.length === 0) {
+
+                return res.status(404).send(
+                    'Payment receipt not found.'
+                );
+
+            }
 
 
-        const payment = rows[0];
+            const payment = {
+
+                ...rows[0],
+
+                student_name:
+                    student.student_name ||
+                    student.name ||
+                    'N/A',
+
+                student_email:
+                    student.student_email ||
+                    student.email ||
+                    'N/A',
+
+                roll_number:
+                    student.roll_number ||
+                    student.roll_no ||
+                    student.registration_number ||
+                    student.enrollment_number ||
+                    'N/A',
+
+                department:
+                    student.department ||
+                    student.dept ||
+                    student.branch ||
+                    'N/A'
+
+            };
 
 
-        // -------------------------------------------------
-        // CREATE HTML RECEIPT
-        // -------------------------------------------------
+            /*
+            =================================================
+            FORMAT DATE
+            =================================================
+            */
 
-        const receiptHTML = `
+            let formattedDate = 'N/A';
+
+            const rawDate =
+                payment.transaction_date ||
+                payment.created_at;
+
+            if (rawDate) {
+
+                formattedDate =
+                    new Date(rawDate)
+                        .toLocaleString('en-US');
+
+            }
+
+
+            /*
+            =================================================
+            GENERATE RECEIPT HTML
+            =================================================
+            */
+
+            const receiptHTML = `
 
 <!DOCTYPE html>
 
@@ -706,10 +582,13 @@ router.get('/receipt/:paymentId', requireLogin, async (req, res) => {
 
 <meta charset="UTF-8">
 
-<title>Payment Receipt - ${payment.receipt_no}</title>
-
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0">
+
+<title>
+Payment Receipt
+</title>
+
 
 <style>
 
@@ -717,22 +596,24 @@ router.get('/receipt/:paymentId', requireLogin, async (req, res) => {
     box-sizing: border-box;
 }
 
+
 body {
 
     margin: 0;
 
-    padding: 40px;
-
-    background: #f4f6f8;
+    padding: 40px 20px;
 
     font-family:
         Arial,
         Helvetica,
         sans-serif;
 
+    background: #f4f6f8;
+
     color: #222;
 
 }
+
 
 .receipt {
 
@@ -740,66 +621,67 @@ body {
 
     margin: auto;
 
-    background: white;
+    background: #fff;
 
     padding: 45px;
 
-    border-radius: 12px;
+    border-radius: 14px;
 
     box-shadow:
-        0 10px 30px
+        0 10px 35px
         rgba(0,0,0,0.12);
 
 }
+
 
 .header {
 
     text-align: center;
 
     border-bottom:
-        2px solid #1f3556;
+        2px solid #213755;
 
     padding-bottom: 25px;
 
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 
 }
+
 
 .header h1 {
 
     margin: 0;
 
-    color: #1f3556;
-
-    font-size: 30px;
+    color: #213755;
 
 }
+
 
 .header p {
 
     color: #666;
 
-    margin-top: 8px;
-
 }
+
 
 .success {
 
     text-align: center;
 
+    padding: 14px;
+
     background: #eaf7ec;
 
     color: #2e7d32;
-
-    padding: 15px;
 
     border-radius: 8px;
 
     font-weight: bold;
 
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 
 }
+
 
 .info {
 
@@ -809,6 +691,7 @@ body {
 
 }
 
+
 .info tr {
 
     border-bottom:
@@ -816,42 +699,46 @@ body {
 
 }
 
+
 .info td {
 
     padding: 14px 5px;
 
 }
 
+
 .info td:first-child {
+
+    width: 42%;
 
     font-weight: bold;
 
     color: #555;
 
-    width: 45%;
-
 }
+
 
 .amount {
 
-    font-size: 24px;
-
-    color: #d4380d;
+    font-size: 22px;
 
     font-weight: bold;
 
+    color: #d4380d;
+
 }
+
 
 .footer {
 
-    text-align: center;
-
-    margin-top: 35px;
+    margin-top: 30px;
 
     padding-top: 20px;
 
     border-top:
         1px solid #ddd;
+
+    text-align: center;
 
     color: #777;
 
@@ -859,21 +746,22 @@ body {
 
 }
 
+
 .print-btn {
 
     display: block;
 
-    margin: 30px auto 0;
+    margin: 25px auto 0;
 
     padding: 12px 25px;
+
+    background: #213755;
+
+    color: white;
 
     border: none;
 
     border-radius: 7px;
-
-    background: #1f3556;
-
-    color: white;
 
     cursor: pointer;
 
@@ -881,23 +769,33 @@ body {
 
 }
 
+
+.print-btn:hover {
+
+    opacity: 0.9;
+
+}
+
+
 @media print {
 
     body {
 
-        background: white;
-
         padding: 0;
 
+        background: #fff;
+
     }
+
 
     .receipt {
 
-        box-shadow: none;
-
         max-width: 100%;
 
+        box-shadow: none;
+
     }
+
 
     .print-btn {
 
@@ -925,7 +823,7 @@ Smart College Bus Management System
 </h1>
 
 <p>
-Official Fee Payment Receipt
+Official Student Fee Payment Receipt
 </p>
 
 </div>
@@ -944,37 +842,11 @@ Official Fee Payment Receipt
 <tr>
 
 <td>
-Receipt Number
-</td>
-
-<td>
-${payment.receipt_no || 'N/A'}
-</td>
-
-</tr>
-
-
-<tr>
-
-<td>
-Payment ID
-</td>
-
-<td>
-#${payment.payment_id}
-</td>
-
-</tr>
-
-
-<tr>
-
-<td>
 Student Name
 </td>
 
 <td>
-${payment.student_name || 'N/A'}
+${payment.student_name}
 </td>
 
 </tr>
@@ -987,7 +859,59 @@ Student Email
 </td>
 
 <td>
-${payment.student_email || 'N/A'}
+${payment.student_email}
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Roll Number
+</td>
+
+<td>
+${payment.roll_number}
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Department
+</td>
+
+<td>
+${payment.department}
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Payment ID
+</td>
+
+<td>
+#${payment.id}
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Receipt Number
+</td>
+
+<td>
+${payment.receipt_no || 'N/A'}
 </td>
 
 </tr>
@@ -1013,7 +937,11 @@ Transaction Reference
 </td>
 
 <td>
-${payment.razorpay_payment_id || 'N/A'}
+${
+    payment.razorpay_payment_id ||
+    payment.razorpay_order_id ||
+    'SIMULATED-' + payment.id
+}
 </td>
 
 </tr>
@@ -1027,7 +955,10 @@ Amount Paid
 
 <td class="amount">
 
-₹${Number(payment.amount || 0).toFixed(2)}
+${
+    payment.currency || 'INR'
+}
+${Number(payment.amount || 0).toFixed(2)}
 
 </td>
 
@@ -1057,9 +988,7 @@ Transaction Date
 
 <td>
 
-${payment.transaction_date
-    ? new Date(payment.transaction_date).toLocaleString()
-    : 'N/A'}
+${formattedDate}
 
 </td>
 
@@ -1072,15 +1001,11 @@ ${payment.transaction_date
 <div class="footer">
 
 <p>
-
 This is a computer-generated payment receipt.
-
 </p>
 
 <p>
-
 Smart College Bus Management System
-
 </p>
 
 </div>
@@ -1088,7 +1013,8 @@ Smart College Bus Management System
 
 <button
     class="print-btn"
-    onclick="window.print()">
+    onclick="window.print()"
+>
 
 🖨 Print / Save as PDF
 
@@ -1102,40 +1028,787 @@ Smart College Bus Management System
 
 </html>
 
-        `;
+            `;
 
 
-        // -------------------------------------------------
-        // SEND RECEIPT
-        // -------------------------------------------------
+            /*
+            =================================================
+            SEND RECEIPT
 
-        res.setHeader(
-            'Content-Type',
-            'text/html; charset=utf-8'
-        );
+            IMPORTANT:
 
-        res.setHeader(
-            'Content-Disposition',
-            `attachment; filename="${payment.receipt_no || 'payment-receipt'}.html"`
-        );
+            We intentionally send HTML directly.
 
-        return res.send(receiptHTML);
+            This means the user can open the receipt
+            and use Print → Save as PDF.
+            =================================================
+            */
+
+            res.setHeader(
+                'Content-Type',
+                'text/html; charset=utf-8'
+            );
 
 
-    } catch (error) {
+            return res.send(
+                receiptHTML
+            );
 
-        console.error(
-            'Receipt generation error:',
-            error
-        );
 
-        return res.status(500).send(
-            'Unable to generate payment receipt.'
-        );
+        } catch (error) {
+
+            console.error(
+                '❌ Receipt generation error:',
+                error
+            );
+
+
+            return res.status(500).send(
+                'Unable to generate payment receipt.'
+            );
+
+        }
 
     }
+);
 
-});
 
+/* =========================================================
+   4. OPEN PAYMENT PAGE
+   =========================================================
+
+   URL:
+
+   /payment/:feeId
+
+   Example:
+
+   /payment/5
+
+   IMPORTANT:
+
+   This route is AFTER:
+
+   /history
+   /success/:paymentId
+   /receipt/:paymentId
+
+   ========================================================= */
+
+router.get(
+    '/:feeId',
+    requireLogin,
+    async (req, res) => {
+
+        try {
+
+            const feeId =
+                req.params.feeId;
+
+            const userId =
+                req.session.user.id;
+
+
+            console.log(
+                '💳 Opening payment page for Fee ID:',
+                feeId
+            );
+
+
+            /*
+            =================================================
+            GET FEE
+            =================================================
+            */
+
+            const [feeRows] = await db.query(
+                `
+                SELECT *
+                FROM fees
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [feeId]
+            );
+
+
+            if (!feeRows || feeRows.length === 0) {
+
+                return res.status(404).send(`
+                    <div style="
+                        font-family:Arial;
+                        text-align:center;
+                        margin-top:80px;
+                    ">
+
+                        <h2>
+                            Fee Record Not Found
+                        </h2>
+
+                        <p>
+                            The requested fee payment
+                            record does not exist.
+                        </p>
+
+                        <a href="/student/dashboard">
+                            Go Back to Dashboard
+                        </a>
+
+                    </div>
+                `);
+
+            }
+
+
+            const fee =
+                feeRows[0];
+
+
+            /*
+            =================================================
+            GET STUDENT
+            =================================================
+            */
+
+            const student =
+                await getStudentForUser(userId);
+
+
+            if (!student) {
+
+                return res.status(404).send(`
+                    <div style="
+                        font-family:Arial;
+                        text-align:center;
+                        margin-top:80px;
+                    ">
+
+                        <h2>
+                            Student Record Not Found
+                        </h2>
+
+                        <p>
+                            Your student account could
+                            not be found.
+                        </p>
+
+                        <a href="/student/dashboard">
+                            Go Back to Dashboard
+                        </a>
+
+                    </div>
+                `);
+
+            }
+
+
+            /*
+            =================================================
+            SECURITY CHECK
+
+            Make sure the fee actually belongs
+            to the logged-in student.
+
+            =================================================
+            */
+
+            if (
+                fee.student_id &&
+                Number(fee.student_id) !==
+                Number(student.id)
+            ) {
+
+                console.log(
+                    '⚠️ Unauthorized fee payment attempt'
+                );
+
+
+                return res.status(403).send(`
+                    <div style="
+                        font-family:Arial;
+                        text-align:center;
+                        margin-top:80px;
+                    ">
+
+                        <h2>
+                            Unauthorized Payment
+                        </h2>
+
+                        <p>
+                            This fee does not belong
+                            to your account.
+                        </p>
+
+                        <a href="/student/dashboard">
+                            Go Back to Dashboard
+                        </a>
+
+                    </div>
+                `);
+
+            }
+
+
+            /*
+            =================================================
+            PREPARE STUDENT DATA
+
+            These fallbacks prevent EJS errors.
+
+            =================================================
+            */
+
+            const studentData = {
+
+                ...student,
+
+                student_name:
+                    student.student_name ||
+                    student.name ||
+                    'Student',
+
+                email:
+                    student.student_email ||
+                    student.email ||
+                    '',
+
+                roll_number:
+                    student.roll_number ||
+                    student.roll_no ||
+                    student.registration_number ||
+                    student.enrollment_number ||
+                    'N/A',
+
+                department:
+                    student.department ||
+                    student.dept ||
+                    student.branch ||
+                    'N/A'
+
+            };
+
+
+            console.log(
+                '✅ Payment page loaded'
+            );
+
+
+            return res.render(
+                'student/payment',
+                {
+                    fee: fee,
+                    student: studentData
+                }
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                '❌ Payment page error:',
+                error
+            );
+
+
+            return res.status(500).send(`
+                <div style="
+                    font-family:Arial;
+                    text-align:center;
+                    margin-top:80px;
+                ">
+
+                    <h2>
+                        Unable to Open Payment Page
+                    </h2>
+
+                    <p>
+                        Please try again later.
+                    </p>
+
+                    <a href="/student/dashboard">
+                        Go Back to Dashboard
+                    </a>
+
+                </div>
+            `);
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   5. PROCESS SIMULATED PAYMENT
+   =========================================================
+
+   POST:
+
+   /payment/:feeId/pay
+
+   ========================================================= */
+
+router.post(
+    '/:feeId/pay',
+    requireLogin,
+    async (req, res) => {
+
+        let connection;
+
+        try {
+
+            const feeId =
+                req.params.feeId;
+
+            const userId =
+                req.session.user.id;
+
+
+            const {
+
+                payment_method,
+
+                upi_id,
+
+                utr_number,
+
+                bank_name,
+
+                wallet_name
+
+            } = req.body;
+
+
+            console.log(
+                '💳 Simulated payment request:',
+                {
+                    feeId,
+                    userId,
+                    payment_method,
+                    upi_id,
+                    utr_number,
+                    bank_name,
+                    wallet_name
+                }
+            );
+
+
+            /*
+            =================================================
+            VALIDATE METHOD
+            =================================================
+            */
+
+            const allowedMethods = [
+
+                'UPI',
+
+                'CARD',
+
+                'NETBANKING',
+
+                'WALLET',
+
+                'RTGS_NEFT'
+
+            ];
+
+
+            if (
+                !allowedMethods.includes(
+                    payment_method
+                )
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'Invalid payment method.'
+
+                });
+
+            }
+
+
+            /*
+            =================================================
+            GET STUDENT
+            =================================================
+            */
+
+            const student =
+                await getStudentForUser(userId);
+
+
+            if (!student) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        'Student record not found.'
+
+                });
+
+            }
+
+
+            /*
+            =================================================
+            GET FEE
+            =================================================
+            */
+
+            const [feeRows] = await db.query(
+                `
+                SELECT *
+                FROM fees
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [feeId]
+            );
+
+
+            if (!feeRows || feeRows.length === 0) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    message:
+                        'Fee record not found.'
+
+                });
+
+            }
+
+
+            const fee =
+                feeRows[0];
+
+
+            /*
+            =================================================
+            SECURITY CHECK
+            =================================================
+            */
+
+            if (
+                fee.student_id &&
+                Number(fee.student_id) !==
+                Number(student.id)
+            ) {
+
+                return res.status(403).json({
+
+                    success: false,
+
+                    message:
+                        'This fee does not belong to you.'
+
+                });
+
+            }
+
+
+            /*
+            =================================================
+            CHECK ALREADY PAID
+            =================================================
+            */
+
+            if (
+                fee.status &&
+                String(fee.status).toLowerCase()
+                === 'paid'
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message:
+                        'This fee has already been paid.'
+
+                });
+
+            }
+
+
+            /*
+            =================================================
+            GENERATE SIMULATED IDs
+            =================================================
+            */
+
+            const simulatedPaymentId =
+
+                'SIM_PAY_' +
+
+                Date.now() +
+
+                '_' +
+
+                Math.floor(
+                    Math.random() * 10000
+                );
+
+
+            const simulatedOrderId =
+
+                'SIM_ORDER_' +
+
+                Date.now();
+
+
+            const receiptNumber =
+
+                'BUS-REC-' +
+
+                Date.now();
+
+
+            /*
+            =================================================
+            GET DB CONNECTION
+            =================================================
+            */
+
+            connection =
+                await db.getConnection();
+
+
+            /*
+            =================================================
+            START TRANSACTION
+            =================================================
+            */
+
+            await connection.beginTransaction();
+
+
+            /*
+            =================================================
+            INSERT PAYMENT
+
+            Uses your actual payments table structure.
+
+            =================================================
+            */
+
+            const [paymentResult] =
+                await connection.query(
+                    `
+                    INSERT INTO payments
+                    (
+                        fee_id,
+                        student_id,
+                        razorpay_order_id,
+                        razorpay_payment_id,
+                        razorpay_signature,
+                        amount,
+                        currency,
+                        payment_method,
+                        status,
+                        receipt_no,
+                        transaction_date
+                    )
+
+                    VALUES
+                    (
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        NOW()
+                    )
+                    `,
+                    [
+
+                        feeId,
+
+                        student.id,
+
+                        simulatedOrderId,
+
+                        simulatedPaymentId,
+
+                        'SIMULATED_SIGNATURE',
+
+                        fee.amount,
+
+                        fee.currency || 'INR',
+
+                        payment_method,
+
+                        'success',
+
+                        receiptNumber
+
+                    ]
+                );
+
+
+            const newPaymentId =
+                paymentResult.insertId;
+
+
+            /*
+            =================================================
+            UPDATE FEE
+
+            Your fees table uses:
+
+            status
+            paid_date
+
+            =================================================
+            */
+
+            await connection.query(
+                `
+                UPDATE fees
+
+                SET
+                    status = 'paid',
+                    paid_date = NOW()
+
+                WHERE id = ?
+                `,
+                [feeId]
+            );
+
+
+            /*
+            =================================================
+            COMMIT
+            =================================================
+            */
+
+            await connection.commit();
+
+
+            console.log(
+                '✅ Simulated payment successful:',
+                newPaymentId
+            );
+
+
+            /*
+            =================================================
+            SUCCESS RESPONSE
+            =================================================
+
+            The frontend should redirect to:
+
+            /payment/success/:paymentId
+
+            =================================================
+            */
+
+            return res.json({
+
+                success: true,
+
+                message:
+                    'Payment successful.',
+
+                paymentId:
+                    newPaymentId,
+
+                transactionId:
+                    simulatedPaymentId,
+
+                receiptNo:
+                    receiptNumber,
+
+                amount:
+                    fee.amount
+
+            });
+
+
+        } catch (error) {
+
+
+            /*
+            =================================================
+            ROLLBACK
+            =================================================
+            */
+
+            if (connection) {
+
+                try {
+
+                    await connection.rollback();
+
+                } catch (rollbackError) {
+
+                    console.error(
+                        'Rollback error:',
+                        rollbackError
+                    );
+
+                }
+
+            }
+
+
+            console.error(
+                '❌ Simulated payment error:',
+                error
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                message:
+                    'Unable to process payment.',
+
+                error:
+                    process.env.NODE_ENV === 'development'
+                        ? error.message
+                        : undefined
+
+            });
+
+
+        } finally {
+
+
+            /*
+            =================================================
+            RELEASE CONNECTION
+            =================================================
+            */
+
+            if (connection) {
+
+                connection.release();
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   EXPORT ROUTER
+   ========================================================= */
 
 module.exports = router;
