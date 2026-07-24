@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Receipt - <%= payment.receipt_number %></title>
+  <title>Receipt - <%= payment.receipt_no %></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="/css/style.css">
@@ -153,7 +153,7 @@
     Print
   </button>
 
-  <a href="/payment/receipt/<%= payment.receipt_number %>/download"
+  href="/payment/receipt/<%= payment.receipt_no %>/download"
      class="btn btn-primary">
     <i class="bi bi-download"></i>
     Download PDF
@@ -187,14 +187,16 @@
     <div class="receipt-row">
       <span class="label">Receipt Number</span>
       <span class="value" style="font-family:var(--font-mono)">
-        <%= payment.receipt_number %>
+        <%= payment.receipt_no %>
       </span>
     </div>
 
     <div class="receipt-row">
       <span class="label">Payment Date</span>
       <span class="value">
-        <%= new Date(payment.payment_date).toLocaleDateString('en-IN') %>
+        <%= payment.transaction_date
+? new Date(payment.transaction_date).toLocaleDateString('en-IN')
+: '—' %>
       </span>
     </div>
 
@@ -244,7 +246,7 @@
     <div class="receipt-row">
       <span class="label">Transaction ID</span>
       <span class="value" style="font-family:var(--font-mono)">
-        <%= payment.transaction_id %>
+        <%= payment.razorpay_payment_id || 'N/A' %>
       </span>
     </div>
 

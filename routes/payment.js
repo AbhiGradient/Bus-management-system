@@ -27,6 +27,148 @@ async function getStudent(userId) {
    GET /payment/:feeId
 ========================================================= */
 
+
+
+
+/* =========================================================
+   PAYMENT SUCCESS
+   GET /payment/success/:paymentId
+========================================================= */
+
+router.get(
+  '/success/:paymentId',
+  isStudent,
+  async (req, res) => {
+
+    try {
+
+      const student =
+        await getStudent(req.session.user.id);
+
+
+      const [[payment]] = await db.query(
+        `
+        SELECT
+          p.*,
+          f.due_date
+        FROM payments p
+        JOIN fees f
+          ON p.fee_id = f.id
+        WHERE p.id = ?
+        AND p.student_id = ?
+        `,
+        [
+          req.params.paymentId,
+          student.id
+        ]
+      );
+
+
+      if (!payment) {
+
+        return res.status(404).send(
+          'Payment record not found'
+        );
+
+      }
+
+
+      res.render(
+        'student/payment-success',
+        {
+          payment
+        }
+      );
+
+
+    } catch (err) {
+
+      console.error(
+        'PAYMENT SUCCESS ERROR:',
+        err
+      );
+
+      res.status(500).send(
+        'Error loading payment success page: ' +
+        err.message
+      );
+
+    }
+
+  }
+);
+
+
+
+
+/* =========================================================
+   RECEIPT
+   GET /payment/receipt/:paymentId
+========================================================= */
+
+router.get(
+  '/receipt/:paymentId',
+  isStudent,
+  async (req, res) => {
+
+    try {
+
+      const student =
+        await getStudent(req.session.user.id);
+
+
+      const [[payment]] = await db.query(
+        `
+        SELECT
+          p.*,
+          f.due_date
+        FROM payments p
+        JOIN fees f
+          ON p.fee_id = f.id
+        WHERE p.id = ?
+        AND p.student_id = ?
+        `,
+        [
+          req.params.paymentId,
+          student.id
+        ]
+      );
+
+
+      if (!payment) {
+
+        return res.status(404).send(
+          'Receipt not found'
+        );
+
+      }
+
+
+      res.render(
+        'student/payment-receipt',
+        {
+          payment
+        }
+      );
+
+
+    } catch (err) {
+
+      console.error(
+        'RECEIPT ERROR:',
+        err
+      );
+
+      res.status(500).send(
+        'Error loading receipt: ' +
+        err.message
+      );
+
+    }
+
+  }
+);
+
 router.get('/:feeId', isStudent, async (req, res) => {
 
   try {
@@ -34,6 +176,8 @@ router.get('/:feeId', isStudent, async (req, res) => {
     const feeId = req.params.feeId;
 
     const student = await getStudent(req.session.user.id);
+    
+   
 
     if (!student) {
       return res.status(404).send('Student record not found');
@@ -149,10 +293,9 @@ router.get('/:feeId', isStudent, async (req, res) => {
 
 });
 
-
 /* =========================================================
    CONFIRM PAYMENT
-   POST /payment/:feeId/confirm
+   POST /:feeId/confirm
 ========================================================= */
 
 router.post('/:feeId/confirm', isStudent, async (req, res) => {
@@ -160,110 +303,41 @@ router.post('/:feeId/confirm', isStudent, async (req, res) => {
   try {
 
     const feeId = req.params.feeId;
-
     const { utr } = req.body;
 
-
     if (!utr || !utr.trim()) {
-
-      return res.status(400).send(
-        'Transaction ID / UTR is required'
-      );
-
+      return res.status(400).send('Transaction ID / UTR is required');
     }
-
 
     const student = await getStudent(req.session.user.id);
-
+    const [[user]] = await db.query(
+  'SELECT * FROM users WHERE id = ?',
+  [req.session.user.id]
+);
 
     if (!student) {
-
-      return res.status(404).send(
-        'Student record not found'
-      );
-
+      return res.status(404).send('Student record not found');
     }
-
-
-    /* Find student's fee */
 
     const [[fee]] = await db.query(
-      `
-      SELECT *
-      FROM fees
-      WHERE id = ?
-      AND student_id = ?
-      `,
-      [
-        feeId,
-        student.id
-      ]
+      'SELECT * FROM fees WHERE id = ? AND student_id = ?',
+      [feeId, student.id]
     );
 
-
     if (!fee) {
-
-      return res.status(404).send(
-        'Fee record not found'
-      );
-
+      return res.status(404).send('Fee record not found');
     }
-
-
-    /* Check if already paid */
 
     if (fee.status === 'paid') {
-
-      return res.redirect(
-        '/student/fees-status'
-      );
-
+      return res.redirect('/student/fees-status');
     }
 
+    const receiptNo = 'BUS-' + Date.now();
 
-    /*
-      Generate receipt number
-    */
-
-    const receiptNo =
-      'BUS-' +
-      Date.now();
-
-
-    /*
-      Generate transaction ID
-
-      This is simulated payment.
-
-      The actual UTR entered by student
-      is stored as razorpay_payment_id
-      only if your existing database requires it.
-
-      Ideally, your payments table should have
-      a utr column.
-    */
-
-
-    /*
-      Check if payments table has UTR column.
-
-      For now we use razorpay_payment_id
-      because your existing paymentService expects it.
-    */
-
-
-    await db.query(
-      `
-      INSERT INTO payments
-      (
-        fee_id,
-        student_id,
-        razorpay_payment_id,
-        amount,
-        status
-      )
-      VALUES (?, ?, ?, ?, 'success')
-      `,
+    const [result] = await db.query(
+      `INSERT INTO payments
+      (fee_id, student_id, razorpay_payment_id, amount, status)
+      VALUES (?, ?, ?, ?, 'success')`,
       [
         fee.id,
         student.id,
@@ -272,205 +346,66 @@ router.post('/:feeId/confirm', isStudent, async (req, res) => {
       ]
     );
 
-
-    /*
-      Mark fee as paid
-    */
-
     await db.query(
-      `
-      UPDATE fees
-      SET
-        status = 'paid',
-        paid_date = CURDATE()
-      WHERE id = ?
-      `,
+      `UPDATE fees
+       SET status='paid',
+           paid_date=CURDATE()
+       WHERE id=?`,
       [fee.id]
     );
 
+    const paymentId = result.insertId;
+    await sendMail(
+  user.email,
+  'Bus Fee Payment Successful',
+  `
+    <h2>Payment Successful</h2>
 
-    /*
-      Get newly created payment
-    */
+    <p>Hello <b>${user.name}</b>,</p>
 
-    const [[payment]] = await db.query(
-      `
-      SELECT *
-      FROM payments
-      WHERE fee_id = ?
-      AND student_id = ?
-      ORDER BY id DESC
-      LIMIT 1
-      `,
-      [
-        fee.id,
-        student.id
-      ]
-    );
+    <p>Your bus fee payment has been received successfully.</p>
 
+    <table border="1" cellpadding="8" cellspacing="0">
+      <tr>
+        <td><b>Receipt No</b></td>
+        <td>${receiptNo}</td>
+      </tr>
 
-    /*
-      Redirect to success page
-    */
+      <tr>
+        <td><b>Amount</b></td>
+        <td>₹${fee.amount}</td>
+      </tr>
 
-    return res.redirect(
-      '/payment/success/' + payment.id
-    );
+      <tr>
+        <td><b>Transaction ID</b></td>
+        <td>${utr}</td>
+      </tr>
 
+      <tr>
+        <td><b>Status</b></td>
+        <td>Paid</td>
+      </tr>
+    </table>
+
+    <br>
+
+    <p>Thank you.</p>
+
+    <p>College Bus Management System</p>
+  `
+);
+
+    return res.redirect('/payment/success/' + paymentId);
 
   } catch (err) {
 
-    console.error(
-      'PAYMENT CONFIRMATION ERROR:',
-      err
-    );
+    console.error('PAYMENT CONFIRMATION ERROR:', err);
 
     res.status(500).send(
-      'Error confirming payment: ' +
-      err.message
+      'Error confirming payment: ' + err.message
     );
 
   }
 
 });
-
-
-/* =========================================================
-   PAYMENT SUCCESS
-   GET /payment/success/:paymentId
-========================================================= */
-
-router.get(
-  '/success/:paymentId',
-  isStudent,
-  async (req, res) => {
-
-    try {
-
-      const student =
-        await getStudent(req.session.user.id);
-
-
-      const [[payment]] = await db.query(
-        `
-        SELECT
-          p.*,
-          f.due_date
-        FROM payments p
-        JOIN fees f
-          ON p.fee_id = f.id
-        WHERE p.id = ?
-        AND p.student_id = ?
-        `,
-        [
-          req.params.paymentId,
-          student.id
-        ]
-      );
-
-
-      if (!payment) {
-
-        return res.status(404).send(
-          'Payment record not found'
-        );
-
-      }
-
-
-      res.render(
-        'student/payment-success',
-        {
-          payment
-        }
-      );
-
-
-    } catch (err) {
-
-      console.error(
-        'PAYMENT SUCCESS ERROR:',
-        err
-      );
-
-      res.status(500).send(
-        'Error loading payment success page: ' +
-        err.message
-      );
-
-    }
-
-  }
-);
-
-
-/* =========================================================
-   RECEIPT
-   GET /payment/receipt/:paymentId
-========================================================= */
-
-router.get(
-  '/receipt/:paymentId',
-  isStudent,
-  async (req, res) => {
-
-    try {
-
-      const student =
-        await getStudent(req.session.user.id);
-
-
-      const [[payment]] = await db.query(
-        `
-        SELECT
-          p.*,
-          f.due_date
-        FROM payments p
-        JOIN fees f
-          ON p.fee_id = f.id
-        WHERE p.id = ?
-        AND p.student_id = ?
-        `,
-        [
-          req.params.paymentId,
-          student.id
-        ]
-      );
-
-
-      if (!payment) {
-
-        return res.status(404).send(
-          'Receipt not found'
-        );
-
-      }
-
-
-      res.render(
-        'student/payment-receipt',
-        {
-          payment
-        }
-      );
-
-
-    } catch (err) {
-
-      console.error(
-        'RECEIPT ERROR:',
-        err
-      );
-
-      res.status(500).send(
-        'Error loading receipt: ' +
-        err.message
-      );
-
-    }
-
-  }
-);
-
-
 module.exports = router;

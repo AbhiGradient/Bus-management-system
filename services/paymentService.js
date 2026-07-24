@@ -45,10 +45,22 @@ async function verifyPayment({ orderId, paymentId, signature }) {
     return { success: false, message: 'Payment signature verification failed' };
   }
 
-  await db.query(
-    'UPDATE payments SET razorpay_payment_id = ?, status = "success" WHERE id = ?',
-    [paymentId, payment.id]
-  );
+  const receiptNo = `RCT-${Date.now()}`;
+
+await db.query(
+  `UPDATE payments
+   SET razorpay_payment_id = ?,
+       receipt_no = ?,
+       payment_method = 'Razorpay',
+       transaction_date = NOW(),
+       status = 'success'
+   WHERE id = ?`,
+  [
+    paymentId,
+    receiptNo,
+    payment.id
+  ]
+);
   await db.query('UPDATE fees SET status = "paid", paid_date = CURDATE() WHERE id = ?', [payment.fee_id]);
 
   const [[updatedPayment]] = await db.query('SELECT * FROM payments WHERE id = ?', [payment.id]);
