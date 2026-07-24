@@ -207,5 +207,15 @@
     markAttendance({ roll_no: rollNo });
     input.value = '';
   });
+  // Automatically start camera if redirected from dashboard
+window.addEventListener("load", () => {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("autostart") === "1") {
+    setTimeout(() => {
+      document.getElementById("startScanBtn").click();
+    }, 300);
+  }
+});
 </script>
 <% } %>
