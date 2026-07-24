@@ -26,7 +26,37 @@ async function getStudent(userId) {
    PAYMENT PAGE
    GET /payment/:feeId
 ========================================================= */
+router.get('/:feeId', isStudent, async (req, res) => {
+  try {
+    const student = await getStudent(req.session.user.id);
 
+    if (!student) {
+      return res.status(404).send('Student record not found');
+    }
+
+    const [[fee]] = await db.query(
+      `SELECT *
+       FROM fees
+       WHERE id = ?
+       AND student_id = ?`,
+      [req.params.feeId, student.id]
+    );
+
+    if (!fee) {
+      return res.status(404).send('Fee record not found');
+    }
+
+    res.render('student/payment', {
+      user: req.session.user,
+      student,
+      fee
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
 
 
 
