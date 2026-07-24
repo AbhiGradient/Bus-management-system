@@ -46,11 +46,12 @@ router.get('/:feeId', isStudent, async (req, res) => {
       return res.status(404).send('Fee record not found');
     }
 
-    res.render('student/payment', {
-      user: req.session.user,
-      student,
-      fee
-    });
+   res.render('student/payment', {
+    user: req.session.user,
+    student,
+    fee,
+    error: null
+});
 
   } catch (err) {
     console.error(err);
