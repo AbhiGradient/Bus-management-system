@@ -56,6 +56,7 @@ router.get('/admin/qr-generator/:studentId/download', isAdmin, async (req, res) 
 });
 
 // ================= ADMIN: ATTENDANCE REPORT =================
+// ================= ADMIN: ATTENDANCE REPORT =================
 router.get('/admin/attendance-report', isAdmin, async (req, res) => {
   try {
     const filters = {
@@ -64,13 +65,24 @@ router.get('/admin/attendance-report', isAdmin, async (req, res) => {
       status: req.query.status || ''
     };
 
-    const [buses] = await db.query('SELECT id, bus_number FROM buses ORDER BY bus_number');
-    const { records, stats } = await attendanceService.getAttendanceReport(filters);
+    const [buses] = await db.query(
+      'SELECT id, bus_number FROM buses ORDER BY bus_number'
+    );
 
-    res.render('qr/attendance-report', { buses, filters, stats, records });
+    const { records, stats } =
+      await attendanceService.getAttendanceReport(filters);
+
+    res.render('admin/attendance-report', {
+      user: req.session.user,
+      buses,
+      filters,
+      stats,
+      records
+    });
+
   } catch (err) {
     console.error(err);
-    res.send('Error loading attendance report');
+    res.status(500).send('Error loading attendance report');
   }
 });
 

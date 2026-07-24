@@ -1,55 +1,150 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// -------- Transporter (Gmail SMTP by default) --------
-const port = Number(process.env.SMTP_PORT) || 587;
+const smtpPort = Number(process.env.SMTP_PORT || 587);
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port,
-  secure: port === 465, // true for 465, false for 587/STARTTLS
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  },
-  // Without these, a blocked/unreachable SMTP server hangs indefinitely
-  // instead of failing — which is what looked like "infinite spinning".
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+
+    port: smtpPort,
+
+    secure: smtpPort === 465,
+
+    family: 4,
+
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+    },
+
+    connectionTimeout: 30000,
+
+    greetingTimeout: 30000,
+
+    socketTimeout: 30000
 });
 
-// Verify connection on startup so config problems show up immediately
-transporter.verify((err) => {
-  if (err) {
-    console.error('❌ Mailer connection failed:', err.message);
-  } else {
-    console.log('✅ Mailer ready to send emails');
-  }
+
+// =====================================================
+// VERIFY SMTP CONNECTION
+// =====================================================
+
+transporter.verify((error, success) => {
+
+    if (error) {
+
+        console.error(
+            '❌ Mailer connection failed:',
+            error.code || '',
+            error.message
+        );
+
+    } else {
+
+        console.log(
+            '✅ Mailer ready to send emails'
+        );
+
+    }
+
 });
 
-// -------- Send a generic email --------
-// to      : recipient email address
-// subject : email subject line
-// html    : HTML body content
-const sendMail = async (to, subject, html) => {
-  try {
-    const info = await Promise.race([
-      transporter.sendMail({
-        from: `"College Bus Management" <${process.env.SMTP_USER}>`,
-        to,
-        subject,
-        html
-      }),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Email send timed out after 15s — check SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS in .env')), 15000)
-      )
-    ]);
-    return { success: true, messageId: info.messageId };
-  } catch (err) {
-    console.error('❌ Email send failed:', err.code || '', err.message);
-    return { success: false, error: err.message };
-  }
+
+// =====================================================
+// SEND EMAIL
+// =====================================================
+
+async function sendMail(to, subject, html) {
+
+    try {
+
+        if (!to) {
+
+            throw new Error(
+                'Recipient email address is missing'
+            );
+
+        }
+
+        if (!process.env.SMTP_USER) {
+
+            throw new Error(
+                'SMTP_USER is not configured'
+            );
+
+        }
+
+        if (!process.env.SMTP_PASS) {
+
+            throw new Error(
+                'SMTP_PASS is not configured'
+            );
+
+        }
+
+
+        const info = await transporter.sendMail({
+
+            from:
+                `"Smart College Bus" <${process.env.SMTP_USER}>`,
+
+            to: to,
+
+            subject: subject,
+
+            html: html
+
+        });
+
+
+        console.log(
+            '✅ Email sent successfully to:',
+            to
+        );
+
+        console.log(
+            '📨 Message ID:',
+            info.messageId
+        );
+
+
+        return {
+
+            success: true,
+
+            messageId:
+                info.messageId
+
+        };
+
+
+    } catch (error) {
+
+        console.error(
+            '❌ Email send failed:',
+            error.code || '',
+            error.message
+        );
+
+
+        return {
+
+            success: false,
+
+            error:
+                error.message
+
+        };
+
+    }
+
+}
+
+
+module.exports = {
+
+    transporter,
+
+    sendMail
+
 };
-
-module.exports = { transporter, sendMail };
