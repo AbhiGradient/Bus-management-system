@@ -1,144 +1,1207 @@
-<%- include('../partials/header', {
-  pageTitle: 'Payment History',
-  pageCss: []
-}) %>
+```html
+<!DOCTYPE html>
+<html lang="en">
 
-<div class="app-shell">
+<head>
 
-  <%- include('../partials/sidebar', {
-    currentPage: 'payment-history'
-  }) %>
+    <meta charset="UTF-8">
 
-  <%- include('../partials/navbar', {
-    pageLabel: 'Payment History'
-  }) %>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-  <div class="app-main">
+    <title>
+        Payment History | Smart College Bus
+    </title>
 
-    <main class="main-content">
 
-      <h3 class="mb-3">
-        <i class="bi bi-credit-card-2-front-fill text-primary"></i>
-        Payment History
-      </h3>
+    <link
+        rel="stylesheet"
+        href="/css/main.css"
+    >
 
-      <div class="card p-3">
 
-        <div class="table-responsive">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    >
 
-          <table class="table table-hover align-middle">
 
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Receipt No.</th>
-                <th>Amount</th>
-                <th>Payment Date</th>
-                <th>Method</th>
-                <th>Status</th>
-                <th class="text-center">Actions</th>
-              </tr>
-            </thead>
+    <style>
 
-            <tbody>
+        /*
+        =====================================================
+        PAYMENT HISTORY PAGE
+        =====================================================
+        */
 
-              <% if (!payments || payments.length === 0) { %>
+        .history-page {
 
-                <tr>
-                  <td colspan="7" class="text-center text-muted py-4">
-                    No payment records found.
-                  </td>
-                </tr>
+            max-width:
+                1200px;
 
-              <% } %>
+            margin:
+                40px auto;
 
-              <% payments.forEach((payment, index) => { %>
+            padding:
+                20px;
 
-                <tr>
+        }
 
-                  <td>
-                    <%= index + 1 %>
-                  </td>
 
-                  <td style="font-family: monospace;">
-                    <%= payment.receipt_no %>
-                  </td>
+        /*
+        =====================================================
+        HEADER
+        =====================================================
+        */
 
-                  <td>
-                    ₹<%= Number(payment.amount).toLocaleString('en-IN') %>
-                  </td>
+        .history-header {
 
-                  <td>
-                    <%= payment.transaction_date
-                      ? new Date(payment.transaction_date).toLocaleDateString('en-IN')
-                      : '—'
-                    %>
-                  </td>
+            display:
+                flex;
 
-                  <td>
-                    <%= payment.payment_method || 'UPI' %>
-                  </td>
+            justify-content:
+                space-between;
 
-                  <td>
+            align-items:
+                center;
 
-                    <% if (payment.status === 'success') { %>
+            gap:
+                20px;
 
-                      <span class="badge bg-success">
-                        Success
-                      </span>
+            margin-bottom:
+                25px;
 
-                    <% } else { %>
+        }
 
-                      <span class="badge bg-warning text-dark">
-                        <%= payment.status %>
-                      </span>
 
-                    <% } %>
+        .history-header h1 {
 
-                  </td>
+            color:
+                #132f4b;
 
-                  <td class="text-center">
+            margin:
+                0 0 7px 0;
 
-                    <a href="/payment/receipt/<%= payment.receipt_no %>"
-                       class="btn btn-outline-primary btn-sm me-1">
+        }
 
-                      <i class="bi bi-receipt"></i>
-                      Receipt
 
-                    </a>
+        .history-header p {
 
-                    <a href="/payment/receipt/<%= payment.receipt_no %>/download"
-                       class="btn btn-success btn-sm">
+            color:
+                #666;
 
-                      <i class="bi bi-download"></i>
-                      PDF
+            margin:
+                0;
 
-                    </a>
+        }
 
-                  </td>
 
-                </tr>
+        /*
+        =====================================================
+        BACK BUTTON
+        =====================================================
+        */
 
-              <% }) %>
+        .back-btn {
 
-            </tbody>
+            display:
+                inline-flex;
 
-          </table>
+            align-items:
+                center;
 
-        </div>
+            gap:
+                8px;
 
-      </div>
+            background:
+                #132f4b;
 
-    </main>
+            color:
+                #fff;
 
-    <%- include('../partials/footer') %>
+            padding:
+                10px 16px;
 
-  </div>
+            border-radius:
+                7px;
+
+            text-decoration:
+                none;
+
+            font-weight:
+                600;
+
+            white-space:
+                nowrap;
+
+        }
+
+
+        .back-btn:hover {
+
+            background:
+                #0e2439;
+
+        }
+
+
+        /*
+        =====================================================
+        SUMMARY CARDS
+        =====================================================
+        */
+
+        .history-summary {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(
+                    3,
+                    1fr
+                );
+
+            gap:
+                18px;
+
+            margin-bottom:
+                25px;
+
+        }
+
+
+        .summary-card {
+
+            background:
+                #fff;
+
+            padding:
+                20px;
+
+            border-radius:
+                12px;
+
+            box-shadow:
+                0 5px 16px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.08
+                );
+
+            border-left:
+                4px solid #132f4b;
+
+        }
+
+
+        .summary-card h3 {
+
+            margin:
+                0 0 8px 0;
+
+            color:
+                #666;
+
+            font-size:
+                14px;
+
+        }
+
+
+        .summary-card .summary-number {
+
+            font-size:
+                25px;
+
+            font-weight:
+                700;
+
+            color:
+                #132f4b;
+
+        }
+
+
+        /*
+        =====================================================
+        TABLE CONTAINER
+        =====================================================
+        */
+
+        .history-card {
+
+            background:
+                #fff;
+
+            border-radius:
+                12px;
+
+            box-shadow:
+                0 6px 18px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.10
+                );
+
+            overflow:
+                hidden;
+
+        }
+
+
+        .history-card-header {
+
+            padding:
+                20px;
+
+            border-bottom:
+                1px solid #eee;
+
+        }
+
+
+        .history-card-header h2 {
+
+            margin:
+                0;
+
+            color:
+                #132f4b;
+
+            font-size:
+                20px;
+
+        }
+
+
+        /*
+        =====================================================
+        TABLE WRAPPER
+        =====================================================
+        */
+
+        .table-wrapper {
+
+            width:
+                100%;
+
+            overflow-x:
+                auto;
+
+        }
+
+
+        .payment-table {
+
+            width:
+                100%;
+
+            border-collapse:
+                collapse;
+
+            min-width:
+                850px;
+
+        }
+
+
+        .payment-table th {
+
+            background:
+                #132f4b;
+
+            color:
+                #fff;
+
+            padding:
+                14px;
+
+            text-align:
+                left;
+
+            font-size:
+                13px;
+
+            white-space:
+                nowrap;
+
+        }
+
+
+        .payment-table td {
+
+            padding:
+                14px;
+
+            border-bottom:
+                1px solid #eee;
+
+            font-size:
+                14px;
+
+            vertical-align:
+                middle;
+
+        }
+
+
+        .payment-table tbody tr:hover {
+
+            background:
+                #f8fafc;
+
+        }
+
+
+        /*
+        =====================================================
+        AMOUNT
+        =====================================================
+        */
+
+        .amount-cell {
+
+            color:
+                #e10600;
+
+            font-weight:
+                700;
+
+        }
+
+
+        /*
+        =====================================================
+        STATUS
+        =====================================================
+        */
+
+        .status-badge {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                5px;
+
+            padding:
+                5px 10px;
+
+            border-radius:
+                20px;
+
+            font-size:
+                12px;
+
+            font-weight:
+                700;
+
+            text-transform:
+                capitalize;
+
+        }
+
+
+        .status-success {
+
+            background:
+                #dcfce7;
+
+            color:
+                #166534;
+
+        }
+
+
+        .status-failed {
+
+            background:
+                #fee2e2;
+
+            color:
+                #991b1b;
+
+        }
+
+
+        .status-pending {
+
+            background:
+                #fef3c7;
+
+            color:
+                #92400e;
+
+        }
+
+
+        /*
+        =====================================================
+        PAYMENT METHOD
+        =====================================================
+        */
+
+        .method-badge {
+
+            display:
+                inline-block;
+
+            background:
+                #eef3f7;
+
+            color:
+                #132f4b;
+
+            padding:
+                5px 9px;
+
+            border-radius:
+                5px;
+
+            font-size:
+                12px;
+
+            font-weight:
+                600;
+
+        }
+
+
+        /*
+        =====================================================
+        RECEIPT BUTTON
+        =====================================================
+        */
+
+        .receipt-btn {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                6px;
+
+            padding:
+                8px 12px;
+
+            border-radius:
+                6px;
+
+            background:
+                #132f4b;
+
+            color:
+                #fff;
+
+            text-decoration:
+                none;
+
+            font-size:
+                12px;
+
+            font-weight:
+                600;
+
+            white-space:
+                nowrap;
+
+        }
+
+
+        .receipt-btn:hover {
+
+            background:
+                #0e2439;
+
+        }
+
+
+        /*
+        =====================================================
+        EMPTY STATE
+        =====================================================
+        */
+
+        .empty-state {
+
+            text-align:
+                center;
+
+            padding:
+                60px 20px;
+
+        }
+
+
+        .empty-icon {
+
+            font-size:
+                55px;
+
+            color:
+                #aaa;
+
+            margin-bottom:
+                15px;
+
+        }
+
+
+        .empty-state h2 {
+
+            color:
+                #444;
+
+            margin-bottom:
+                10px;
+
+        }
+
+
+        .empty-state p {
+
+            color:
+                #777;
+
+            margin-bottom:
+                20px;
+
+        }
+
+
+        .pay-now-btn {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            gap:
+                8px;
+
+            background:
+                #132f4b;
+
+            color:
+                #fff;
+
+            text-decoration:
+                none;
+
+            padding:
+                11px 18px;
+
+            border-radius:
+                7px;
+
+            font-weight:
+                600;
+
+        }
+
+
+        /*
+        =====================================================
+        MOBILE
+        =====================================================
+        */
+
+        @media (
+            max-width: 700px
+        ) {
+
+            .history-header {
+
+                flex-direction:
+                    column;
+
+                align-items:
+                flex-start;
+
+            }
+
+
+            .history-summary {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            .history-page {
+
+                padding:
+                    15px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     TOP BAR
+====================================================== -->
+
+<div class="top-bar">
+
+    🔒 Smart College Bus Payment System
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/script.js"></script>
+
+<!-- =====================================================
+     NAVBAR
+====================================================== -->
+
+<nav class="navbar">
+
+    <div class="nav-container">
+
+
+        <div class="nav-logo">
+
+            <a href="/">
+
+                Smart College Bus
+
+            </a>
+
+        </div>
+
+
+        <div class="nav-actions">
+
+            <a
+                href="/student/dashboard"
+                class="nav-btn"
+            >
+
+                <i class="fa-solid fa-house"></i>
+
+                Dashboard
+
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<!-- =====================================================
+     MAIN PAGE
+====================================================== -->
+
+<main class="history-page">
+
+
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+
+    <div class="history-header">
+
+
+        <div>
+
+            <h1>
+
+                Payment History
+
+            </h1>
+
+
+            <p>
+
+                View all your college bus fee payments
+                and download receipts.
+
+            </p>
+
+        </div>
+
+
+        <a
+            href="/student/dashboard"
+            class="back-btn"
+        >
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+            Back to Dashboard
+
+        </a>
+
+
+    </div>
+
+
+    <!-- =================================================
+         SUMMARY
+    ================================================== -->
+
+    <div class="history-summary">
+
+
+        <!-- TOTAL PAYMENTS -->
+
+        <div class="summary-card">
+
+            <h3>
+
+                Total Payments
+
+            </h3>
+
+
+            <div class="summary-number">
+
+                <%= payments.length %>
+
+            </div>
+
+        </div>
+
+
+        <!-- SUCCESSFUL PAYMENTS -->
+
+        <div class="summary-card">
+
+            <h3>
+
+                Successful Payments
+
+            </h3>
+
+
+            <div class="summary-number">
+
+                <%= payments.filter(
+                    payment =>
+                        payment.status &&
+                        payment.status.toLowerCase() === 'success'
+                ).length %>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL AMOUNT -->
+
+        <div class="summary-card">
+
+            <h3>
+
+                Total Amount Paid
+
+            </h3>
+
+
+            <div class="summary-number">
+
+                ₹<%= payments
+                    .filter(
+                        payment =>
+                            payment.status &&
+                            payment.status.toLowerCase() === 'success'
+                    )
+                    .reduce(
+                        (
+                            total,
+                            payment
+                        ) =>
+                            total +
+                            Number(
+                                payment.amount || 0
+                            ),
+                        0
+                    )
+                    .toFixed(2) %>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =================================================
+         PAYMENT TABLE
+    ================================================== -->
+
+    <div class="history-card">
+
+
+        <div class="history-card-header">
+
+            <h2>
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+
+                Transaction History
+
+            </h2>
+
+        </div>
+
+
+        <% if (
+            payments &&
+            payments.length > 0
+        ) { %>
+
+
+            <!-- =============================================
+                 TABLE
+            ============================================== -->
+
+            <div class="table-wrapper">
+
+                <table class="payment-table">
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                #
+                            </th>
+
+                            <th>
+                                Receipt Number
+                            </th>
+
+                            <th>
+                                Amount
+                            </th>
+
+                            <th>
+                                Payment Method
+                            </th>
+
+                            <th>
+                                Transaction Reference
+                            </th>
+
+                            <th>
+                                Date
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Receipt
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+
+                        <% payments.forEach(
+                            (
+                                payment,
+                                index
+                            ) => { %>
+
+
+                            <tr>
+
+
+                                <!-- NUMBER -->
+
+                                <td>
+
+                                    <%= index + 1 %>
+
+                                </td>
+
+
+                                <!-- RECEIPT NUMBER -->
+
+                                <td>
+
+                                    <strong>
+
+                                        <%= payment.receipt_no || 'N/A' %>
+
+                                    </strong>
+
+                                </td>
+
+
+                                <!-- AMOUNT -->
+
+                                <td class="amount-cell">
+
+                                    ₹<%= Number(
+                                        payment.amount || 0
+                                    ).toFixed(2) %>
+
+                                </td>
+
+
+                                <!-- METHOD -->
+
+                                <td>
+
+                                    <span class="method-badge">
+
+                                        <%= payment.payment_method || 'N/A' %>
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- TRANSACTION REFERENCE -->
+
+                                <td>
+
+                                    <%= payment.razorpay_payment_id || 'N/A' %>
+
+                                </td>
+
+
+                                <!-- DATE -->
+
+                                <td>
+
+                                    <%= payment.transaction_date
+                                        ? new Date(
+                                            payment.transaction_date
+                                        ).toLocaleString(
+                                            'en-IN'
+                                        )
+                                        : 'N/A'
+                                    %>
+
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td>
+
+
+                                    <% const paymentStatus =
+
+                                        (
+                                            payment.status || ''
+                                        ).toLowerCase();
+
+                                    %>
+
+
+                                    <% if (
+                                        paymentStatus === 'success' ||
+                                        paymentStatus === 'paid'
+                                    ) { %>
+
+
+                                        <span
+                                            class="
+                                                status-badge
+                                                status-success
+                                            "
+                                        >
+
+                                            <i class="fa-solid fa-check"></i>
+
+                                            <%= payment.status %>
+
+                                        </span>
+
+
+                                    <% } else if (
+                                        paymentStatus === 'pending'
+                                    ) { %>
+
+
+                                        <span
+                                            class="
+                                                status-badge
+                                                status-pending
+                                            "
+                                        >
+
+                                            <i class="fa-solid fa-clock"></i>
+
+                                            <%= payment.status %>
+
+                                        </span>
+
+
+                                    <% } else { %>
+
+
+                                        <span
+                                            class="
+                                                status-badge
+                                                status-failed
+                                            "
+                                        >
+
+                                            <i class="fa-solid fa-xmark"></i>
+
+                                            <%= payment.status || 'Failed' %>
+
+                                        </span>
+
+
+                                    <% } %>
+
+
+                                </td>
+
+
+                                <!-- RECEIPT -->
+
+                                <td>
+
+
+                                    <% if (
+                                        payment.status &&
+                                        (
+                                            payment.status.toLowerCase() ===
+                                            'success' ||
+
+                                            payment.status.toLowerCase() ===
+                                            'paid'
+                                        )
+                                    ) { %>
+
+
+                                        <a
+                                            href="/payment/receipt/<%= payment.id %>"
+                                            class="receipt-btn"
+                                        >
+
+                                            <i class="fa-solid fa-file-pdf"></i>
+
+                                            Download
+
+                                        </a>
+
+
+                                    <% } else { %>
+
+
+                                        <span>
+
+                                            —
+
+                                        </span>
+
+
+                                    <% } %>
+
+
+                                </td>
+
+
+                            </tr>
+
+
+                        <% }); %>
+
+
+                    </tbody>
+
+
+                </table>
+
+            </div>
+
+
+        <% } else { %>
+
+
+            <!-- =============================================
+                 EMPTY STATE
+            ============================================== -->
+
+            <div class="empty-state">
+
+
+                <div class="empty-icon">
+
+                    <i class="fa-solid fa-receipt"></i>
+
+                </div>
+
+
+                <h2>
+
+                    No Payments Yet
+
+                </h2>
+
+
+                <p>
+
+                    You have not completed any bus fee
+                    payments yet.
+
+                </p>
+
+
+                <a
+                    href="/student/dashboard"
+                    class="pay-now-btn"
+                >
+
+                    <i class="fa-solid fa-credit-card"></i>
+
+                    Go to Dashboard
+
+                </a>
+
+
+            </div>
+
+
+        <% } %>
+
+
+    </div>
+
+
+</main>
+
 
 </body>
+
 </html>
+```

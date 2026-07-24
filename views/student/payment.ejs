@@ -1,702 +1,2592 @@
-<%- include('../partials/header', {
-  pageTitle: 'Pay Fees',
-  pageCss: []
-}) %>
+```html
+<!DOCTYPE html>
+<html lang="en">
 
-<div class="app-shell">
+<head>
 
-  <%- include('../partials/sidebar', {
-    currentPage: 'fee-status'
-  }) %>
+    <meta charset="UTF-8">
 
-  <%- include('../partials/navbar', {
-    pageLabel: 'Pay Fees'
-  }) %>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-  <div class="app-main">
+    <title>
+        Pay Bus Fee | Smart College Bus
+    </title>
 
-    <main class="main-content">
 
-      <!-- ================= PAGE HEADER ================= -->
+    <link
+        rel="stylesheet"
+        href="/css/main.css"
+    >
 
-      <div class="d-flex justify-content-between align-items-center mb-3">
 
-        <h3>
-          <i class="bi bi-credit-card-2-front"></i>
-          Complete Your Payment
-        </h3>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    >
 
-        <a href="/student/fees-status" class="btn btn-secondary btn-sm">
-          <i class="bi bi-arrow-left"></i>
-          Back to Fees
-        </a>
 
-      </div>
+    <style>
 
+        /*
+        =====================================================
+        PAYMENT PAGE
+        =====================================================
+        */
 
-      <!-- ================= ERROR ================= -->
+        .payment-page {
 
-      <% if (error) { %>
+            max-width:
+                1100px;
 
-        <div class="alert alert-danger">
-          <i class="bi bi-exclamation-triangle-fill"></i>
-          <%= error %>
-        </div>
+            margin:
+                40px auto;
 
-      <% } %>
+            padding:
+                20px;
 
+        }
 
-      <div class="row g-3">
 
+        /*
+        =====================================================
+        PAGE HEADER
+        =====================================================
+        */
 
-        <!-- ================================================= -->
-        <!-- LEFT: PAYMENT METHODS -->
-        <!-- ================================================= -->
+        .payment-heading {
 
-        <div class="col-lg-3">
+            margin-bottom:
+                25px;
 
-          <div class="card p-3 h-100">
+        }
 
-            <p class="fw-bold mb-3" style="color:var(--ink-hi);">
-              Payment Methods
-            </p>
 
+        .payment-heading h1 {
 
-            <!-- UPI BUTTON -->
+            color:
+                #132f4b;
 
-            <button
-              type="button"
-              class="pay-option active"
-              data-target="method-upi"
-            >
-              <i class="bi bi-phone"></i>
-              UPI
-            </button>
+            margin-bottom:
+                8px;
 
+        }
 
-            <!-- QR BUTTON -->
 
-            <button
-              type="button"
-              class="pay-option"
-              data-target="method-qr"
-            >
-              <i class="bi bi-qr-code"></i>
-              QR Code
-            </button>
+        .payment-heading p {
 
+            color:
+                #666;
 
-            <!-- CARD -->
+        }
 
-            <button
-              type="button"
-              class="pay-option"
-              disabled
-              title="Coming soon"
-            >
-              <i class="bi bi-credit-card"></i>
-              Card
 
-              <span
-                class="badge-status"
-                style="float:right; font-size:10px;"
-              >
-                Soon
-              </span>
+        /*
+        =====================================================
+        MAIN GRID
+        =====================================================
+        */
 
-            </button>
+        .payment-layout {
 
+            display:
+                grid;
 
-            <!-- NET BANKING -->
+            grid-template-columns:
+                300px 1fr;
 
-            <button
-              type="button"
-              class="pay-option"
-              disabled
-              title="Coming soon"
-            >
-              <i class="bi bi-bank"></i>
-              Net Banking
+            gap:
+                25px;
 
-              <span
-                class="badge-status"
-                style="float:right; font-size:10px;"
-              >
-                Soon
-              </span>
+            align-items:
+                start;
 
-            </button>
+        }
 
-          </div>
 
-        </div>
+        /*
+        =====================================================
+        STUDENT / FEE SUMMARY
+        =====================================================
+        */
 
+        .fee-summary {
 
-        <!-- ================================================= -->
-        <!-- RIGHT: PAYMENT BOX -->
-        <!-- ================================================= -->
+            background:
+                #fff;
 
-        <div class="col-lg-9">
+            border-radius:
+                14px;
 
-          <div class="card p-4">
+            padding:
+                25px;
 
-            <div class="row g-4">
+            box-shadow:
+                0 6px 20px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.10
+                );
 
+            position:
+                sticky;
 
-              <!-- ================================================= -->
-              <!-- STUDENT & FEE DETAILS -->
-              <!-- ================================================= -->
+            top:
+                90px;
 
-              <div class="col-md-6">
+        }
 
-                <h5 class="mb-3">
-                  <i class="bi bi-person-badge"></i>
-                  Student Details
-                </h5>
 
+        .fee-summary h2 {
 
-                <table class="table table-borderless mb-0">
+            color:
+                #132f4b;
 
-                  <tbody>
+            font-size:
+                20px;
 
-                    <tr>
+            margin-bottom:
+                20px;
 
-                      <td
-                        class="text-muted"
-                        style="width:45%;"
-                      >
-                        Name
-                      </td>
+        }
 
-                      <td class="fw-semibold">
-                        <%= user.name %>
-                      </td>
 
-                    </tr>
+        .student-info {
 
+            border-bottom:
+                1px solid #eee;
 
-                    <tr>
+            padding-bottom:
+                15px;
 
-                      <td class="text-muted">
-                        Roll Number
-                      </td>
+            margin-bottom:
+                15px;
 
-                      <td class="fw-semibold">
-                        <%= student.roll_no %>
-                      </td>
+        }
 
-                    </tr>
 
+        .student-info p {
 
-                    <tr>
+            margin:
+                7px 0;
 
-                      <td class="text-muted">
-                        Bus Route
-                      </td>
+            font-size:
+                14px;
 
-                      <td class="fw-semibold">
-                        <%= bus ? bus.route_name : 'Not Assigned' %>
-                      </td>
+        }
 
-                    </tr>
 
+        .student-info strong {
 
-                    <tr>
+            color:
+                #132f4b;
 
-                      <td class="text-muted">
-                        Bus Number
-                      </td>
+        }
 
-                      <td class="fw-semibold">
-                        <%= bus ? bus.bus_number : '—' %>
-                      </td>
 
-                    </tr>
+        .fee-amount-box {
 
+            background:
+                #f5f7fa;
 
-                    <tr>
+            border-radius:
+                10px;
 
-                      <td class="text-muted">
-                        Due Date
-                      </td>
+            padding:
+                20px;
 
-                      <td class="fw-semibold">
+            text-align:
+                center;
 
-                        <%= fee.due_date
-                          ? new Date(fee.due_date).toLocaleDateString('en-IN')
-                          : '—'
-                        %>
+            margin-top:
+                20px;
 
-                      </td>
+        }
 
-                    </tr>
 
-                  </tbody>
+        .fee-amount-box span {
 
-                </table>
+            display:
+                block;
 
+            color:
+                #666;
 
-                <!-- PENDING FEE -->
+            font-size:
+                14px;
 
-                <div
-                  class="mt-3 p-3"
-                  style="
-                    background:var(--paper-sunk);
-                    border-radius:var(--radius-md);
-                    border:1px solid var(--line);
-                  "
-                >
+            margin-bottom:
+                8px;
 
-                  <div
-                    class="d-flex justify-content-between align-items-center"
-                  >
+        }
 
-                    <span class="text-muted">
-                      Pending Fee
-                    </span>
 
-                    <h4
-                      class="mb-0"
-                      style="color:var(--pine);"
-                    >
-                      ₹<%= Number(fee.amount || 0).toLocaleString('en-IN') %>
-                    </h4>
+        .fee-amount {
 
-                  </div>
+            font-size:
+                30px;
 
-                </div>
+            font-weight:
+                700;
 
-              </div>
+            color:
+                #e10600;
 
+        }
 
-              <!-- ================================================= -->
-              <!-- PAYMENT PANEL -->
-              <!-- ================================================= -->
 
-              <div class="col-md-6">
+        /*
+        =====================================================
+        PAYMENT METHODS
+        =====================================================
+        */
 
+        .payment-container {
 
-                <!-- ================= UPI ================= -->
+            background:
+                #fff;
 
-                <div
-                  id="method-upi"
-                  class="payment-method-box"
-                >
+            border-radius:
+                14px;
 
-                  <h5 class="mb-3">
+            box-shadow:
+                0 6px 20px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.10
+                );
 
-                    <i class="bi bi-phone"></i>
+            overflow:
+                hidden;
 
-                    Pay via UPI
+        }
 
-                  </h5>
 
+        .payment-methods {
 
-                  <div
-                    class="p-3 mb-3"
-                    style="
-                      background:var(--paper-sunk);
-                      border-radius:var(--radius-md);
-                      border:1px dashed var(--line);
-                    "
-                  >
+            display:
+                grid;
 
-                    <p
-                      class="text-muted mb-1"
-                      style="font-size:12.5px;"
-                    >
-                      Send payment to UPI ID
-                    </p>
+            grid-template-columns:
+                repeat(
+                    5,
+                    1fr
+                );
 
+            border-bottom:
+                1px solid #eee;
 
-                    <p
-                      class="fw-bold mb-0"
-                      style="
-                        font-family:var(--font-mono);
-                        color:var(--pine-deep);
-                        font-size:15px;
-                      "
-                    >
-                      <%= upiId %>
-                    </p>
+        }
 
-                  </div>
 
+        .method-button {
 
-                  <div class="alert alert-info">
+            border:
+                none;
 
-                    <i class="bi bi-info-circle"></i>
+            background:
+                #fff;
 
-                    Open your UPI app and send
+            padding:
+                15px 8px;
 
-                    <strong>
-                      ₹<%= Number(fee.amount || 0).toLocaleString('en-IN') %>
-                    </strong>
+            cursor:
+                pointer;
 
-                    to the UPI ID above.
+            color:
+                #555;
 
-                  </div>
+            font-weight:
+                600;
 
-                </div>
+            font-size:
+                12px;
 
+            transition:
+                0.2s;
 
-                <!-- ================= QR CODE ================= -->
+        }
 
-                <div
-                  id="method-qr"
-                  class="payment-method-box"
-                  style="display:none;"
-                >
 
-                  <h5 class="mb-3">
+        .method-button i {
 
-                    <i class="bi bi-qr-code"></i>
+            display:
+                block;
 
-                    Scan &amp; Pay
+            font-size:
+                20px;
 
-                  </h5>
+            margin-bottom:
+                7px;
 
+        }
 
-                  <div
-                    class="text-center p-3 mb-3"
-                    style="
-                      background:var(--paper-sunk);
-                      border-radius:var(--radius-md);
-                      border:1px solid var(--line);
-                    "
-                  >
 
-                    <img
-                      src="<%= qrImagePath %>"
-                      alt="College Payment QR Code"
-                      style="
-                        max-width:220px;
-                        width:100%;
-                        border-radius:8px;
-                      "
-                      onerror="
-                        this.style.display='none';
-                        document.getElementById('qrError').style.display='block';
-                      "
-                    />
+        .method-button:hover {
 
+            background:
+                #f5f7fa;
 
-                    <!-- QR ERROR -->
+        }
 
-                    <div
-                      id="qrError"
-                      class="alert alert-danger mt-2"
-                      style="display:none;"
-                    >
 
-                      <i class="bi bi-exclamation-triangle"></i>
+        .method-button.active {
 
-                      QR Code image could not be loaded.
+            background:
+                #132f4b;
 
-                    </div>
+            color:
+                #fff;
 
+        }
 
-                    <p
-                      class="text-muted mt-2 mb-0"
-                      style="font-size:12px;"
-                    >
 
-                      Scan with any UPI app to pay
+        /*
+        =====================================================
+        PAYMENT CONTENT
+        =====================================================
+        */
 
-                      <strong>
-                        ₹<%= Number(fee.amount || 0).toLocaleString('en-IN') %>
-                      </strong>
+        .payment-content {
 
-                    </p>
+            padding:
+                30px;
 
-                  </div>
+        }
 
-                </div>
 
+        .payment-box {
 
-                <!-- ================================================= -->
-                <!-- PAYMENT CONFIRMATION -->
-                <!-- ================================================= -->
+            display:
+                none;
 
-                <form
-                  action="/payment/<%= fee.id %>/confirm"
-                  method="POST"
-                  id="paymentForm"
-                >
+        }
 
-                  <div class="mb-3">
 
-                    <label class="form-label">
+        .payment-box.active {
 
-                      Transaction ID / UTR Number
+            display:
+                block;
 
-                    </label>
+        }
 
 
-                    <input
-                      type="text"
-                      name="utr"
-                      class="form-control"
-                      placeholder="e.g. 402913485712"
-                      maxlength="30"
-                      required
-                    />
+        .payment-box h2 {
 
+            color:
+                #132f4b;
 
-                    <small class="text-muted">
+            margin-bottom:
+                8px;
 
-                      Enter the UTR / Transaction ID shown in your UPI app after paying.
+        }
 
-                    </small>
 
-                  </div>
+        .payment-box-description {
 
+            color:
+                #666;
 
-                  <button
-                    type="submit"
-                    class="btn btn-success w-100"
-                    id="confirmPayBtn"
-                  >
+            font-size:
+                14px;
 
-                    <i class="bi bi-check-circle-fill"></i>
+            margin-bottom:
+                20px;
 
-                    I Have Paid
+        }
 
-                  </button>
 
-                </form>
+        /*
+        =====================================================
+        FORM ELEMENTS
+        =====================================================
+        */
 
+        .form-group {
 
-              </div>
+            margin-bottom:
+                15px;
 
-            </div>
+        }
 
-          </div>
 
-        </div>
+        .form-group label {
 
-      </div>
+            display:
+                block;
 
-    </main>
+            margin-bottom:
+                6px;
 
+            font-size:
+                13px;
 
-    <!-- FOOTER -->
+            font-weight:
+                600;
 
-    <%- include('../partials/footer') %>
+            color:
+                #333;
 
-  </div>
+        }
+
+
+        .form-group input,
+        .form-group select {
+
+            width:
+                100%;
+
+            padding:
+                12px;
+
+            border:
+                1px solid #ccc;
+
+            border-radius:
+                7px;
+
+            font-size:
+                14px;
+
+            outline:
+                none;
+
+        }
+
+
+        .form-group input:focus,
+        .form-group select:focus {
+
+            border-color:
+                #132f4b;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(
+                    19,
+                    47,
+                    75,
+                    0.10
+                );
+
+        }
+
+
+        /*
+        =====================================================
+        CARD ROW
+        =====================================================
+        */
+
+        .form-row {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap:
+                12px;
+
+        }
+
+
+        /*
+        =====================================================
+        CARD LOGOS
+        =====================================================
+        */
+
+        .card-logos {
+
+            display:
+                flex;
+
+            gap:
+                10px;
+
+            margin-bottom:
+                20px;
+
+            flex-wrap:
+                wrap;
+
+        }
+
+
+        .card-logo {
+
+            padding:
+                7px 12px;
+
+            border:
+                1px solid #ddd;
+
+            border-radius:
+                5px;
+
+            font-size:
+                12px;
+
+            font-weight:
+                700;
+
+            color:
+                #333;
+
+        }
+
+
+        /*
+        =====================================================
+        UPI SECTION
+        =====================================================
+        */
+
+        .upi-layout {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                1fr 220px;
+
+            gap:
+                25px;
+
+            align-items:
+                center;
+
+        }
+
+
+        .upi-id-box {
+
+            background:
+                #f5f7fa;
+
+            padding:
+                15px;
+
+            border-radius:
+                8px;
+
+            margin-bottom:
+                20px;
+
+        }
+
+
+        .upi-id-box strong {
+
+            color:
+                #132f4b;
+
+        }
+
+
+        .qr-box {
+
+            text-align:
+                center;
+
+            padding:
+                15px;
+
+            border:
+                1px solid #ddd;
+
+            border-radius:
+                10px;
+
+            background:
+                #fff;
+
+        }
+
+
+        .qr-box img {
+
+            width:
+                170px;
+
+            height:
+                170px;
+
+            object-fit:
+                contain;
+
+        }
+
+
+        .qr-box p {
+
+            margin-top:
+                8px;
+
+            font-size:
+                12px;
+
+            color:
+                #666;
+
+        }
+
+
+        /*
+        =====================================================
+        INFO BOX
+        =====================================================
+        */
+
+        .info-box {
+
+            background:
+                #eef6ff;
+
+            border-left:
+                4px solid #132f4b;
+
+            padding:
+                14px;
+
+            border-radius:
+                6px;
+
+            color:
+                #1e4b73;
+
+            font-size:
+                13px;
+
+            margin-bottom:
+                20px;
+
+        }
+
+
+        /*
+        =====================================================
+        SIMULATED PAYMENT NOTICE
+        =====================================================
+        */
+
+        .simulation-notice {
+
+            background:
+                #fff8e1;
+
+            border-left:
+                4px solid #f59e0b;
+
+            color:
+                #92400e;
+
+            padding:
+                12px;
+
+            border-radius:
+                6px;
+
+            font-size:
+                13px;
+
+            margin-bottom:
+                20px;
+
+        }
+
+
+        /*
+        =====================================================
+        PAY BUTTON
+        =====================================================
+        */
+
+        .pay-button {
+
+            width:
+                100%;
+
+            border:
+                none;
+
+            background:
+                #132f4b;
+
+            color:
+                #fff;
+
+            padding:
+                14px;
+
+            border-radius:
+                7px;
+
+            font-size:
+                16px;
+
+            font-weight:
+                700;
+
+            cursor:
+                pointer;
+
+            margin-top:
+                10px;
+
+        }
+
+
+        .pay-button:hover {
+
+            background:
+                #0e2439;
+
+        }
+
+
+        .pay-button:disabled {
+
+            background:
+                #999;
+
+            cursor:
+                not-allowed;
+
+        }
+
+
+        /*
+        =====================================================
+        PROCESSING MESSAGE
+        =====================================================
+        */
+
+        .processing-message {
+
+            display:
+                none;
+
+            text-align:
+                center;
+
+            margin-top:
+                15px;
+
+            color:
+                #132f4b;
+
+            font-size:
+                14px;
+
+        }
+
+
+        .processing-message.show {
+
+            display:
+                block;
+
+        }
+
+
+        /*
+        =====================================================
+        ERROR MESSAGE
+        =====================================================
+        */
+
+        .error-message {
+
+            display:
+                none;
+
+            background:
+                #fee2e2;
+
+            color:
+                #991b1b;
+
+            padding:
+                12px;
+
+            border-radius:
+                7px;
+
+            margin-bottom:
+                15px;
+
+            font-size:
+                14px;
+
+        }
+
+
+        .error-message.show {
+
+            display:
+                block;
+
+        }
+
+
+        /*
+        =====================================================
+        MOBILE
+        =====================================================
+        */
+
+        @media (
+            max-width: 850px
+        ) {
+
+            .payment-layout {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            .fee-summary {
+
+                position:
+                    static;
+
+            }
+
+
+            .payment-methods {
+
+                grid-template-columns:
+                    repeat(
+                        3,
+                        1fr
+                    );
+
+            }
+
+
+            .upi-layout {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+
+            .qr-box {
+
+                max-width:
+                    240px;
+
+                margin:
+                    auto;
+
+            }
+
+        }
+
+
+        @media (
+            max-width: 500px
+        ) {
+
+            .payment-methods {
+
+                grid-template-columns:
+                    repeat(
+                        2,
+                        1fr
+                    );
+
+            }
+
+
+            .payment-content {
+
+                padding:
+                    20px;
+
+            }
+
+
+            .form-row {
+
+                grid-template-columns:
+                    1fr;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     TOP BAR
+====================================================== -->
+
+<div class="top-bar">
+
+    🔒 Secure College Bus Fee Payment
 
 </div>
 
 
-<!-- ================================================= -->
-<!-- STYLES -->
-<!-- ================================================= -->
+<!-- =====================================================
+     NAVBAR
+====================================================== -->
 
-<style>
+<nav class="navbar">
 
-  .pay-option {
-
-    width: 100%;
-
-    background: var(--paper-sunk);
-
-    border: 1px solid var(--line);
-
-    color: var(--ink-mid);
-
-    padding: 12px 14px;
-
-    border-radius: var(--radius-sm);
-
-    text-align: left;
-
-    cursor: pointer;
-
-    margin-bottom: 10px;
-
-    font-weight: 600;
-
-    font-size: 14px;
-
-    transition:
-      background .2s,
-      color .2s,
-      transform .2s;
-
-  }
+    <div class="nav-container">
 
 
-  .pay-option:hover:not(:disabled) {
+        <div class="nav-logo">
 
-    transform: translateY(-2px);
+            <a href="/">
 
-  }
+                Smart College Bus
 
+            </a>
 
-  .pay-option.active {
-
-    background:
-      linear-gradient(
-        135deg,
-        var(--pine),
-        var(--pine-deep)
-      );
-
-    color: #fff;
-
-    border-color: var(--pine);
-
-  }
+        </div>
 
 
-  .pay-option:disabled {
+        <div class="nav-actions">
 
-    opacity: 0.5;
+            <a
+                href="/student/dashboard"
+                class="nav-btn"
+            >
 
-    cursor: not-allowed;
+                <i class="fa-solid fa-house"></i>
 
-  }
+                Dashboard
 
+            </a>
 
-  .payment-method-box {
+        </div>
 
-    animation: fadeIn .2s ease;
+    </div>
 
-  }
-
-
-  @keyframes fadeIn {
-
-    from {
-
-      opacity: 0;
-
-      transform: translateY(5px);
-
-    }
-
-    to {
-
-      opacity: 1;
-
-      transform: translateY(0);
-
-    }
-
-  }
-
-</style>
+</nav>
 
 
-<!-- ================================================= -->
-<!-- SCRIPTS -->
-<!-- ================================================= -->
+<!-- =====================================================
+     MAIN PAYMENT PAGE
+====================================================== -->
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<script src="/js/script.js"></script>
+<main class="payment-page">
 
 
-<!-- ================================================= -->
-<!-- UPI / QR TOGGLE -->
-<!-- ================================================= -->
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+
+    <div class="payment-heading">
+
+        <h1>
+
+            Complete Your Payment
+
+        </h1>
+
+
+        <p>
+
+            Choose your preferred payment method
+            to pay your college bus fee.
+
+        </p>
+
+    </div>
+
+
+    <!-- =================================================
+         PAYMENT LAYOUT
+    ================================================== -->
+
+    <div class="payment-layout">
+
+
+        <!-- =================================================
+             LEFT: FEE SUMMARY
+        ================================================== -->
+
+        <aside class="fee-summary">
+
+
+            <h2>
+
+                <i class="fa-solid fa-file-invoice"></i>
+
+                Fee Summary
+
+            </h2>
+
+
+            <div class="student-info">
+
+
+                <p>
+
+                    <strong>
+                        Student:
+                    </strong>
+
+                    <%= student.student_name %>
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Roll Number:
+                    </strong>
+
+                    <%= student.roll_number || 'N/A' %>
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Department:
+                    </strong>
+
+                    <%= student.department || 'N/A' %>
+
+                </p>
+
+
+                <p>
+
+                    <strong>
+                        Email:
+                    </strong>
+
+                    <%= student.email || 'N/A' %>
+
+                </p>
+
+
+            </div>
+
+
+            <div class="fee-amount-box">
+
+
+                <span>
+
+                    Amount Payable
+
+                </span>
+
+
+                <div class="fee-amount">
+
+                    ₹<%= Number(
+                        fee.amount || 0
+                    ).toFixed(2) %>
+
+                </div>
+
+
+            </div>
+
+
+        </aside>
+
+
+        <!-- =================================================
+             RIGHT: PAYMENT
+        ================================================== -->
+
+        <section class="payment-container">
+
+
+            <!-- =================================================
+                 PAYMENT METHOD TABS
+            ================================================== -->
+
+            <div class="payment-methods">
+
+
+                <button
+                    type="button"
+                    class="method-button active"
+                    data-method="upi"
+                >
+
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+
+                    UPI
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="method-button"
+                    data-method="card"
+                >
+
+                    <i class="fa-solid fa-credit-card"></i>
+
+                    Card
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="method-button"
+                    data-method="netbanking"
+                >
+
+                    <i class="fa-solid fa-building-columns"></i>
+
+                    Net Banking
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="method-button"
+                    data-method="wallet"
+                >
+
+                    <i class="fa-solid fa-wallet"></i>
+
+                    Wallet
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="method-button"
+                    data-method="rtgs"
+                >
+
+                    <i class="fa-solid fa-building-columns"></i>
+
+                    RTGS / NEFT
+
+                </button>
+
+
+            </div>
+
+
+            <!-- =================================================
+                 PAYMENT CONTENT
+            ================================================== -->
+
+            <div class="payment-content">
+
+
+                <!-- ERROR MESSAGE -->
+
+                <div
+                    id="errorMessage"
+                    class="error-message"
+                ></div>
+
+
+                <!-- =================================================
+                     UPI
+                ================================================== -->
+
+                <div
+                    class="payment-box active"
+                    id="payment-upi"
+                >
+
+
+                    <h2>
+
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+
+                        UPI Payment
+
+                    </h2>
+
+
+                    <p class="payment-box-description">
+
+                        Pay using any UPI application or scan
+                        the QR code below.
+
+                    </p>
+
+
+                    <div class="simulation-notice">
+
+                        <i class="fa-solid fa-flask"></i>
+
+                        <strong>
+                            Demo Payment Mode:
+                        </strong>
+
+                        This is a simulated payment system.
+                        No real money will be transferred.
+
+                    </div>
+
+
+                    <div class="upi-layout">
+
+
+                        <div>
+
+
+                            <div class="upi-id-box">
+
+                                <strong>
+                                    UPI ID:
+                                </strong>
+
+                                abhisheksapkale06@pingpay
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label>
+
+                                    Enter UPI ID
+
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="upi_id"
+                                    placeholder="example@upi"
+                                >
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label>
+
+                                    UTR / Transaction Reference
+                                    <small>
+                                        (Optional for demo)
+                                    </small>
+
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    id="upi_utr"
+                                    placeholder="Enter UTR number"
+                                >
+
+                            </div>
+
+
+                        </div>
+
+
+                        <!-- QR CODE -->
+
+                        <div class="qr-box">
+
+
+                            <!--
+                            Replace this image URL with your
+                            own college UPI QR image later.
+                            -->
+
+
+                            <img
+                                src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=collegebus@upi%26pn=Smart%20College%20Bus"
+                                alt="UPI QR Code"
+                            >
+
+
+                            <p>
+
+                                Scan with any UPI app
+
+                            </p>
+
+
+                        </div>
+
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="pay-button"
+                        data-method="UPI"
+                    >
+
+                        <i class="fa-solid fa-lock"></i>
+
+                        Pay ₹<%= Number(
+                            fee.amount || 0
+                        ).toFixed(2) %>
+
+                    </button>
+
+
+                </div>
+
+
+                <!-- =================================================
+                     CARD
+                ================================================== -->
+
+                <div
+                    class="payment-box"
+                    id="payment-card"
+                >
+
+
+                    <h2>
+
+                        <i class="fa-solid fa-credit-card"></i>
+
+                        Credit / Debit Card
+
+                    </h2>
+
+
+                    <p class="payment-box-description">
+
+                        Enter your card details for the
+                        simulated payment.
+
+                    </p>
+
+
+                    <div class="simulation-notice">
+
+                        <i class="fa-solid fa-flask"></i>
+
+                        This is a demo payment.
+                        Do not enter real card details.
+
+                    </div>
+
+
+                    <div class="card-logos">
+
+                        <span class="card-logo">
+                            VISA
+                        </span>
+
+                        <span class="card-logo">
+                            Mastercard
+                        </span>
+
+                        <span class="card-logo">
+                            RuPay
+                        </span>
+
+                        <span class="card-logo">
+                            AMEX
+                        </span>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Cardholder Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="card_name"
+                            placeholder="Enter cardholder name"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Card Number
+                        </label>
+
+                        <input
+                            type="text"
+                            id="card_number"
+                            maxlength="16"
+                            inputmode="numeric"
+                            placeholder="1234567890123456"
+                        >
+
+                    </div>
+
+
+                    <div class="form-row">
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Expiry Date
+                            </label>
+
+                            <input
+                                type="text"
+                                id="card_expiry"
+                                placeholder="MM/YY"
+                                maxlength="5"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                CVV
+                            </label>
+
+                            <input
+                                type="password"
+                                id="card_cvv"
+                                maxlength="3"
+                                inputmode="numeric"
+                                placeholder="123"
+                            >
+
+                        </div>
+
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="pay-button"
+                        data-method="CARD"
+                    >
+
+                        <i class="fa-solid fa-lock"></i>
+
+                        Pay ₹<%= Number(
+                            fee.amount || 0
+                        ).toFixed(2) %>
+
+                    </button>
+
+
+                </div>
+
+
+                <!-- =================================================
+                     NET BANKING
+                ================================================== -->
+
+                <div
+                    class="payment-box"
+                    id="payment-netbanking"
+                >
+
+
+                    <h2>
+
+                        <i class="fa-solid fa-building-columns"></i>
+
+                        Net Banking
+
+                    </h2>
+
+
+                    <p class="payment-box-description">
+
+                        Select your bank to continue.
+
+                    </p>
+
+
+                    <div class="simulation-notice">
+
+                        <i class="fa-solid fa-flask"></i>
+
+                        This is a simulated payment.
+                        No actual bank transaction will occur.
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Select Bank
+
+                        </label>
+
+
+                        <select id="bank_name">
+
+                            <option value="">
+
+                                Select your bank
+
+                            </option>
+
+                            <option value="SBI">
+
+                                State Bank of India
+
+                            </option>
+
+                            <option value="HDFC">
+
+                                HDFC Bank
+
+                            </option>
+
+                            <option value="ICICI">
+
+                                ICICI Bank
+
+                            </option>
+
+                            <option value="AXIS">
+
+                                Axis Bank
+
+                            </option>
+
+                            <option value="OTHER">
+
+                                Other Bank
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="pay-button"
+                        data-method="NETBANKING"
+                    >
+
+                        Continue to Payment
+
+                    </button>
+
+
+                </div>
+
+
+                <!-- =================================================
+                     WALLET
+                ================================================== -->
+
+                <div
+                    class="payment-box"
+                    id="payment-wallet"
+                >
+
+
+                    <h2>
+
+                        <i class="fa-solid fa-wallet"></i>
+
+                        Wallet Payment
+
+                    </h2>
+
+
+                    <p class="payment-box-description">
+
+                        Select your preferred digital wallet.
+
+                    </p>
+
+
+                    <div class="simulation-notice">
+
+                        <i class="fa-solid fa-flask"></i>
+
+                        Demo mode: No real money will be deducted.
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+
+                            Select Wallet
+
+                        </label>
+
+
+                        <select id="wallet_name">
+
+                            <option value="">
+
+                                Select Wallet
+
+                            </option>
+
+                            <option value="Paytm">
+
+                                Paytm
+
+                            </option>
+
+                            <option value="PhonePe">
+
+                                PhonePe
+
+                            </option>
+
+                            <option value="Google Pay">
+
+                                Google Pay
+
+                            </option>
+
+                            <option value="Amazon Pay">
+
+                                Amazon Pay
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="pay-button"
+                        data-method="WALLET"
+                    >
+
+                        Pay ₹<%= Number(
+                            fee.amount || 0
+                        ).toFixed(2) %>
+
+                    </button>
+
+
+                </div>
+
+
+                <!-- =================================================
+                     RTGS / NEFT
+                ================================================== -->
+
+                <div
+                    class="payment-box"
+                    id="payment-rtgs"
+                >
+
+
+                    <h2>
+
+                        <i class="fa-solid fa-building-columns"></i>
+
+                        RTGS / NEFT
+
+                    </h2>
+
+
+                    <p class="payment-box-description">
+
+                        Enter the bank transfer reference
+                        number for simulated verification.
+
+                    </p>
+
+
+                    <div class="info-box">
+
+                        <strong>
+                            Bank Transfer Details
+                        </strong>
+
+                        <br><br>
+
+                        Account Name:
+                        Smart College Bus Management
+
+                        <br>
+
+                        Account Number:
+                        1234567890
+
+                        <br>
+
+                        IFSC:
+                        SBIN0000000
+
+                        <br>
+
+                        Bank:
+                        State Bank of India
+
+                    </div>
+
+
+                    <div class="simulation-notice">
+
+                        <i class="fa-solid fa-flask"></i>
+
+                        Demo mode: The transfer is simulated
+                        and will be marked successful immediately.
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+
+                            UTR / Transfer Reference Number
+
+                        </label>
+
+
+                        <input
+                            type="text"
+                            id="rtgs_utr"
+                            placeholder="Enter transfer reference"
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="pay-button"
+                        data-method="RTGS_NEFT"
+                    >
+
+                        Confirm Bank Transfer
+
+                    </button>
+
+
+                </div>
+
+
+                <!-- =================================================
+                     PROCESSING MESSAGE
+                ================================================== -->
+
+                <div
+                    id="processingMessage"
+                    class="processing-message"
+                >
+
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+
+                    Processing simulated payment...
+                    Please wait.
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+    </div>
+
+
+</main>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
 
 <script>
 
-document.addEventListener('DOMContentLoaded', function () {
 
-  const paymentButtons =
-    document.querySelectorAll('.pay-option[data-target]');
+/*
+=========================================================
+PAYMENT DATA
+=========================================================
+*/
 
-
-  const paymentPanels =
-    document.querySelectorAll('.payment-method-box');
-
-
-  paymentButtons.forEach(function (button) {
-
-    button.addEventListener('click', function () {
-
-      const targetId =
-        this.getAttribute('data-target');
+const feeId =
+    '<%= fee.id %>';
 
 
-      // Remove active state from all buttons
+/*
+=========================================================
+METHOD BUTTONS
+=========================================================
+*/
 
-      paymentButtons.forEach(function (btn) {
-
-        btn.classList.remove('active');
-
-      });
-
-
-      // Add active state to clicked button
-
-      this.classList.add('active');
+const methodButtons =
+    document.querySelectorAll(
+        '.method-button'
+    );
 
 
-      // Hide all payment panels
-
-      paymentPanels.forEach(function (panel) {
-
-        panel.style.display = 'none';
-
-      });
+const paymentBoxes =
+    document.querySelectorAll(
+        '.payment-box'
+    );
 
 
-      // Show selected panel
+methodButtons.forEach(
+    button => {
 
-      const targetPanel =
-        document.getElementById(targetId);
-
-
-      if (targetPanel) {
-
-        targetPanel.style.display = 'block';
-
-      }
-
-    });
-
-  });
-
-});
-
-</script>
+        button.addEventListener(
+            'click',
+            () => {
 
 
-<!-- ================================================= -->
-<!-- CONFIRM PAYMENT BUTTON -->
-<!-- ================================================= -->
+                /*
+                =============================================
+                REMOVE ACTIVE STATE
+                =============================================
+                */
 
-<script>
+                methodButtons.forEach(
+                    btn => {
 
-document.addEventListener('DOMContentLoaded', function () {
+                        btn.classList.remove(
+                            'active'
+                        );
 
-  const paymentForm =
-    document.getElementById('paymentForm');
-
-
-  const confirmButton =
-    document.getElementById('confirmPayBtn');
-
-
-  if (paymentForm && confirmButton) {
-
-    paymentForm.addEventListener('submit', function () {
-
-      confirmButton.disabled = true;
+                    }
+                );
 
 
-      confirmButton.innerHTML =
-        '<span class="spinner-border spinner-border-sm"></span> Processing...';
+                /*
+                =============================================
+                ADD ACTIVE STATE
+                =============================================
+                */
 
-    });
+                button.classList.add(
+                    'active'
+                );
 
-  }
 
-});
+                /*
+                =============================================
+                HIDE ALL PAYMENT BOXES
+                =============================================
+                */
+
+                paymentBoxes.forEach(
+                    box => {
+
+                        box.classList.remove(
+                            'active'
+                        );
+
+                    }
+                );
+
+
+                /*
+                =============================================
+                SHOW SELECTED PAYMENT BOX
+                =============================================
+                */
+
+                const method =
+                    button.dataset.method;
+
+
+                const selectedBox =
+                    document.getElementById(
+                        `payment-${method}`
+                    );
+
+
+                if (selectedBox) {
+
+                    selectedBox.classList.add(
+                        'active'
+                    );
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/*
+=========================================================
+ELEMENTS
+=========================================================
+*/
+
+const payButtons =
+    document.querySelectorAll(
+        '.pay-button'
+    );
+
+
+const errorMessage =
+    document.getElementById(
+        'errorMessage'
+    );
+
+
+const processingMessage =
+    document.getElementById(
+        'processingMessage'
+    );
+
+
+/*
+=========================================================
+SHOW ERROR
+=========================================================
+*/
+
+function showError(
+    message
+) {
+
+    errorMessage.textContent =
+        message;
+
+    errorMessage.classList.add(
+        'show'
+    );
+
+}
+
+
+/*
+=========================================================
+HIDE ERROR
+=========================================================
+*/
+
+function hideError() {
+
+    errorMessage.textContent =
+        '';
+
+    errorMessage.classList.remove(
+        'show'
+    );
+
+}
+
+
+/*
+=========================================================
+GET PAYMENT DATA
+=========================================================
+*/
+
+function getPaymentData(
+    method
+) {
+
+
+    const data = {
+
+        payment_method:
+            method
+
+    };
+
+
+    /*
+    =====================================================
+    UPI
+    =====================================================
+    */
+
+    if (
+        method === 'UPI'
+    ) {
+
+        data.upi_id =
+
+            document
+                .getElementById(
+                    'upi_id'
+                )
+                .value
+                .trim();
+
+
+        data.utr_number =
+
+            document
+                .getElementById(
+                    'upi_utr'
+                )
+                .value
+                .trim();
+
+    }
+
+
+    /*
+    =====================================================
+    CARD
+    =====================================================
+    */
+
+    if (
+        method === 'CARD'
+    ) {
+
+        data.card_number =
+
+            document
+                .getElementById(
+                    'card_number'
+                )
+                .value
+                .trim();
+
+
+        data.card_name =
+
+            document
+                .getElementById(
+                    'card_name'
+                )
+                .value
+                .trim();
+
+
+        data.card_expiry =
+
+            document
+                .getElementById(
+                    'card_expiry'
+                )
+                .value
+                .trim();
+
+
+        data.card_cvv =
+
+            document
+                .getElementById(
+                    'card_cvv'
+                )
+                .value
+                .trim();
+
+    }
+
+
+    /*
+    =====================================================
+    NET BANKING
+    =====================================================
+    */
+
+    if (
+        method === 'NETBANKING'
+    ) {
+
+        data.bank_name =
+
+            document
+                .getElementById(
+                    'bank_name'
+                )
+                .value;
+
+    }
+
+
+    /*
+    =====================================================
+    WALLET
+    =====================================================
+    */
+
+    if (
+        method === 'WALLET'
+    ) {
+
+        data.wallet_name =
+
+            document
+                .getElementById(
+                    'wallet_name'
+                )
+                .value;
+
+    }
+
+
+    /*
+    =====================================================
+    RTGS / NEFT
+    =====================================================
+    */
+
+    if (
+        method === 'RTGS_NEFT'
+    ) {
+
+        data.utr_number =
+
+            document
+                .getElementById(
+                    'rtgs_utr'
+                )
+                .value
+                .trim();
+
+    }
+
+
+    return data;
+
+}
+
+
+/*
+=========================================================
+VALIDATE PAYMENT
+=========================================================
+*/
+
+function validatePayment(
+    method,
+    data
+) {
+
+
+    /*
+    =====================================================
+    UPI
+    =====================================================
+    */
+
+    if (
+        method === 'UPI'
+    ) {
+
+        if (
+            !data.upi_id &&
+            !data.utr_number
+        ) {
+
+            return 'Please enter your UPI ID or UTR number.';
+
+        }
+
+    }
+
+
+    /*
+    =====================================================
+    CARD
+    =====================================================
+    */
+
+    if (
+        method === 'CARD'
+    ) {
+
+        if (
+            !data.card_name
+        ) {
+
+            return 'Please enter the cardholder name.';
+
+        }
+
+
+        if (
+            !/^\d{16}$/.test(
+                data.card_number
+            )
+        ) {
+
+            return 'Please enter a valid 16-digit demo card number.';
+
+        }
+
+
+        if (
+            !data.card_expiry
+        ) {
+
+            return 'Please enter the card expiry date.';
+
+        }
+
+
+        if (
+            !/^\d{3}$/.test(
+                data.card_cvv
+            )
+        ) {
+
+            return 'Please enter a valid 3-digit CVV.';
+
+        }
+
+    }
+
+
+    /*
+    =====================================================
+    NET BANKING
+    =====================================================
+    */
+
+    if (
+        method === 'NETBANKING'
+    ) {
+
+        if (
+            !data.bank_name
+        ) {
+
+            return 'Please select a bank.';
+
+        }
+
+    }
+
+
+    /*
+    =====================================================
+    WALLET
+    =====================================================
+    */
+
+    if (
+        method === 'WALLET'
+    ) {
+
+        if (
+            !data.wallet_name
+        ) {
+
+            return 'Please select a wallet.';
+
+        }
+
+    }
+
+
+    /*
+    =====================================================
+    RTGS / NEFT
+    =====================================================
+    */
+
+    if (
+        method === 'RTGS_NEFT'
+    ) {
+
+        if (
+            !data.utr_number
+        ) {
+
+            return 'Please enter the UTR / transfer reference number.';
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+/*
+=========================================================
+PROCESS PAYMENT
+=========================================================
+*/
+
+payButtons.forEach(
+
+    button => {
+
+
+        button.addEventListener(
+
+            'click',
+
+            async () => {
+
+
+                /*
+                =============================================
+                HIDE PREVIOUS ERROR
+                =============================================
+                */
+
+                hideError();
+
+
+                /*
+                =============================================
+                GET METHOD
+                =============================================
+                */
+
+                const method =
+                    button.dataset.method;
+
+
+                /*
+                =============================================
+                GET DATA
+                =============================================
+                */
+
+                const paymentData =
+                    getPaymentData(
+                        method
+                    );
+
+
+                /*
+                =============================================
+                VALIDATE
+                =============================================
+                */
+
+                const validationError =
+                    validatePayment(
+                        method,
+                        paymentData
+                    );
+
+
+                if (
+                    validationError
+                ) {
+
+                    showError(
+                        validationError
+                    );
+
+                    return;
+
+                }
+
+
+                /*
+                =============================================
+                DISABLE ALL BUTTONS
+                =============================================
+                */
+
+                payButtons.forEach(
+                    btn => {
+
+                        btn.disabled =
+                            true;
+
+                    }
+                );
+
+
+                /*
+                =============================================
+                SHOW PROCESSING
+                =============================================
+                */
+
+                processingMessage.classList.add(
+                    'show'
+                );
+
+
+                try {
+
+
+                    /*
+                    =========================================
+                    SEND PAYMENT TO BACKEND
+                    =========================================
+                    */
+
+                    const response =
+                        await fetch(
+
+                            `/payment/${feeId}/pay`,
+
+                            {
+
+                                method:
+                                    'POST',
+
+                                headers: {
+
+                                    'Content-Type':
+                                        'application/json'
+
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        paymentData
+                                    )
+
+                            }
+
+                        );
+
+
+                    /*
+                    =========================================
+                    READ RESPONSE
+                    =========================================
+                    */
+
+                    const result =
+                        await response.json();
+
+
+                    /*
+                    =========================================
+                    PAYMENT FAILED
+                    =========================================
+                    */
+
+                    if (
+                        !response.ok ||
+                        !result.success
+                    ) {
+
+                        throw new Error(
+
+                            result.message ||
+
+                            'Payment failed.'
+
+                        );
+
+                    }
+
+
+                    /*
+                    =========================================
+                    SUCCESS
+                    =========================================
+                    */
+
+                    window.location.href =
+
+                        `/payment/success/${result.paymentId}`;
+
+
+                } catch (
+                    error
+                ) {
+
+
+                    console.error(
+
+                        'Payment error:',
+
+                        error
+
+                    );
+
+
+                    /*
+                    =========================================
+                    SHOW ERROR
+                    =========================================
+                    */
+
+                    showError(
+
+                        error.message ||
+
+                        'Unable to process payment.'
+
+                    );
+
+
+                    /*
+                    =========================================
+                    ENABLE BUTTONS AGAIN
+                    =========================================
+                    */
+
+                    payButtons.forEach(
+                        btn => {
+
+                            btn.disabled =
+                                false;
+
+                        }
+                    );
+
+
+                    /*
+                    =========================================
+                    HIDE PROCESSING
+                    =========================================
+                    */
+
+                    processingMessage.classList.remove(
+                        'show'
+                    );
+
+                }
+
+            }
+
+        );
+
+    }
+
+
+);
+
 
 </script>
 
@@ -704,3 +2594,4 @@ document.addEventListener('DOMContentLoaded', function () {
 </body>
 
 </html>
+```

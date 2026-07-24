@@ -1,331 +1,166 @@
 const express = require('express');
 const router = express.Router();
-
 const db = require('../config/db');
-const { sendMail } = require('../config/mailer');
-const isStudent = require('../middleware/studentAuth');
 
+function requireLogin(req, res, next) {
+    if (!req.session || !req.session.user) {
+        return res.redirect('/login');
+    }
 
-/* =========================================================
-   GET STUDENT RECORD
-========================================================= */
-
-async function getStudent(userId) {
-
-  const [rows] = await db.query(
-    'SELECT * FROM students WHERE user_id = ?',
-    [userId]
-  );
-
-  return rows[0];
-
+    next();
 }
 
-
-/* =========================================================
-   PAYMENT PAGE
-   GET /payment/:feeId
-========================================================= */
-router.get('/:feeId', isStudent, async (req, res) => {
-  try {
-    const student = await getStudent(req.session.user.id);
-
-    if (!student) {
-      return res.status(404).send('Student record not found');
-    }
-
-    const [[fee]] = await db.query(
-      `SELECT *
-       FROM fees
-       WHERE id = ?
-       AND student_id = ?`,
-      [req.params.feeId, student.id]
-    );
-
-    if (!fee) {
-      return res.status(404).send('Fee record not found');
-    }
-
-   res.render('student/payment', {
-    user: req.session.user,
-    student,
-    fee,
-    error: null
-});
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
-  }
-});
-
-
-
-/* =========================================================
-   PAYMENT SUCCESS
-   GET /payment/success/:paymentId
-========================================================= */
-
-router.get(
-  '/success/:paymentId',
-  isStudent,
-  async (req, res) => {
-
+router.get('/:feeId', requireLogin, async (req, res) => {
     try {
+        const feeId = req.params.feeId;
+        const userId = req.session.user.id;
 
-      const student =
-        await getStudent(req.session.user.id);
-
-
-      const [[payment]] = await db.query(
-        `
-        SELECT
-          p.*,
-          f.due_date
-        FROM payments p
-        JOIN fees f
-          ON p.fee_id = f.id
-        WHERE p.receipt_no = ?
-        AND p.student_id = ?
-        `,
-        [
-          req.params.paymentId,
-          student.id
-        ]
-      );
-
-
-      if (!payment) {
-
-        return res.status(404).send(
-          'Payment record not found'
+        const [feeRows] = await db.query(
+            'SELECT * FROM fees WHERE id = ? LIMIT 1',
+            [feeId]
         );
 
-      }
-
-
-      res.render(
-        'student/payment-success',
-        {
-          payment
+        if (feeRows.length === 0) {
+            return res.status(404).send('Fee record not found');
         }
-      );
 
+        const fee = feeRows[0];
 
-    } catch (err) {
+        const [studentRows] = await db.query(
+            'SELECT * FROM students WHERE user_id = ? LIMIT 1',
+            [userId]
+        );
 
-      console.error(
-        'PAYMENT SUCCESS ERROR:',
-        err
-      );
+        if (studentRows.length === 0) {
+            return res.status(404).send('Student record not found');
+        }
 
-      res.status(500).send(
-        'Error loading payment success page: ' +
-        err.message
-      );
+        const student = studentRows[0];
 
+        return res.render('student/payment', {
+            fee: fee,
+            student: student
+        });
+
+    } catch (error) {
+        console.error('Payment page error:', error);
+        return res.status(500).send('Unable to open payment page');
     }
-
-  }
-);
-
-
-
-
-/* =========================================================
-   RECEIPT
-   GET /payment/receipt/:paymentId
-========================================================= */
-
-router.get('/receipt/:receiptNo', isStudent, async (req, res) => {
-  try {
-
-    const student = await getStudent(req.session.user.id);
-
-    if (!student) {
-      return res.status(404).send('Student record not found');
-    }
-
-    const [[payment]] = await db.query(
-      `
-      SELECT p.*, f.due_date
-      FROM payments p
-      JOIN fees f ON p.fee_id = f.id
-      WHERE p.receipt_no = ?
-      AND p.student_id = ?
-      `,
-      [req.params.receiptNo, student.id]
-    );
-
-    if (!payment) {
-      return res.status(404).send('Receipt not found');
-    }
-
-    const [[fee]] = await db.query(
-      'SELECT * FROM fees WHERE id=?',
-      [payment.fee_id]
-    );
-
-    let bus = null;
-
-    if (student.bus_id) {
-      const [[busRow]] = await db.query(
-        'SELECT * FROM buses WHERE id=?',
-        [student.bus_id]
-      );
-      bus = busRow;
-    }
-
-    res.render('student/payment-receipt', {
-      payment,
-      student,
-      fee,
-      bus
-    });
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).send(err.message);
-
-  }
 });
-/* =========================================================
-   CONFIRM PAYMENT
-   POST /:feeId/confirm
-========================================================= */
 
-router.post('/:feeId/confirm', isStudent, async (req, res) => {
+router.post('/:feeId/pay', requireLogin, async (req, res) => {
+    try {
+        const feeId = req.params.feeId;
+        const userId = req.session.user.id;
 
-  try {
+        const paymentMethod = req.body.payment_method || 'UPI';
 
-    const feeId = req.params.feeId;
-    const { utr } = req.body;
+        const [feeRows] = await db.query(
+            'SELECT * FROM fees WHERE id = ? LIMIT 1',
+            [feeId]
+        );
 
-    if (!utr || !utr.trim()) {
-      return res.status(400).send('Transaction ID / UTR is required');
+        if (feeRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Fee record not found'
+            });
+        }
+
+        const fee = feeRows[0];
+
+        const [studentRows] = await db.query(
+            'SELECT * FROM students WHERE user_id = ? LIMIT 1',
+            [userId]
+        );
+
+        if (studentRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Student record not found'
+            });
+        }
+
+        const student = studentRows[0];
+
+        const transactionId =
+            'SIM-' +
+            Date.now() +
+            '-' +
+            Math.floor(Math.random() * 10000);
+
+        await db.query(
+            `
+            INSERT INTO payments
+            (
+                fee_id,
+                student_id,
+                amount,
+                payment_method,
+                transaction_id,
+                status,
+                payment_date
+            )
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
+            `,
+            [
+                feeId,
+                student.id,
+                fee.amount,
+                paymentMethod,
+                transactionId,
+                'SUCCESS'
+            ]
+        );
+
+        try {
+            await db.query(
+                'UPDATE fees SET status = ? WHERE id = ?',
+                ['paid', feeId]
+            );
+        } catch (error) {
+            console.log('Fee status update skipped');
+        }
+
+        return res.json({
+            success: true,
+            message: 'Payment successful',
+            transactionId: transactionId,
+            amount: fee.amount
+        });
+
+    } catch (error) {
+        console.error('Payment error:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Unable to process payment',
+            error: error.message
+        });
     }
-
-    const student = await getStudent(req.session.user.id);
-    const [[user]] = await db.query(
-  'SELECT * FROM users WHERE id = ?',
-  [req.session.user.id]
-);
-
-    if (!student) {
-      return res.status(404).send('Student record not found');
-    }
-
-    const [[fee]] = await db.query(
-      'SELECT * FROM fees WHERE id = ? AND student_id = ?',
-      [feeId, student.id]
-    );
-
-    if (!fee) {
-      return res.status(404).send('Fee record not found');
-    }
-
-    if (fee.status === 'paid') {
-  return res.redirect('/student/fees-status');
-}
-
-const receiptNo = 'BUS-' + Date.now();
-
-console.log('==============================');
-console.log('Receipt No:', receiptNo);
-console.log('Fee ID:', fee.id);
-console.log('Student ID:', student.id);
-console.log('UTR:', utr.trim());
-console.log('Amount:', fee.amount);
-console.log('==============================');
-
-const sql = `
-INSERT INTO payments
-(
-  fee_id,
-  student_id,
-  receipt_no,
-  razorpay_payment_id,
-  amount,
-  status
-)
-VALUES (?, ?, ?, ?, ?, 'success')
-`;
-
-const values = [
-  fee.id,
-  student.id,
-  receiptNo,
-  utr.trim(),
-  fee.amount
-];
-
-console.log(sql);
-console.log(values);
-
-const [result] = await db.query(sql, values);
-
-    await db.query(
-      `UPDATE fees
-       SET status='paid',
-           paid_date=CURDATE()
-       WHERE id=?`,
-      [fee.id]
-    );
-
-    const paymentId = result.insertId;
-    await sendMail(
-  user.email,
-  'Bus Fee Payment Successful',
-  `
-    <h2>Payment Successful</h2>
-
-    <p>Hello <b>${user.name}</b>,</p>
-
-    <p>Your bus fee payment has been received successfully.</p>
-
-    <table border="1" cellpadding="8" cellspacing="0">
-      <tr>
-        <td><b>Receipt No</b></td>
-        <td>${receiptNo}</td>
-      </tr>
-
-      <tr>
-        <td><b>Amount</b></td>
-        <td>₹${fee.amount}</td>
-      </tr>
-
-      <tr>
-        <td><b>Transaction ID</b></td>
-        <td>${utr}</td>
-      </tr>
-
-      <tr>
-        <td><b>Status</b></td>
-        <td>Paid</td>
-      </tr>
-    </table>
-
-    <br>
-
-    <p>Thank you.</p>
-
-    <p>College Bus Management System</p>
-  `
-);
-
-    return res.redirect('/payment/success/' + receiptNo);
-
-  } catch (err) {
-
-    console.error('PAYMENT CONFIRMATION ERROR:', err);
-
-    res.status(500).send(
-      'Error confirming payment: ' + err.message
-    );
-
-  }
-
 });
+
+router.get('/success/:paymentId', requireLogin, async (req, res) => {
+    try {
+        const paymentId = req.params.paymentId;
+
+        const [rows] = await db.query(
+            'SELECT * FROM payments WHERE transaction_id = ? LIMIT 1',
+            [paymentId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).send('Payment not found');
+        }
+
+        return res.render('student/payment-success', {
+            payment: rows[0]
+        });
+
+    } catch (error) {
+        console.error('Payment success error:', error);
+        return res.status(500).send('Unable to open payment success page');
+    }
+});
+
 module.exports = router;

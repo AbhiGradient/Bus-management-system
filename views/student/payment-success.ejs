@@ -1,160 +1,797 @@
-```ejs
-<%- include('../partials/header', {
-  pageTitle: 'Payment Successful',
-  pageCss: []
-}) %>
+<!DOCTYPE html>
+<html lang="en">
 
-<div class="app-shell">
+<head>
 
-  <%- include('../partials/sidebar', {
-    currentPage: 'fee-status'
-  }) %>
+    <meta charset="UTF-8">
 
-  <%- include('../partials/navbar', {
-    pageLabel: 'Payment Successful'
-  }) %>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-  <div class="app-main">
+    <title>
+        Payment Successful | Smart College Bus
+    </title>
 
-    <main class="main-content">
 
-      <div class="container py-4">
+    <link
+        rel="stylesheet"
+        href="/css/main.css"
+    >
 
-        <div class="card shadow border-0">
 
-          <div class="card-body text-center p-5">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    >
 
-            <div class="mb-4">
-              <i class="bi bi-check-circle-fill text-success"
-                 style="font-size:90px;"></i>
-            </div>
 
-            <h2 class="fw-bold text-success">
-              Payment Successful
-            </h2>
+    <style>
 
-            <p class="text-muted mb-4">
-              Your bus fee payment has been received successfully.
-            </p>
+        /*
+        =====================================================
+        SUCCESS PAGE
+        =====================================================
+        */
 
-            <% if (payment) { %>
+        .success-page {
 
-              <div class="table-responsive">
+            max-width:
+                750px;
 
-                <table class="table table-bordered align-middle w-auto mx-auto">
+            margin:
+                60px auto;
 
-                  <tbody>
+            padding:
+                20px;
 
-                    <tr>
-                      <th>Receipt No.</th>
-                      <td>
-                        <%= payment.receipt_no %>
-                      </td>
-                    </tr>
+        }
 
-                    <tr>
-                      <th>Amount Paid</th>
-                      <td>
-                        ₹<%= Number(payment.amount).toLocaleString('en-IN') %>
-                      </td>
-                    </tr>
 
-                    <tr>
-                      <th>Payment Status</th>
-                      <td>
-                        <span class="badge bg-success fs-6">
-                          Success
-                        </span>
-                      </td>
-                    </tr>
+        /*
+        =====================================================
+        SUCCESS CARD
+        =====================================================
+        */
 
-                    <% if(payment.razorpay_payment_id){ %>
+        .success-card {
 
-                    <tr>
-                      <th>Transaction ID</th>
-                      <td>
-                        <%= payment.razorpay_payment_id %>
-                      </td>
-                    </tr>
+            background:
+                #ffffff;
 
-                    <% } %>
+            border-radius:
+                16px;
 
-                    <% if(payment.created_at){ %>
+            padding:
+                40px;
 
-                    <tr>
-                      <th>Payment Date</th>
-                      <td>
-                        <%= new Date(payment.created_at).toLocaleString('en-IN') %>
-                      </td>
-                    </tr>
+            text-align:
+                center;
 
-                    <% } %>
+            box-shadow:
+                0 10px 30px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.12
+                );
 
-                  </tbody>
+        }
 
-                </table>
 
-              </div>
+        /*
+        =====================================================
+        SUCCESS ICON
+        =====================================================
+        */
 
-              <div class="mt-4">
+        .success-icon {
 
-                <a href="/payment/receipt/<%= payment.receipt_no %>"
-                   class="btn btn-primary">
+            width:
+                85px;
 
-                  <i class="bi bi-receipt me-1"></i>
-                  View Receipt
+            height:
+                85px;
 
-                </a>
+            margin:
+                0 auto 20px;
 
-              </div>
+            border-radius:
+                50%;
 
-            <% } else { %>
+            background:
+                #e8f5e9;
 
-              <div class="alert alert-warning mt-3">
-                Payment details could not be loaded.
-              </div>
+            color:
+                #2e7d32;
 
-            <% } %>
+            display:
+                flex;
 
-            <hr class="my-4">
+            align-items:
+                center;
 
-            <div class="d-flex justify-content-center gap-3 flex-wrap">
+            justify-content:
+                center;
 
-              <a href="/student/payment-history"
-                 class="btn btn-outline-primary">
+            font-size:
+                45px;
 
-                <i class="bi bi-clock-history me-1"></i>
-                Payment History
+        }
 
-              </a>
 
-              <a href="/student/fees-status"
-                 class="btn btn-outline-secondary">
+        /*
+        =====================================================
+        HEADING
+        =====================================================
+        */
 
-                <i class="bi bi-arrow-left me-1"></i>
-                Back to Fee Status
+        .success-card h1 {
 
-              </a>
+            color:
+                #2e7d32;
 
-            </div>
+            margin-bottom:
+                10px;
 
-          </div>
+        }
 
-        </div>
 
-      </div>
+        .success-card > p {
 
-    </main>
+            color:
+                #666;
 
-    <%- include('../partials/footer') %>
+            margin-bottom:
+                30px;
 
-  </div>
+        }
+
+
+        /*
+        =====================================================
+        PAYMENT DETAILS
+        =====================================================
+        */
+
+        .payment-details {
+
+            text-align:
+                left;
+
+            background:
+                #f7f9fb;
+
+            border:
+                1px solid #e1e5e8;
+
+            border-radius:
+                10px;
+
+            padding:
+                20px;
+
+            margin:
+                25px 0;
+
+        }
+
+
+        .detail-row {
+
+            display:
+                flex;
+
+            justify-content:
+                space-between;
+
+            gap:
+                20px;
+
+            padding:
+                11px 0;
+
+            border-bottom:
+                1px solid #e5e7eb;
+
+        }
+
+
+        .detail-row:last-child {
+
+            border-bottom:
+                none;
+
+        }
+
+
+        .detail-label {
+
+            color:
+                #666;
+
+        }
+
+
+        .detail-value {
+
+            font-weight:
+                600;
+
+            text-align:
+                right;
+
+            word-break:
+                break-word;
+
+        }
+
+
+        .success-status {
+
+            color:
+                #2e7d32;
+
+            font-weight:
+                700;
+
+        }
+
+
+        .amount {
+
+            color:
+                #e10600;
+
+            font-size:
+                20px;
+
+        }
+
+
+        /*
+        =====================================================
+        BUTTONS
+        =====================================================
+        */
+
+        .success-actions {
+
+            display:
+                flex;
+
+            justify-content:
+                center;
+
+            gap:
+                12px;
+
+            flex-wrap:
+                wrap;
+
+            margin-top:
+                25px;
+
+        }
+
+
+        .success-btn {
+
+            display:
+                inline-flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                8px;
+
+            padding:
+                12px 20px;
+
+            border-radius:
+                7px;
+
+            text-decoration:
+                none;
+
+            font-weight:
+                600;
+
+            cursor:
+                pointer;
+
+            border:
+                none;
+
+            font-size:
+                14px;
+
+        }
+
+
+        .primary-btn {
+
+            background:
+                #132f4b;
+
+            color:
+                #fff;
+
+        }
+
+
+        .primary-btn:hover {
+
+            background:
+                #0e2439;
+
+        }
+
+
+        .secondary-btn {
+
+            background:
+                #eeeeee;
+
+            color:
+                #222;
+
+        }
+
+
+        .secondary-btn:hover {
+
+            background:
+                #dddddd;
+
+        }
+
+
+        /*
+        =====================================================
+        RECEIPT INFO
+        =====================================================
+        */
+
+        .receipt-note {
+
+            margin-top:
+                20px;
+
+            padding:
+                12px;
+
+            background:
+                #eef6ff;
+
+            color:
+                #1e4b73;
+
+            border-radius:
+                7px;
+
+            font-size:
+                13px;
+
+        }
+
+
+        /*
+        =====================================================
+        MOBILE
+        =====================================================
+        */
+
+        @media (
+            max-width: 600px
+        ) {
+
+            .success-card {
+
+                padding:
+                    25px 18px;
+
+            }
+
+
+            .detail-row {
+
+                flex-direction:
+                    column;
+
+                gap:
+                    4px;
+
+            }
+
+
+            .detail-value {
+
+                text-align:
+                    left;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     TOP BAR
+====================================================== -->
+
+<div class="top-bar">
+
+    🔒 Smart College Bus Payment System
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/script.js"></script>
+
+<!-- =====================================================
+     NAVBAR
+====================================================== -->
+
+<nav class="navbar">
+
+    <div class="nav-container">
+
+
+        <div class="nav-logo">
+
+            <a href="/">
+
+                Smart College Bus
+
+            </a>
+
+        </div>
+
+
+        <div class="nav-actions">
+
+            <a
+                href="/student/dashboard"
+                class="nav-btn"
+            >
+
+                <i class="fa-solid fa-house"></i>
+
+                Dashboard
+
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<!-- =====================================================
+     SUCCESS PAGE
+====================================================== -->
+
+<main class="success-page">
+
+
+    <div class="success-card">
+
+
+        <!-- SUCCESS ICON -->
+
+        <div class="success-icon">
+
+            <i class="fa-solid fa-check"></i>
+
+        </div>
+
+
+        <!-- TITLE -->
+
+        <h1>
+
+            Payment Successful!
+
+        </h1>
+
+
+        <p>
+
+            Your college bus fee has been successfully recorded.
+
+        </p>
+
+
+        <!-- =================================================
+             PAYMENT DETAILS
+        ================================================== -->
+
+        <div class="payment-details">
+
+
+            <!-- STUDENT -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Student Name
+
+                </span>
+
+                <span class="detail-value">
+
+                    <%= payment.student_name %>
+
+                </span>
+
+            </div>
+
+
+            <!-- ROLL NUMBER -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Roll Number
+
+                </span>
+
+                <span class="detail-value">
+
+                    <%= payment.roll_number || 'N/A' %>
+
+                </span>
+
+            </div>
+
+
+            <!-- DEPARTMENT -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Department
+
+                </span>
+
+                <span class="detail-value">
+
+                    <%= payment.department || 'N/A' %>
+
+                </span>
+
+            </div>
+
+
+            <!-- PAYMENT ID -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Payment ID
+
+                </span>
+
+                <span class="detail-value">
+
+                    #<%= payment.id %>
+
+                </span>
+
+            </div>
+
+
+            <!-- RECEIPT NUMBER -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Receipt Number
+
+                </span>
+
+                <span class="detail-value">
+
+                    <%= payment.receipt_no || 'N/A' %>
+
+                </span>
+
+            </div>
+
+
+            <!-- TRANSACTION ID -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Transaction Reference
+
+                </span>
+
+                <span class="detail-value">
+
+                    <%= payment.razorpay_payment_id || 'N/A' %>
+
+                </span>
+
+            </div>
+
+
+            <!-- PAYMENT METHOD -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Payment Method
+
+                </span>
+
+                <span class="detail-value">
+
+                    <%= payment.payment_method %>
+
+                </span>
+
+            </div>
+
+
+            <!-- AMOUNT -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Amount Paid
+
+                </span>
+
+                <span class="detail-value amount">
+
+                    ₹<%= Number(
+                        payment.amount || 0
+                    ).toFixed(2) %>
+
+                </span>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Status
+
+                </span>
+
+                <span class="detail-value success-status">
+
+                    <i class="fa-solid fa-circle-check"></i>
+
+                    <%= payment.status %>
+
+                </span>
+
+            </div>
+
+
+            <!-- DATE -->
+
+            <div class="detail-row">
+
+                <span class="detail-label">
+
+                    Transaction Date
+
+                </span>
+
+                <span class="detail-value">
+
+                    <%= new Date(
+                        payment.transaction_date
+                    ).toLocaleString(
+                        'en-IN'
+                    ) %>
+
+                </span>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================================
+             RECEIPT NOTE
+        ================================================== -->
+
+        <div class="receipt-note">
+
+            <i class="fa-solid fa-file-invoice"></i>
+
+            Your payment receipt has been generated successfully.
+            You can download the receipt using the button below.
+
+        </div>
+
+
+        <!-- =================================================
+             ACTIONS
+        ================================================== -->
+
+        <div class="success-actions">
+
+
+            <!-- DOWNLOAD RECEIPT -->
+
+            <a
+                href="/payment/receipt/<%= payment.id %>"
+                class="success-btn primary-btn"
+            >
+
+                <i class="fa-solid fa-download"></i>
+
+                Download Receipt
+
+            </a>
+
+
+            <!-- PAYMENT HISTORY -->
+
+            <a
+                href="/payment/history"
+                class="success-btn secondary-btn"
+            >
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+
+                Payment History
+
+            </a>
+
+
+            <!-- DASHBOARD -->
+
+            <a
+                href="/student/dashboard"
+                class="success-btn secondary-btn"
+            >
+
+                <i class="fa-solid fa-house"></i>
+
+                Dashboard
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+</main>
+
 
 </body>
-</html>
 
+</html>

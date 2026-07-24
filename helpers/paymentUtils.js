@@ -1,87 +1,677 @@
-/**
- * helpers/paymentUtils.js
- * ------------------------
- * Utility functions for the simulated Bus Fee Payment System.
- * Generates receipt numbers, fake transaction IDs (UTR), and
- * payment timestamps used across routes/payment.js.
- *
- * No external dependencies — pure helper functions.
- */
+// helpers/paymentUtils.js
 
-// Generate a unique Receipt Number
-// Format: RCPT-YYYYMMDD-XXXXXX (XXXXXX = random alphanumeric)
-function generateReceiptNumber() {
-  const date = new Date();
-  const datePart =
-    date.getFullYear().toString() +
-    String(date.getMonth() + 1).padStart(2, '0') +
-    String(date.getDate()).padStart(2, '0');
 
-  const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+// ============================================================
+// GENERATE SIMULATED TRANSACTION ID
+// ============================================================
 
-  return `RCPT-${datePart}-${randomPart}`;
-}
-
-// Generate a fake Transaction ID / UTR Number
-// Format: TXN + 12-digit numeric string (mimics real UPI UTR style)
 function generateTransactionId() {
-  let txnId = 'TXN';
-  for (let i = 0; i < 12; i++) {
-    txnId += Math.floor(Math.random() * 10);
-  }
-  return txnId;
+
+    const timestamp =
+        Date.now();
+
+    const random =
+        Math.floor(
+            1000 +
+            Math.random() * 9000
+        );
+
+    return `SIM-${timestamp}-${random}`;
+
 }
 
-// Generate a MySQL-compatible datetime string for the current moment
-// Format: YYYY-MM-DD HH:MM:SS
-function getMySQLTimestamp(date = new Date()) {
-  const pad = (n) => String(n).padStart(2, '0');
 
-  return (
-    date.getFullYear() +
-    '-' + pad(date.getMonth() + 1) +
-    '-' + pad(date.getDate()) +
-    ' ' + pad(date.getHours()) +
-    ':' + pad(date.getMinutes()) +
-    ':' + pad(date.getSeconds())
-  );
+// ============================================================
+// GENERATE SIMULATED UTR NUMBER
+// ============================================================
+
+function generateUTR() {
+
+    const timestamp =
+        Date.now();
+
+    const random =
+        Math.floor(
+            100 +
+            Math.random() * 900
+        );
+
+    return `SIMUTR${timestamp}${random}`;
+
 }
 
-// Format a numeric amount as Indian Rupees (₹1,234.00)
-function formatCurrency(amount) {
-  const num = Number(amount) || 0;
-  return num.toLocaleString('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2
-  });
+
+// ============================================================
+// GENERATE RECEIPT NUMBER
+// ============================================================
+
+function generateReceiptNumber() {
+
+    const timestamp =
+        Date.now();
+
+    const random =
+        Math.floor(
+            1000 +
+            Math.random() * 9000
+        );
+
+    return `REC-${timestamp}-${random}`;
+
 }
 
-// Validate a fake UTR input from the student
-// Accepts 6-30 alphanumeric characters (loose validation since it's simulated)
-function isValidUtr(utr) {
-  if (!utr || typeof utr !== 'string') return false;
-  const trimmed = utr.trim();
-  return /^[A-Za-z0-9]{6,30}$/.test(trimmed);
+
+// ============================================================
+// FORMAT PAYMENT METHOD
+// ============================================================
+
+function formatPaymentMethod(
+    paymentMethod
+) {
+
+    const methods = {
+
+        card:
+            'Credit / Debit Card',
+
+        upi:
+            'UPI',
+
+        upi_qr:
+            'UPI QR Code',
+
+        netbanking:
+            'Net Banking',
+
+        wallet:
+            'Digital Wallet',
+
+        rtgs:
+            'RTGS / NEFT'
+
+    };
+
+
+    return (
+
+        methods[paymentMethod]
+
+        ||
+
+        paymentMethod
+
+        ||
+
+        'Unknown'
+
+    );
+
 }
 
-// Generate a human-readable date for display (e.g. "23 Jul 2026, 03:45 PM")
-function formatDisplayDate(date = new Date()) {
-  return date.toLocaleString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
+
+// ============================================================
+// FORMAT DATE
+// ============================================================
+
+function formatPaymentDate(
+    date
+) {
+
+    if (!date) {
+
+        return 'N/A';
+
+    }
+
+
+    const paymentDate =
+        new Date(date);
+
+
+    if (
+        isNaN(
+            paymentDate.getTime()
+        )
+    ) {
+
+        return 'N/A';
+
+    }
+
+
+    return paymentDate.toLocaleString(
+        'en-IN',
+        {
+
+            day:
+                '2-digit',
+
+            month:
+                'short',
+
+            year:
+                'numeric',
+
+            hour:
+                '2-digit',
+
+            minute:
+                '2-digit',
+
+            hour12:
+                true
+
+        }
+    );
+
 }
+
+
+// ============================================================
+// FORMAT AMOUNT
+// ============================================================
+
+function formatAmount(
+    amount
+) {
+
+    const numericAmount =
+        Number(amount);
+
+
+    if (
+        isNaN(
+            numericAmount
+        )
+    ) {
+
+        return '₹0.00';
+
+    }
+
+
+    return numericAmount.toLocaleString(
+        'en-IN',
+        {
+
+            style:
+                'currency',
+
+            currency:
+                'INR',
+
+            minimumFractionDigits:
+                2,
+
+            maximumFractionDigits:
+                2
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// CLEAN UTR
+// ============================================================
+
+function cleanUTR(
+    utr
+) {
+
+    if (!utr) {
+
+        return null;
+
+    }
+
+
+    return String(utr)
+        .trim()
+        .replace(
+            /\s+/g,
+            ''
+        );
+
+}
+
+
+// ============================================================
+// VALIDATE UTR
+// ============================================================
+
+function isValidUTR(
+    utr
+) {
+
+    if (!utr) {
+
+        return false;
+
+    }
+
+
+    const cleanedUTR =
+        cleanUTR(utr);
+
+
+    // Simulated UTR:
+    // Minimum 6 characters
+
+    return (
+        cleanedUTR.length >= 6
+    );
+
+}
+
+
+// ============================================================
+// VALIDATE UPI ID
+// ============================================================
+
+function isValidUPI(
+    upiId
+) {
+
+    if (!upiId) {
+
+        return false;
+
+    }
+
+
+    const upi =
+        String(upiId)
+            .trim();
+
+
+    /*
+     * Basic UPI format:
+     *
+     * username@bank
+     *
+     * Examples:
+     *
+     * abhishek@oksbi
+     * student@upi
+     */
+
+    const upiRegex =
+        /^[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+$/;
+
+
+    return upiRegex.test(
+        upi
+    );
+
+}
+
+
+// ============================================================
+// MASK CARD NUMBER
+// ============================================================
+
+function maskCardNumber(
+    cardNumber
+) {
+
+    if (!cardNumber) {
+
+        return '**** **** **** ****';
+
+    }
+
+
+    const cleanedCard =
+        String(cardNumber)
+            .replace(
+                /\D/g,
+                ''
+            );
+
+
+    if (
+        cleanedCard.length < 4
+    ) {
+
+        return '**** **** **** ****';
+
+    }
+
+
+    const lastFour =
+        cleanedCard.slice(-4);
+
+
+    return `**** **** **** ${lastFour}`;
+
+}
+
+
+// ============================================================
+// GET PAYMENT STATUS LABEL
+// ============================================================
+
+function getPaymentStatusLabel(
+    status
+) {
+
+    const statuses = {
+
+        success:
+            'Payment Successful',
+
+        pending:
+            'Payment Pending',
+
+        failed:
+            'Payment Failed',
+
+        cancelled:
+            'Payment Cancelled'
+
+    };
+
+
+    return (
+
+        statuses[status]
+
+        ||
+
+        status
+
+        ||
+
+        'Unknown'
+
+    );
+
+}
+
+
+// ============================================================
+// GET PAYMENT STATUS CLASS
+// ============================================================
+
+function getPaymentStatusClass(
+    status
+) {
+
+    const classes = {
+
+        success:
+            'status-success',
+
+        pending:
+            'status-pending',
+
+        failed:
+            'status-failed',
+
+        cancelled:
+            'status-cancelled'
+
+    };
+
+
+    return (
+
+        classes[status]
+
+        ||
+
+        'status-unknown'
+
+    );
+
+}
+
+
+// ============================================================
+// CREATE RECEIPT DATA
+// ============================================================
+
+function createReceiptData(
+    payment
+) {
+
+    if (!payment) {
+
+        return null;
+
+    }
+
+
+    return {
+
+        receiptNumber:
+
+            payment.receipt_number
+
+            ||
+
+            generateReceiptNumber(),
+
+
+        transactionId:
+
+            payment.transaction_id
+
+            ||
+
+            'N/A',
+
+
+        utrNumber:
+
+            payment.utr_number
+
+            ||
+
+            payment.razorpay_payment_id
+
+            ||
+
+            'N/A',
+
+
+        studentName:
+
+            payment.student_name
+
+            ||
+
+            'N/A',
+
+
+        studentEmail:
+
+            payment.student_email
+
+            ||
+
+            'N/A',
+
+
+        studentId:
+
+            payment.student_id
+
+            ||
+
+            'N/A',
+
+
+        feeId:
+
+            payment.fee_id
+
+            ||
+
+            'N/A',
+
+
+        amount:
+
+            Number(
+                payment.amount
+            ) || 0,
+
+
+        formattedAmount:
+
+            formatAmount(
+                payment.amount
+            ),
+
+
+        paymentMethod:
+
+            formatPaymentMethod(
+                payment.payment_method
+            ),
+
+
+        paymentDate:
+
+            formatPaymentDate(
+                payment.payment_date
+            ),
+
+
+        status:
+
+            payment.status
+
+            ||
+
+            'success'
+
+    };
+
+}
+
+
+// ============================================================
+// CREATE SIMULATED PAYMENT DATA
+// ============================================================
+
+function createSimulatedPaymentData(
+    data
+) {
+
+    const {
+
+        feeId,
+
+        studentId,
+
+        amount,
+
+        paymentMethod,
+
+        utrNumber
+
+    } = data;
+
+
+    const transactionId =
+        generateTransactionId();
+
+
+    const finalUTR =
+
+        cleanUTR(
+            utrNumber
+        )
+
+        ||
+
+        generateUTR();
+
+
+    return {
+
+        feeId:
+
+            feeId,
+
+
+        studentId:
+
+            studentId,
+
+
+        amount:
+
+            Number(
+                amount
+            ),
+
+
+        paymentMethod:
+
+            paymentMethod,
+
+
+        transactionId:
+
+            transactionId,
+
+
+        utrNumber:
+
+            finalUTR,
+
+
+        status:
+
+            'success',
+
+
+        paymentDate:
+
+            new Date()
+
+    };
+
+}
+
+
+// ============================================================
+// EXPORT FUNCTIONS
+// ============================================================
 
 module.exports = {
-  generateReceiptNumber,
-  generateTransactionId,
-  getMySQLTimestamp,
-  formatCurrency,
-  isValidUtr,
-  formatDisplayDate
+
+    generateTransactionId,
+
+    generateUTR,
+
+    generateReceiptNumber,
+
+    formatPaymentMethod,
+
+    formatPaymentDate,
+
+    formatAmount,
+
+    cleanUTR,
+
+    isValidUTR,
+
+    isValidUPI,
+
+    maskCardNumber,
+
+    getPaymentStatusLabel,
+
+    getPaymentStatusClass,
+
+    createReceiptData,
+
+    createSimulatedPaymentData
+
 };

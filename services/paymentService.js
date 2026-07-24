@@ -1,96 +1,638 @@
-/*
-  services/paymentService.js
-  Wraps config/razorpay.js (already an existing, unused dependency) around
-  the `fees` and `payments` tables. Does not create its own Razorpay
-  instance or re-implement signature verification — both already live in
-  config/razorpay.js and are reused here as-is.
-*/
+// services/paymentService.js
 
 const db = require('../config/db');
-const { razorpay, verifyPaymentSignature } = require('../config/razorpay');
-const { isValidAmount } = require('../utils/validators');
 
-// -------- Create a Razorpay order for a fee record and log it as 'created' --------
-async function createOrder(feeId) {
-  if (!razorpay) throw new Error('Online payments are not configured. Contact the administrator.');
 
-  const [[fee]] = await db.query('SELECT * FROM fees WHERE id = ?', [feeId]);
-  if (!fee) throw new Error('Fee record not found');
-  if (fee.status === 'paid') throw new Error('This fee has already been paid');
-  if (!isValidAmount(fee.amount)) throw new Error('Invalid fee amount');
+// ============================================================
+// GENERATE SIMULATED TRANSACTION ID
+// ============================================================
 
-  const order = await razorpay.orders.create({
-    amount: Math.round(Number(fee.amount) * 100), // Razorpay expects paise
-    currency: 'INR',
-    receipt: `fee_${fee.id}_${Date.now()}`
-  });
+function generateTransactionId() {
 
-  await db.query(
-    'INSERT INTO payments (fee_id, student_id, razorpay_order_id, amount, status) VALUES (?, ?, ?, ?, "created")',
-    [fee.id, fee.student_id, order.id, fee.amount]
-  );
+    return (
+        'SIM-' +
+        Date.now() +
+        '-' +
+        Math.floor(
+            1000 +
+            Math.random() * 9000
+        )
+    );
 
-  return { order, fee };
 }
 
-// -------- Verify the checkout response and mark the fee as paid --------
-async function verifyPayment({ orderId, paymentId, signature }) {
-  const isValid = verifyPaymentSignature(orderId, paymentId, signature);
 
-  const [[payment]] = await db.query('SELECT * FROM payments WHERE razorpay_order_id = ?', [orderId]);
-  if (!payment) throw new Error('Payment record not found for this order');
+// ============================================================
+// GENERATE SIMULATED UTR
+// ============================================================
 
-  if (!isValid) {
-    await db.query('UPDATE payments SET status = "failed" WHERE id = ?', [payment.id]);
-    return { success: false, message: 'Payment signature verification failed' };
-  }
+function generateUTR() {
 
-  const receiptNo = `RCT-${Date.now()}`;
+    return (
+        'SIMUTR' +
+        Date.now() +
+        Math.floor(
+            100 +
+            Math.random() * 900
+        )
+    );
 
-await db.query(
-  `UPDATE payments
-   SET razorpay_payment_id = ?,
-       receipt_no = ?,
-       payment_method = 'Razorpay',
-       transaction_date = NOW(),
-       status = 'success'
-   WHERE id = ?`,
-  [
-    paymentId,
-    receiptNo,
-    payment.id
-  ]
-);
-  await db.query('UPDATE fees SET status = "paid", paid_date = CURDATE() WHERE id = ?', [payment.fee_id]);
-
-  const [[updatedPayment]] = await db.query('SELECT * FROM payments WHERE id = ?', [payment.id]);
-  const [[fee]] = await db.query('SELECT * FROM fees WHERE id = ?', [payment.fee_id]);
-
-  return { success: true, payment: updatedPayment, fee };
 }
 
-// -------- A student's own payment history --------
-async function getPaymentHistory(studentId) {
-  const [rows] = await db.query(
-    `SELECT p.*, f.due_date FROM payments p
-     JOIN fees f ON p.fee_id = f.id
-     WHERE p.student_id = ?
-     ORDER BY p.created_at DESC`,
-    [studentId]
-  );
-  return rows;
+
+// ============================================================
+// GET FEE DETAILS
+// ============================================================
+
+async function getFeeById(
+    feeId,
+    studentId
+) {
+
+    const [rows] =
+        await db.promise().query(
+            `
+            SELECT
+                f.*,
+                s.id AS student_id,
+                s.name AS student_name,
+                s.email AS student_email
+            FROM fees f
+            JOIN students s
+                ON f.student_id = s.id
+            WHERE f.id = ?
+              AND f.student_id = ?
+            LIMIT 1
+            `,
+            [
+                feeId,
+                studentId
+            ]
+        );
+
+
+    if (rows.length === 0) {
+
+        return null;
+
+    }
+
+
+    return rows[0];
+
 }
 
-// -------- All payments across all students (admin view) --------
-async function getAllPayments() {
-  const [rows] = await db.query(`
-    SELECT p.*, u.name AS student_name, s.roll_no
-    FROM payments p
-    JOIN students s ON p.student_id = s.id
-    JOIN users u ON s.user_id = u.id
-    ORDER BY p.created_at DESC
-  `);
-  return rows;
+
+// ============================================================
+// CHECK IF FEE IS ALREADY PAID
+// ============================================================
+
+async function isFeeAlreadyPaid(
+    feeId,
+    studentId
+) {
+
+    const fee =
+        await getFeeById(
+            feeId,
+            studentId
+        );
+
+
+    if (!fee) {
+
+        return false;
+
+    }
+
+
+    return (
+        fee.status &&
+        fee.status.toLowerCase() === 'paid'
+    );
+
 }
 
-module.exports = { createOrder, verifyPayment, getPaymentHistory, getAllPayments };
+
+// ============================================================
+// PROCESS SIMULATED PAYMENT
+// ============================================================
+
+async function processSimulatedPayment(
+    paymentData
+) {
+
+    const {
+
+        feeId,
+
+        studentId,
+
+        paymentMethod,
+
+        utrNumber,
+
+        upiId,
+
+        cardHolderName,
+
+        cardNumber,
+
+        bankName,
+
+        walletName
+
+    } = paymentData;
+
+
+    // --------------------------------------------------------
+    // Validate required IDs
+    // --------------------------------------------------------
+
+    if (
+        !feeId ||
+        !studentId
+    ) {
+
+        throw new Error(
+            'Fee ID and Student ID are required.'
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // Validate payment method
+    // --------------------------------------------------------
+
+    const allowedMethods = [
+
+        'card',
+
+        'upi',
+
+        'upi_qr',
+
+        'netbanking',
+
+        'wallet',
+
+        'rtgs'
+
+    ];
+
+
+    if (
+        !allowedMethods.includes(
+            paymentMethod
+        )
+    ) {
+
+        throw new Error(
+            'Invalid payment method.'
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // Get fee
+    // --------------------------------------------------------
+
+    const fee =
+        await getFeeById(
+            feeId,
+            studentId
+        );
+
+
+    if (!fee) {
+
+        throw new Error(
+            'Fee record not found.'
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // Prevent duplicate payment
+    // --------------------------------------------------------
+
+    if (
+        fee.status &&
+        fee.status.toLowerCase() === 'paid'
+    ) {
+
+        throw new Error(
+            'This fee has already been paid.'
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // Determine fee amount
+    // --------------------------------------------------------
+
+    const amount = Number(
+
+        fee.amount ||
+
+        fee.total_amount ||
+
+        fee.fee_amount ||
+
+        0
+
+    );
+
+
+    if (
+        !amount ||
+        amount <= 0
+    ) {
+
+        throw new Error(
+            'Invalid fee amount.'
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // Validate UPI QR
+    // --------------------------------------------------------
+
+    if (
+        paymentMethod === 'upi_qr'
+    ) {
+
+        if (
+            !utrNumber ||
+            utrNumber.trim().length < 6
+        ) {
+
+            throw new Error(
+                'Please enter a valid UTR number.'
+            );
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // Validate UPI
+    // --------------------------------------------------------
+
+    if (
+        paymentMethod === 'upi'
+    ) {
+
+        if (
+            !upiId ||
+            !upiId.includes('@')
+        ) {
+
+            throw new Error(
+                'Please enter a valid UPI ID.'
+            );
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // Generate transaction details
+    // --------------------------------------------------------
+
+    const transactionId =
+        generateTransactionId();
+
+
+    const finalUTR =
+
+        utrNumber &&
+        utrNumber.trim()
+
+            ? utrNumber.trim()
+
+            : generateUTR();
+
+
+    // ========================================================
+    // DATABASE TRANSACTION
+    // ========================================================
+
+    const connection =
+        await db
+            .promise()
+            .getConnection();
+
+
+    try {
+
+        await connection.beginTransaction();
+
+
+        // ----------------------------------------------------
+        // Insert payment record
+        // ----------------------------------------------------
+
+        const [paymentResult] =
+
+            await connection.query(
+
+                `
+                INSERT INTO payments
+                (
+                    fee_id,
+                    student_id,
+                    amount,
+                    payment_method,
+                    transaction_id,
+                    razorpay_payment_id,
+                    status,
+                    payment_date
+                )
+                VALUES
+                (?, ?, ?, ?, ?, ?, ?, NOW())
+                `,
+
+                [
+
+                    feeId,
+
+                    studentId,
+
+                    amount,
+
+                    paymentMethod,
+
+                    transactionId,
+
+                    finalUTR,
+
+                    'success'
+
+                ]
+
+            );
+
+
+        // ----------------------------------------------------
+        // Update fee status
+        // ----------------------------------------------------
+
+        await connection.query(
+
+            `
+            UPDATE fees
+
+            SET status = 'paid'
+
+            WHERE id = ?
+
+              AND student_id = ?
+
+              AND (
+                    status IS NULL
+                    OR status != 'paid'
+                  )
+            `,
+
+            [
+
+                feeId,
+
+                studentId
+
+            ]
+
+        );
+
+
+        // ----------------------------------------------------
+        // Commit
+        // ----------------------------------------------------
+
+        await connection.commit();
+
+
+        // ----------------------------------------------------
+        // Return payment result
+        // ----------------------------------------------------
+
+        return {
+
+            success: true,
+
+            paymentId:
+                paymentResult.insertId,
+
+            transactionId:
+
+                transactionId,
+
+            utr:
+
+                finalUTR,
+
+            amount:
+
+                amount,
+
+            paymentMethod:
+
+                paymentMethod,
+
+            feeId:
+
+                feeId,
+
+            studentId:
+
+                studentId,
+
+            paymentDate:
+
+                new Date()
+
+        };
+
+
+    } catch (error) {
+
+
+        // ----------------------------------------------------
+        // Rollback on error
+        // ----------------------------------------------------
+
+        await connection.rollback();
+
+
+        throw error;
+
+
+    } finally {
+
+
+        // ----------------------------------------------------
+        // Release connection
+        // ----------------------------------------------------
+
+        connection.release();
+
+    }
+
+}
+
+
+// ============================================================
+// GET PAYMENT BY FEE
+// ============================================================
+
+async function getPaymentByFeeId(
+    feeId,
+    studentId
+) {
+
+
+    const [rows] =
+
+        await db
+            .promise()
+            .query(
+
+                `
+                SELECT
+                    p.*,
+
+                    f.status
+                        AS fee_status,
+
+                    s.name
+                        AS student_name,
+
+                    s.email
+                        AS student_email
+
+                FROM payments p
+
+                JOIN fees f
+
+                    ON p.fee_id = f.id
+
+                JOIN students s
+
+                    ON p.student_id = s.id
+
+                WHERE p.fee_id = ?
+
+                  AND p.student_id = ?
+
+                  AND p.status = 'success'
+
+                ORDER BY
+                    p.payment_date DESC
+
+                LIMIT 1
+                `,
+
+                [
+
+                    feeId,
+
+                    studentId
+
+                ]
+
+            );
+
+
+    if (
+        rows.length === 0
+    ) {
+
+        return null;
+
+    }
+
+
+    return rows[0];
+
+}
+
+
+// ============================================================
+// GET STUDENT PAYMENT HISTORY
+// ============================================================
+
+async function getPaymentHistory(
+    studentId
+) {
+
+
+    const [rows] =
+
+        await db
+            .promise()
+            .query(
+
+                `
+                SELECT
+
+                    p.*,
+
+                    f.status
+                        AS fee_status
+
+                FROM payments p
+
+                LEFT JOIN fees f
+
+                    ON p.fee_id = f.id
+
+                WHERE p.student_id = ?
+
+                ORDER BY
+                    p.payment_date DESC
+                `,
+
+                [
+
+                    studentId
+
+                ]
+
+            );
+
+
+    return rows;
+
+}
+
+
+// ============================================================
+// EXPORT
+// ============================================================
+
+module.exports = {
+
+    generateTransactionId,
+
+    generateUTR,
+
+    getFeeById,
+
+    isFeeAlreadyPaid,
+
+    processSimulatedPayment,
+
+    getPaymentByFeeId,
+
+    getPaymentHistory
+
+};
