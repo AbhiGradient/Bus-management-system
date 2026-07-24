@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,643 +10,305 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        Payment History | Smart College Bus
-    </title>
-
+    <title>Payment History | Smart College Bus</title>
 
     <link
         rel="stylesheet"
         href="/css/main.css"
     >
 
-
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     >
 
-
     <style>
 
-        /*
-        =====================================================
-        PAYMENT HISTORY PAGE
-        =====================================================
-        */
+        /* ================================================
+           PAYMENT HISTORY PAGE
+        ================================================ */
 
         .history-page {
-
-            max-width:
-                1200px;
-
-            margin:
-                40px auto;
-
-            padding:
-                20px;
-
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
         }
 
 
-        /*
-        =====================================================
-        HEADER
-        =====================================================
-        */
+        /* ================================================
+           HEADER
+        ================================================ */
 
         .history-header {
-
-            display:
-                flex;
-
-            justify-content:
-                space-between;
-
-            align-items:
-                center;
-
-            gap:
-                20px;
-
-            margin-bottom:
-                25px;
-
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
         }
-
 
         .history-header h1 {
-
-            color:
-                #132f4b;
-
-            margin:
-                0 0 7px 0;
-
+            color: #132f4b;
+            margin: 0 0 7px 0;
         }
-
 
         .history-header p {
-
-            color:
-                #666;
-
-            margin:
-                0;
-
+            color: #666;
+            margin: 0;
         }
 
 
-        /*
-        =====================================================
-        BACK BUTTON
-        =====================================================
-        */
+        /* ================================================
+           BACK BUTTON
+        ================================================ */
 
         .back-btn {
-
-            display:
-                inline-flex;
-
-            align-items:
-                center;
-
-            gap:
-                8px;
-
-            background:
-                #132f4b;
-
-            color:
-                #fff;
-
-            padding:
-                10px 16px;
-
-            border-radius:
-                7px;
-
-            text-decoration:
-                none;
-
-            font-weight:
-                600;
-
-            white-space:
-                nowrap;
-
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #132f4b;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: 600;
+            white-space: nowrap;
         }
-
 
         .back-btn:hover {
-
-            background:
-                #0e2439;
-
+            background: #0e2439;
         }
 
 
-        /*
-        =====================================================
-        SUMMARY CARDS
-        =====================================================
-        */
+        /* ================================================
+           SUMMARY CARDS
+        ================================================ */
 
         .history-summary {
-
-            display:
-                grid;
-
-            grid-template-columns:
-                repeat(
-                    3,
-                    1fr
-                );
-
-            gap:
-                18px;
-
-            margin-bottom:
-                25px;
-
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
         }
-
 
         .summary-card {
-
-            background:
-                #fff;
-
-            padding:
-                20px;
-
-            border-radius:
-                12px;
-
-            box-shadow:
-                0 5px 16px
-                rgba(
-                    0,
-                    0,
-                    0,
-                    0.08
-                );
-
-            border-left:
-                4px solid #132f4b;
-
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 16px rgba(0,0,0,0.08);
+            border-left: 4px solid #132f4b;
         }
-
 
         .summary-card h3 {
-
-            margin:
-                0 0 8px 0;
-
-            color:
-                #666;
-
-            font-size:
-                14px;
-
+            margin: 0 0 8px 0;
+            color: #666;
+            font-size: 14px;
         }
-
 
         .summary-card .summary-number {
-
-            font-size:
-                25px;
-
-            font-weight:
-                700;
-
-            color:
-                #132f4b;
-
+            font-size: 25px;
+            font-weight: 700;
+            color: #132f4b;
         }
 
 
-        /*
-        =====================================================
-        TABLE CONTAINER
-        =====================================================
-        */
+        /* ================================================
+           HISTORY CARD
+        ================================================ */
 
         .history-card {
-
-            background:
-                #fff;
-
-            border-radius:
-                12px;
-
-            box-shadow:
-                0 6px 18px
-                rgba(
-                    0,
-                    0,
-                    0,
-                    0.10
-                );
-
-            overflow:
-                hidden;
-
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+            overflow: hidden;
         }
-
 
         .history-card-header {
-
-            padding:
-                20px;
-
-            border-bottom:
-                1px solid #eee;
-
+            padding: 20px;
+            border-bottom: 1px solid #eee;
         }
-
 
         .history-card-header h2 {
-
-            margin:
-                0;
-
-            color:
-                #132f4b;
-
-            font-size:
-                20px;
-
+            margin: 0;
+            color: #132f4b;
+            font-size: 20px;
         }
 
 
-        /*
-        =====================================================
-        TABLE WRAPPER
-        =====================================================
-        */
+        /* ================================================
+           TABLE
+        ================================================ */
 
         .table-wrapper {
-
-            width:
-                100%;
-
-            overflow-x:
-                auto;
-
+            width: 100%;
+            overflow-x: auto;
         }
-
 
         .payment-table {
-
-            width:
-                100%;
-
-            border-collapse:
-                collapse;
-
-            min-width:
-                850px;
-
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
         }
-
 
         .payment-table th {
-
-            background:
-                #132f4b;
-
-            color:
-                #fff;
-
-            padding:
-                14px;
-
-            text-align:
-                left;
-
-            font-size:
-                13px;
-
-            white-space:
-                nowrap;
-
+            background: #132f4b;
+            color: #fff;
+            padding: 14px;
+            text-align: left;
+            font-size: 13px;
+            white-space: nowrap;
         }
-
 
         .payment-table td {
-
-            padding:
-                14px;
-
-            border-bottom:
-                1px solid #eee;
-
-            font-size:
-                14px;
-
-            vertical-align:
-                middle;
-
+            padding: 14px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            vertical-align: middle;
         }
-
 
         .payment-table tbody tr:hover {
-
-            background:
-                #f8fafc;
-
+            background: #f8fafc;
         }
 
 
-        /*
-        =====================================================
-        AMOUNT
-        =====================================================
-        */
+        /* ================================================
+           AMOUNT
+        ================================================ */
 
         .amount-cell {
-
-            color:
-                #e10600;
-
-            font-weight:
-                700;
-
+            color: #e10600;
+            font-weight: 700;
         }
 
 
-        /*
-        =====================================================
-        STATUS
-        =====================================================
-        */
+        /* ================================================
+           STATUS
+        ================================================ */
 
         .status-badge {
-
-            display:
-                inline-flex;
-
-            align-items:
-                center;
-
-            gap:
-                5px;
-
-            padding:
-                5px 10px;
-
-            border-radius:
-                20px;
-
-            font-size:
-                12px;
-
-            font-weight:
-                700;
-
-            text-transform:
-                capitalize;
-
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: capitalize;
         }
-
 
         .status-success {
-
-            background:
-                #dcfce7;
-
-            color:
-                #166534;
-
+            background: #dcfce7;
+            color: #166534;
         }
-
 
         .status-failed {
-
-            background:
-                #fee2e2;
-
-            color:
-                #991b1b;
-
+            background: #fee2e2;
+            color: #991b1b;
         }
-
 
         .status-pending {
-
-            background:
-                #fef3c7;
-
-            color:
-                #92400e;
-
+            background: #fef3c7;
+            color: #92400e;
         }
 
 
-        /*
-        =====================================================
-        PAYMENT METHOD
-        =====================================================
-        */
+        /* ================================================
+           PAYMENT METHOD
+        ================================================ */
 
         .method-badge {
-
-            display:
-                inline-block;
-
-            background:
-                #eef3f7;
-
-            color:
-                #132f4b;
-
-            padding:
-                5px 9px;
-
-            border-radius:
-                5px;
-
-            font-size:
-                12px;
-
-            font-weight:
-                600;
-
+            display: inline-block;
+            background: #eef3f7;
+            color: #132f4b;
+            padding: 5px 9px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
 
-        /*
-        =====================================================
-        RECEIPT BUTTON
-        =====================================================
-        */
+        /* ================================================
+           RECEIPT BUTTON
+        ================================================ */
 
         .receipt-btn {
-
-            display:
-                inline-flex;
-
-            align-items:
-                center;
-
-            gap:
-                6px;
-
-            padding:
-                8px 12px;
-
-            border-radius:
-                6px;
-
-            background:
-                #132f4b;
-
-            color:
-                #fff;
-
-            text-decoration:
-                none;
-
-            font-size:
-                12px;
-
-            font-weight:
-                600;
-
-            white-space:
-                nowrap;
-
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #132f4b;
+            color: #fff;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
         }
-
 
         .receipt-btn:hover {
-
-            background:
-                #0e2439;
-
+            background: #0e2439;
         }
 
 
-        /*
-        =====================================================
-        EMPTY STATE
-        =====================================================
-        */
+        /* ================================================
+           EMPTY STATE
+        ================================================ */
 
         .empty-state {
-
-            text-align:
-                center;
-
-            padding:
-                60px 20px;
-
+            text-align: center;
+            padding: 60px 20px;
         }
-
 
         .empty-icon {
-
-            font-size:
-                55px;
-
-            color:
-                #aaa;
-
-            margin-bottom:
-                15px;
-
+            font-size: 55px;
+            color: #aaa;
+            margin-bottom: 15px;
         }
-
 
         .empty-state h2 {
-
-            color:
-                #444;
-
-            margin-bottom:
-                10px;
-
+            color: #444;
+            margin-bottom: 10px;
         }
-
 
         .empty-state p {
-
-            color:
-                #777;
-
-            margin-bottom:
-                20px;
-
+            color: #777;
+            margin-bottom: 20px;
         }
-
 
         .pay-now-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #132f4b;
+            color: #fff;
+            text-decoration: none;
+            padding: 11px 18px;
+            border-radius: 7px;
+            font-weight: 600;
+        }
 
-            display:
-                inline-flex;
-
-            align-items:
-                center;
-
-            gap:
-                8px;
-
-            background:
-                #132f4b;
-
-            color:
-                #fff;
-
-            text-decoration:
-                none;
-
-            padding:
-                11px 18px;
-
-            border-radius:
-                7px;
-
-            font-weight:
-                600;
-
+        .pay-now-btn:hover {
+            background: #0e2439;
         }
 
 
-        /*
-        =====================================================
-        MOBILE
-        =====================================================
-        */
+        /* ================================================
+           MOBILE
+        ================================================ */
 
-        @media (
-            max-width: 700px
-        ) {
+        @media (max-width: 700px) {
 
             .history-header {
-
-                flex-direction:
-                    column;
-
-                align-items:
-                flex-start;
-
+                flex-direction: column;
+                align-items: flex-start;
             }
-
 
             .history-summary {
-
-                grid-template-columns:
-                    1fr;
-
+                grid-template-columns: 1fr;
             }
 
-
             .history-page {
-
-                padding:
-                    15px;
-
+                padding: 15px;
             }
 
         }
@@ -678,7 +339,6 @@
 <nav class="navbar">
 
     <div class="nav-container">
-
 
         <div class="nav-logo">
 
@@ -712,7 +372,7 @@
 
 
 <!-- =====================================================
-     MAIN PAGE
+     MAIN
 ====================================================== -->
 
 <main class="history-page">
@@ -724,7 +384,6 @@
 
     <div class="history-header">
 
-
         <div>
 
             <h1>
@@ -732,7 +391,6 @@
                 Payment History
 
             </h1>
-
 
             <p>
 
@@ -755,12 +413,11 @@
 
         </a>
 
-
     </div>
 
 
     <!-- =================================================
-         SUMMARY
+         SUMMARY CARDS
     ================================================== -->
 
     <div class="history-summary">
@@ -776,10 +433,9 @@
 
             </h3>
 
-
             <div class="summary-number">
 
-                <%= payments.length %>
+                <%= payments ? payments.length : 0 %>
 
             </div>
 
@@ -796,14 +452,24 @@
 
             </h3>
 
-
             <div class="summary-number">
 
-                <%= payments.filter(
-                    payment =>
-                        payment.status &&
-                        payment.status.toLowerCase() === 'success'
-                ).length %>
+                <%= payments
+                    ? payments.filter(payment => {
+
+                        const status =
+                            String(
+                                payment.status || ''
+                            ).toLowerCase();
+
+                        return (
+                            status === 'success' ||
+                            status === 'paid'
+                        );
+
+                    }).length
+                    : 0
+                %>
 
             </div>
 
@@ -820,32 +486,46 @@
 
             </h3>
 
-
             <div class="summary-number">
 
                 ₹<%= payments
-                    .filter(
-                        payment =>
-                            payment.status &&
-                            payment.status.toLowerCase() === 'success'
-                    )
-                    .reduce(
-                        (
-                            total,
-                            payment
-                        ) =>
-                            total +
-                            Number(
-                                payment.amount || 0
-                            ),
-                        0
-                    )
-                    .toFixed(2) %>
+                    ? payments
+                        .filter(payment => {
+
+                            const status =
+                                String(
+                                    payment.status || ''
+                                ).toLowerCase();
+
+                            return (
+                                status === 'success' ||
+                                status === 'paid'
+                            );
+
+                        })
+                        .reduce(
+                            (
+                                total,
+                                payment
+                            ) => {
+
+                                return (
+                                    total +
+                                    Number(
+                                        payment.amount || 0
+                                    )
+                                );
+
+                            },
+                            0
+                        )
+                        .toFixed(2)
+                    : '0.00'
+                %>
 
             </div>
 
         </div>
-
 
     </div>
 
@@ -876,10 +556,6 @@
         ) { %>
 
 
-            <!-- =============================================
-                 TABLE
-            ============================================== -->
-
             <div class="table-wrapper">
 
                 <table class="payment-table">
@@ -889,37 +565,21 @@
 
                         <tr>
 
-                            <th>
-                                #
-                            </th>
+                            <th>#</th>
 
-                            <th>
-                                Receipt Number
-                            </th>
+                            <th>Receipt Number</th>
 
-                            <th>
-                                Amount
-                            </th>
+                            <th>Amount</th>
 
-                            <th>
-                                Payment Method
-                            </th>
+                            <th>Payment Method</th>
 
-                            <th>
-                                Transaction Reference
-                            </th>
+                            <th>Transaction ID</th>
 
-                            <th>
-                                Date
-                            </th>
+                            <th>Payment Date</th>
 
-                            <th>
-                                Status
-                            </th>
+                            <th>Status</th>
 
-                            <th>
-                                Receipt
-                            </th>
+                            <th>Receipt</th>
 
                         </tr>
 
@@ -933,205 +593,229 @@
                             (
                                 payment,
                                 index
-                            ) => { %>
+                            ) => {
+
+                                const paymentStatus =
+
+                                    String(
+                                        payment.status || ''
+                                    ).toLowerCase();
+
+                        %>
 
 
-                            <tr>
+                        <tr>
 
 
-                                <!-- NUMBER -->
+                            <!-- NUMBER -->
 
-                                <td>
+                            <td>
 
-                                    <%= index + 1 %>
+                                <%= index + 1 %>
 
-                                </td>
-
-
-                                <!-- RECEIPT NUMBER -->
-
-                                <td>
-
-                                    <strong>
-
-                                        <%= payment.receipt_no || 'N/A' %>
-
-                                    </strong>
-
-                                </td>
+                            </td>
 
 
-                                <!-- AMOUNT -->
+                            <!-- RECEIPT NUMBER -->
 
-                                <td class="amount-cell">
+                            <td>
 
-                                    ₹<%= Number(
-                                        payment.amount || 0
-                                    ).toFixed(2) %>
+                                <strong>
 
-                                </td>
+                                    <%= payment.receipt_no || 'N/A' %>
+
+                                </strong>
+
+                            </td>
 
 
-                                <!-- METHOD -->
+                            <!-- AMOUNT -->
 
-                                <td>
+                            <td class="amount-cell">
 
-                                    <span class="method-badge">
+                                ₹<%= Number(
+                                    payment.amount || 0
+                                ).toFixed(2) %>
 
-                                        <%= payment.payment_method || 'N/A' %>
+                            </td>
+
+
+                            <!-- PAYMENT METHOD -->
+
+                            <td>
+
+                                <span class="method-badge">
+
+                                    <%= payment.payment_method || 'N/A' %>
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- TRANSACTION ID -->
+
+                            <td>
+
+                                <%= payment.transaction_id || 'N/A' %>
+
+                            </td>
+
+
+                            <!-- PAYMENT DATE -->
+
+                            <td>
+
+                                <%= payment.payment_date
+
+                                    ? new Date(
+                                        payment.payment_date
+                                    ).toLocaleString(
+                                        'en-IN'
+                                    )
+
+                                    : 'N/A'
+
+                                %>
+
+                            </td>
+
+
+                            <!-- STATUS -->
+
+                            <td>
+
+
+                                <% if (
+
+                                    paymentStatus === 'success' ||
+
+                                    paymentStatus === 'paid'
+
+                                ) { %>
+
+
+                                    <span
+                                        class="
+                                            status-badge
+                                            status-success
+                                        "
+                                    >
+
+                                        <i
+                                            class="
+                                                fa-solid
+                                                fa-check
+                                            "
+                                        ></i>
+
+                                        <%= payment.status %>
 
                                     </span>
 
-                                </td>
+
+                                <% } else if (
+
+                                    paymentStatus === 'pending'
+
+                                ) { %>
 
 
-                                <!-- TRANSACTION REFERENCE -->
+                                    <span
+                                        class="
+                                            status-badge
+                                            status-pending
+                                        "
+                                    >
 
-                                <td>
-
-                                    <%= payment.razorpay_payment_id || 'N/A' %>
-
-                                </td>
-
-
-                                <!-- DATE -->
-
-                                <td>
-
-                                    <%= payment.transaction_date
-                                        ? new Date(
-                                            payment.transaction_date
-                                        ).toLocaleString(
-                                            'en-IN'
-                                        )
-                                        : 'N/A'
-                                    %>
-
-                                </td>
-
-
-                                <!-- STATUS -->
-
-                                <td>
-
-
-                                    <% const paymentStatus =
-
-                                        (
-                                            payment.status || ''
-                                        ).toLowerCase();
-
-                                    %>
-
-
-                                    <% if (
-                                        paymentStatus === 'success' ||
-                                        paymentStatus === 'paid'
-                                    ) { %>
-
-
-                                        <span
+                                        <i
                                             class="
-                                                status-badge
-                                                status-success
+                                                fa-solid
+                                                fa-clock
                                             "
-                                        >
+                                        ></i>
 
-                                            <i class="fa-solid fa-check"></i>
+                                        <%= payment.status %>
 
-                                            <%= payment.status %>
-
-                                        </span>
+                                    </span>
 
 
-                                    <% } else if (
-                                        paymentStatus === 'pending'
-                                    ) { %>
+                                <% } else { %>
 
 
-                                        <span
+                                    <span
+                                        class="
+                                            status-badge
+                                            status-failed
+                                        "
+                                    >
+
+                                        <i
                                             class="
-                                                status-badge
-                                                status-pending
+                                                fa-solid
+                                                fa-xmark
                                             "
-                                        >
+                                        ></i>
 
-                                            <i class="fa-solid fa-clock"></i>
+                                        <%= payment.status || 'Failed' %>
 
-                                            <%= payment.status %>
-
-                                        </span>
+                                    </span>
 
 
-                                    <% } else { %>
+                                <% } %>
 
 
-                                        <span
+                            </td>
+
+
+                            <!-- RECEIPT -->
+
+                            <td>
+
+
+                                <% if (
+
+                                    paymentStatus === 'success' ||
+
+                                    paymentStatus === 'paid'
+
+                                ) { %>
+
+
+                                    <a
+                                        href="/payment/receipt/<%= payment.id %>"
+                                        class="receipt-btn"
+                                    >
+
+                                        <i
                                             class="
-                                                status-badge
-                                                status-failed
+                                                fa-solid
+                                                fa-file-pdf
                                             "
-                                        >
+                                        ></i>
 
-                                            <i class="fa-solid fa-xmark"></i>
+                                        View / Download
 
-                                            <%= payment.status || 'Failed' %>
-
-                                        </span>
+                                    </a>
 
 
-                                    <% } %>
+                                <% } else { %>
 
 
-                                </td>
+                                    <span>
+
+                                        —
+
+                                    </span>
 
 
-                                <!-- RECEIPT -->
-
-                                <td>
+                                <% } %>
 
 
-                                    <% if (
-                                        payment.status &&
-                                        (
-                                            payment.status.toLowerCase() ===
-                                            'success' ||
-
-                                            payment.status.toLowerCase() ===
-                                            'paid'
-                                        )
-                                    ) { %>
+                            </td>
 
 
-                                        <a
-                                            href="/payment/receipt/<%= payment.id %>"
-                                            class="receipt-btn"
-                                        >
-
-                                            <i class="fa-solid fa-file-pdf"></i>
-
-                                            Download
-
-                                        </a>
-
-
-                                    <% } else { %>
-
-
-                                        <span>
-
-                                            —
-
-                                        </span>
-
-
-                                    <% } %>
-
-
-                                </td>
-
-
-                            </tr>
+                        </tr>
 
 
                         <% }); %>
@@ -1148,9 +832,9 @@
         <% } else { %>
 
 
-            <!-- =============================================
+            <!-- =================================================
                  EMPTY STATE
-            ============================================== -->
+            ================================================== -->
 
             <div class="empty-state">
 
@@ -1204,4 +888,3 @@
 </body>
 
 </html>
-```
