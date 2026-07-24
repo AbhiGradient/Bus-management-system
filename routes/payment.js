@@ -15,7 +15,92 @@ function requireLogin(req, res, next) {
 
     next();
 }
+// =====================================================
+// PAYMENT HISTORY
+// GET /payment/history
+// =====================================================
 
+router.get('/history', requireLogin, async (req, res) => {
+    try {
+        const userId = req.session.user.id;
+
+        console.log('📜 Loading payment history for user:', userId);
+
+        // Find student linked to logged-in user
+        const [studentRows] = await db.query(
+            `
+            SELECT *
+            FROM students
+            WHERE user_id = ?
+            LIMIT 1
+            `,
+            [userId]
+        );
+
+        if (!studentRows || studentRows.length === 0) {
+            return res.status(404).send(`
+                <h2>Student record not found.</h2>
+                <a href="/student/dashboard">Go to Dashboard</a>
+            `);
+        }
+
+        const student = studentRows[0];
+
+        // Get all payment records for this student
+        const [payments] = await db.query(
+            `
+            SELECT
+                p.*,
+                f.due_date
+            FROM payments p
+            LEFT JOIN fees f
+                ON p.fee_id = f.id
+            WHERE p.student_id = ?
+            ORDER BY p.created_at DESC
+            `,
+            [student.id]
+        );
+
+        console.log(
+            `✅ Found ${payments.length} payment records`
+        );
+
+        return res.render(
+            'student/payment-history',
+            {
+                payments: payments,
+                student: student
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            '❌ Payment history error:',
+            error
+        );
+
+        return res.status(500).send(`
+            <div style="
+                font-family: Arial;
+                text-align: center;
+                margin-top: 80px;
+            ">
+
+                <h2>Unable to load payment history</h2>
+
+                <p>
+                    Please try again later.
+                </p>
+
+                <a href="/student/dashboard">
+                    Go Back to Dashboard
+                </a>
+
+            </div>
+        `);
+    }
+});
 
 // =====================================================
 // GET PAYMENT PAGE
