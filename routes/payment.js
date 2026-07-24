@@ -1811,4 +1811,109 @@ router.post(
    EXPORT ROUTER
    ========================================================= */
 
+   router.get('/receipt/:paymentId', requireLogin, async (req, res) => {
+    try {
+
+        const paymentId = req.params.paymentId;
+        const userId = req.session.user.id;
+
+        console.log('🧾 Opening receipt for payment ID:', paymentId);
+
+        const [rows] = await db.query(
+            `
+            SELECT
+                p.*,
+                u.name AS student_name,
+                u.email AS student_email
+
+            FROM payments p
+
+            LEFT JOIN students s
+                ON p.student_id = s.id
+
+            LEFT JOIN users u
+                ON s.user_id = u.id
+
+            WHERE p.id = ?
+            AND s.user_id = ?
+
+            LIMIT 1
+            `,
+            [paymentId, userId]
+        );
+
+        if (!rows || rows.length === 0) {
+
+            console.log(
+                '❌ Receipt not found for payment ID:',
+                paymentId
+            );
+
+            return res.status(404).send(`
+                <div style="
+                    font-family:Arial;
+                    text-align:center;
+                    margin-top:80px;
+                ">
+
+                    <h2>
+                        Payment Receipt Not Found
+                    </h2>
+
+                    <p>
+                        The requested payment receipt could not be found.
+                    </p>
+
+                    <a href="/payment/history">
+                        Back to Payment History
+                    </a>
+
+                </div>
+            `);
+        }
+
+        const payment = rows[0];
+
+        console.log(
+            '✅ Receipt found:',
+            payment.id
+        );
+
+        return res.render(
+            'student/payment-receipt',
+            {
+                payment: payment
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            '❌ Receipt error:',
+            error
+        );
+
+        return res.status(500).send(`
+            <div style="
+                font-family:Arial;
+                text-align:center;
+                margin-top:80px;
+            ">
+
+                <h2>
+                    Unable to open payment receipt
+                </h2>
+
+                <p>
+                    Please try again later.
+                </p>
+
+                <a href="/payment/history">
+                    Back to Payment History
+                </a>
+
+            </div>
+        `);
+    }
+});
 module.exports = router;
