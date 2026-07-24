@@ -94,6 +94,28 @@ function getBinaryParser(fields, _options, config) {
     }
   }
 
+  /** A NULL value carries no bytes in the binary row packet, so the accessors return null without reading from it. */
+  function wrapNull(field) {
+    return {
+      type: typeNames[field.columnType],
+      extendedTypeName: field.extendedTypeName,
+      extendedFormat: field.extendedFormat,
+      length: field.columnLength,
+      db: field.schema,
+      table: field.table,
+      name: field.name,
+      string: function () {
+        return null;
+      },
+      buffer: function () {
+        return null;
+      },
+      geometry: function () {
+        return null;
+      },
+    };
+  }
+
   return class BinaryRow {
     constructor() {}
 
@@ -118,7 +140,10 @@ function getBinaryParser(fields, _options, config) {
 
         let value;
         if (nullBitmaskBytes[nullByteIndex] & currentFieldNullBit) {
-          value = null;
+          value =
+            typeof typeCast === 'function'
+              ? typeCast(wrapNull(field), () => null)
+              : null;
         } else if (options.typeCast === false) {
           value = packet.readLengthCodedBuffer();
         } else {

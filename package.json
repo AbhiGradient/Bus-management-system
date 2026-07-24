@@ -15,7 +15,7 @@
     "express-session": "^1.18.0",
     "method-override": "^3.0.0",
     "multer": "^2.2.0",
-    "mysql2": "^3.10.1",
+    "mysql2": "^3.23.1",
     "nodemailer": "^9.0.3",
     "pdfkit": "^0.19.1",
     "qrcode": "^1.5.4",

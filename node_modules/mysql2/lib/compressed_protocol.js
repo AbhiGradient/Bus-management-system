@@ -40,7 +40,7 @@ function handleCompressedPacket(packet) {
 
   if (deflatedLength !== 0) {
     connection.inflateQueue.push((task) => {
-      zlib.inflate(body, (err, data) => {
+      zlib.inflate(body, { maxOutputLength: deflatedLength }, (err, data) => {
         if (err) {
           connection._handleNetworkError(err);
           return;
