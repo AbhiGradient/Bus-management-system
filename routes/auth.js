@@ -220,5 +220,8 @@ router.get('/logout', (req, res) => {
     res.redirect('/login');
   });
 });
-
+// -------- GET: Contact Transport Office --------
+router.get('/contact', (req, res) => {
+  res.render('home/contact');
+});
 module.exports = router;
