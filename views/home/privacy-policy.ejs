@@ -1,0 +1,513 @@
+<%- include('../partials/header', { title: 'Privacy Policy | CampusTransit' }) %>
+
+<style>
+    /* =====================================================
+       PRIVACY POLICY — scoped internal styles
+       Uses tokens from main.css directly. Never redeclares
+       shared classes (.clay-card, .btn) at global specificity —
+       only compound-scoped so nothing leaks to footer/navbar.
+    ===================================================== */
+
+    .pp-page{
+        --pp-brass-light: #D3A05C;
+        display:flex;
+        flex-direction:column;
+        gap:28px;
+        padding:26px 0 56px;
+    }
+
+    /* ---------- HERO ---------- */
+    .pp-hero.clay-card{
+        position:relative;
+        padding:44px 48px;
+        background:linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 100%);
+        color:var(--paper);
+        border-radius:var(--radius-lg);
+        overflow:hidden;
+    }
+
+    .pp-hero-eyebrow{
+        font-family:var(--font-mono);
+        font-size:12px;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+        color:var(--pp-brass-light);
+    }
+
+    .pp-hero-title{
+        font-family:var(--font-display);
+        font-size:40px;
+        font-weight:600;
+        margin:10px 0 12px;
+        color:#fff;
+    }
+
+    .pp-hero-sub{
+        font-family:var(--font-body);
+        max-width:560px;
+        line-height:1.7;
+        color:rgba(246,243,236,.82);
+    }
+
+    .pp-hero-updated{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        margin-top:18px;
+        font-family:var(--font-mono);
+        font-size:12px;
+        color:var(--pp-brass-light);
+        background:rgba(0,0,0,.16);
+        border:1px solid rgba(246,243,236,.18);
+        padding:8px 14px;
+        border-radius:100px;
+    }
+
+    /* ---------- LAYOUT: TOC + CONTENT ---------- */
+    .pp-layout{
+        display:grid;
+        grid-template-columns:250px 1fr;
+        gap:26px;
+        align-items:start;
+    }
+
+    /* ---------- TABLE OF CONTENTS ---------- */
+    .pp-toc.clay-card{
+        position:sticky;
+        top:20px;
+        padding:22px 20px;
+        border-radius:var(--radius-md);
+    }
+
+    .pp-toc h4{
+        font-family:var(--font-mono);
+        font-size:11px;
+        letter-spacing:.1em;
+        text-transform:uppercase;
+        color:var(--ink-low);
+        margin-bottom:14px;
+    }
+
+    .pp-toc ul{
+        list-style:none;
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+        padding:0;
+        margin:0;
+    }
+
+    .pp-toc a{
+        display:block;
+        font-family:var(--font-body);
+        font-size:13.5px;
+        color:var(--ink-mid);
+        text-decoration:none;
+        padding:8px 10px;
+        border-radius:var(--radius-sm);
+        border-left:2px solid transparent;
+        transition:background .2s, color .2s, border-color .2s;
+    }
+    .pp-toc a:hover{
+        background:var(--pine-soft);
+        color:var(--pine);
+        border-left-color:var(--brass);
+    }
+
+    /* ---------- CONTENT SECTIONS ---------- */
+    .pp-content{
+        display:flex;
+        flex-direction:column;
+        gap:20px;
+    }
+
+    .pp-section.clay-card{
+        padding:30px 34px;
+        border-radius:var(--radius-md);
+        scroll-margin-top:20px;
+    }
+
+    .pp-section-num{
+        font-family:var(--font-mono);
+        font-size:11px;
+        letter-spacing:.1em;
+        text-transform:uppercase;
+        color:var(--brass);
+        margin-bottom:6px;
+        display:block;
+    }
+
+    .pp-section h2{
+        font-family:var(--font-display);
+        font-size:21px;
+        color:var(--ink-hi);
+        margin-bottom:14px;
+    }
+
+    .pp-section p{
+        font-family:var(--font-body);
+        font-size:14.5px;
+        line-height:1.8;
+        color:var(--ink-mid);
+        margin-bottom:12px;
+    }
+
+    .pp-section p:last-child{ margin-bottom:0; }
+
+    .pp-section ul{
+        margin:0 0 12px;
+        padding-left:0;
+        list-style:none;
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+    }
+
+    .pp-section ul:last-child{ margin-bottom:0; }
+
+    .pp-section li{
+        font-family:var(--font-body);
+        font-size:14.5px;
+        line-height:1.7;
+        color:var(--ink-mid);
+        padding-left:20px;
+        position:relative;
+    }
+    .pp-section li::before{
+        content:"\2022";
+        position:absolute;
+        left:2px;
+        color:var(--brass);
+    }
+
+    .pp-section li strong{
+        color:var(--ink-hi);
+    }
+
+    .pp-highlight{
+        background:var(--pine-soft);
+        border-left:3px solid var(--pine);
+        border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+        padding:14px 18px;
+        margin:14px 0;
+    }
+    .pp-highlight p{
+        margin-bottom:0;
+        color:var(--pine-deep);
+        font-size:14px;
+    }
+
+    /* ---------- CONTACT CTA ---------- */
+    .pp-cta.clay-card{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:20px;
+        padding:32px 36px;
+        border-radius:var(--radius-lg);
+    }
+    .pp-cta-text h3{
+        font-family:var(--font-display);
+        font-size:20px;
+        color:var(--ink-hi);
+        margin-bottom:6px;
+    }
+    .pp-cta-text p{
+        font-family:var(--font-body);
+        font-size:14px;
+        color:var(--ink-mid);
+    }
+    .pp-cta-actions{
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+    }
+
+    /* ---------- button modifiers (extend existing .btn base) ---------- */
+    .pp-page .btn-brass{
+        background:linear-gradient(135deg, var(--brass), var(--pp-brass-light));
+        color:#2A1B04;
+        box-shadow:0 8px 20px rgba(184,134,60,.28);
+    }
+    .pp-page .btn-brass:hover{
+        transform:translateY(-2px);
+        filter:brightness(1.05);
+    }
+
+    .pp-page .btn-outline{
+        background:transparent;
+        color:var(--pine);
+        border:1.5px solid var(--pine);
+    }
+    .pp-page .btn-outline:hover{
+        background:var(--pine);
+        color:var(--paper);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width:900px){
+        .pp-layout{ grid-template-columns:1fr; }
+        .pp-toc.clay-card{ position:static; }
+        .pp-hero.clay-card{ padding:34px 26px; }
+        .pp-section.clay-card{ padding:24px 22px; }
+        .pp-cta.clay-card{ flex-direction:column; align-items:flex-start; }
+        .pp-cta-actions{ width:100%; }
+        .pp-cta-actions .btn{ flex:1; }
+    }
+</style>
+
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar') %>
+
+    <main class="app-main">
+
+        <div class="container pp-page">
+
+            <!-- =====================================================
+                 HERO
+            ====================================================== -->
+
+            <section class="pp-hero clay-card">
+                <span class="pp-hero-eyebrow">Route&nbsp;00 &middot; Legal</span>
+                <h1 class="pp-hero-title">Privacy Policy</h1>
+                <p class="pp-hero-sub">
+                    What CampusTransit collects, why, and how it&rsquo;s
+                    protected &mdash; for students, drivers, and admins
+                    using the platform.
+                </p>
+                <span class="pp-hero-updated">
+                    &#128337; Last updated: July 2026
+                </span>
+            </section>
+
+            <!-- =====================================================
+                 TOC + CONTENT
+            ====================================================== -->
+
+            <div class="pp-layout">
+
+                <!-- ============ TABLE OF CONTENTS ============ -->
+                <aside class="pp-toc clay-card">
+                    <h4>On This Page</h4>
+                    <ul>
+                        <li><a href="#pp-info-we-collect">Information We Collect</a></li>
+                        <li><a href="#pp-location-data">Location &amp; GPS Data</a></li>
+                        <li><a href="#pp-how-we-use">How We Use Your Data</a></li>
+                        <li><a href="#pp-payment-data">Payment Information</a></li>
+                        <li><a href="#pp-sharing">Data Sharing</a></li>
+                        <li><a href="#pp-retention">Data Retention</a></li>
+                        <li><a href="#pp-security">Security Measures</a></li>
+                        <li><a href="#pp-your-rights">Your Rights</a></li>
+                        <li><a href="#pp-cookies">Cookies &amp; Sessions</a></li>
+                        <li><a href="#pp-changes">Changes to This Policy</a></li>
+                        <li><a href="#pp-contact">Contact Us</a></li>
+                    </ul>
+                </aside>
+
+                <!-- ============ CONTENT ============ -->
+                <div class="pp-content">
+
+                    <section class="pp-section clay-card" id="pp-info-we-collect">
+                        <span class="pp-section-num">01</span>
+                        <h2>Information We Collect</h2>
+                        <p>
+                            To run bus allotment, attendance, and fee
+                            payment for the college transport system, we
+                            collect the following categories of information
+                            when you register and use CampusTransit.
+                        </p>
+                        <ul>
+                            <li><strong>Account details</strong> &mdash; name, roll number, college email, phone number, and role (student, driver, or admin)</li>
+                            <li><strong>Route &amp; allotment data</strong> &mdash; your assigned bus, route, and boarding stop</li>
+                            <li><strong>Attendance records</strong> &mdash; boarding logs tied to your account and timestamp</li>
+                            <li><strong>Payment records</strong> &mdash; transaction IDs and fee payment status (see Section 4)</li>
+                            <li><strong>Device &amp; usage data</strong> &mdash; browser type, IP address, and pages visited, collected automatically for security and diagnostics</li>
+                        </ul>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-location-data">
+                        <span class="pp-section-num">02</span>
+                        <h2>Location &amp; GPS Data</h2>
+                        <p>
+                            Live bus tracking is core to CampusTransit, so
+                            location data is handled a little differently
+                            from other account data.
+                        </p>
+                        <ul>
+                            <li><strong>Driver devices</strong> share live GPS coordinates only while an active shift is running, to power the tracking map</li>
+                            <li><strong>Student and admin accounts</strong> do not transmit personal location &mdash; you only view the bus's position, not your own</li>
+                            <li>Location history is used for route optimisation and incident review, and is not sold or used for advertising</li>
+                        </ul>
+                        <div class="pp-highlight">
+                            <p>
+                                We never track a student's or parent's
+                                personal device location &mdash; only the
+                                bus itself, and only during active service.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-how-we-use">
+                        <span class="pp-section-num">03</span>
+                        <h2>How We Use Your Data</h2>
+                        <p>Information collected is used strictly to operate and improve the transport system:</p>
+                        <ul>
+                            <li>Assigning and managing bus routes and seats</li>
+                            <li>Verifying attendance and generating reports for the Transport Office</li>
+                            <li>Processing fee payments and issuing receipts</li>
+                            <li>Sending service notifications &mdash; delays, route changes, payment confirmations</li>
+                            <li>Investigating safety reports or complaints filed through the platform</li>
+                            <li>Maintaining the security and reliability of the platform itself</li>
+                        </ul>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-payment-data">
+                        <span class="pp-section-num">04</span>
+                        <h2>Payment Information</h2>
+                        <p>
+                            Bus fee payments are processed through a UPI-based
+                            flow. CampusTransit stores transaction references
+                            and payment status needed to generate your receipt
+                            and payment history &mdash; it does not store your
+                            UPI PIN, card numbers, or banking credentials at
+                            any point; those are handled entirely by the
+                            payment provider.
+                        </p>
+                        <p>
+                            Receipts are generated as PDF documents and
+                            delivered to your registered email address for
+                            your records.
+                        </p>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-sharing">
+                        <span class="pp-section-num">05</span>
+                        <h2>Data Sharing</h2>
+                        <p>We do not sell your data. Information is shared only in these limited circumstances:</p>
+                        <ul>
+                            <li><strong>Within the college</strong> &mdash; relevant data is visible to the Transport Office and college administration for operational purposes</li>
+                            <li><strong>Drivers</strong> can see the names and stops of students assigned to their bus, and nothing more</li>
+                            <li><strong>Service providers</strong> such as the payment gateway and email delivery service, only to the extent needed to complete a transaction or notification</li>
+                            <li><strong>Legal requirements</strong> &mdash; if required by law or a valid request from college authorities</li>
+                        </ul>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-retention">
+                        <span class="pp-section-num">06</span>
+                        <h2>Data Retention</h2>
+                        <p>
+                            Account and attendance data is retained for as
+                            long as you're enrolled and using the transport
+                            service, plus a reasonable period afterward for
+                            academic and financial record-keeping. Payment
+                            receipts are retained longer to comply with
+                            standard financial record requirements. You can
+                            request early deletion of non-essential data by
+                            contacting the Transport Office.
+                        </p>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-security">
+                        <span class="pp-section-num">07</span>
+                        <h2>Security Measures</h2>
+                        <ul>
+                            <li>Passwords are stored using industry-standard hashing, never in plain text</li>
+                            <li>All data in transit is encrypted via HTTPS</li>
+                            <li>Access to admin-level data is restricted to authorised Transport Office and college staff accounts</li>
+                            <li>Session tokens expire automatically after periods of inactivity</li>
+                        </ul>
+                        <p>
+                            No system is completely immune to risk, but we
+                            take reasonable, active steps to protect your
+                            information and will notify affected users in
+                            the event of a significant data incident.
+                        </p>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-your-rights">
+                        <span class="pp-section-num">08</span>
+                        <h2>Your Rights</h2>
+                        <p>You can, at any time:</p>
+                        <ul>
+                            <li>Request a copy of the personal data we hold about you</li>
+                            <li>Ask us to correct inaccurate account information</li>
+                            <li>Request deletion of data that isn't legally required to be retained</li>
+                            <li>Withdraw consent for non-essential communications</li>
+                        </ul>
+                        <p>
+                            To exercise any of these, reach out through the
+                            <a href="/home/report-issue" style="color:var(--pine);font-weight:600;">Report an Issue</a>
+                            page or contact the Transport Office directly.
+                        </p>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-cookies">
+                        <span class="pp-section-num">09</span>
+                        <h2>Cookies &amp; Sessions</h2>
+                        <p>
+                            CampusTransit uses essential session cookies to
+                            keep you logged in and to remember your role
+                            (student, driver, or admin) as you navigate the
+                            platform. These are functional cookies only &mdash;
+                            we don't use third-party advertising or tracking
+                            cookies.
+                        </p>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-changes">
+                        <span class="pp-section-num">10</span>
+                        <h2>Changes to This Policy</h2>
+                        <p>
+                            This policy may be updated as CampusTransit's
+                            features evolve. Material changes will be
+                            communicated through an in-app notification.
+                            Continued use of the platform after an update
+                            means you accept the revised policy.
+                        </p>
+                    </section>
+
+                    <section class="pp-section clay-card" id="pp-contact">
+                        <span class="pp-section-num">11</span>
+                        <h2>Contact Us</h2>
+                        <p>
+                            Questions about this policy or how your data is
+                            handled can be directed to the Transport Office
+                            at E Building, Ground Floor, Zeal College of
+                            Engineering &amp; Research, or by phone at
+                            +91 90116 85965.
+                        </p>
+                    </section>
+
+                </div>
+
+            </div>
+
+            <!-- =====================================================
+                 CTA
+            ====================================================== -->
+
+            <section class="pp-cta clay-card">
+                <div class="pp-cta-text">
+                    <h3>Have a question about your data?</h3>
+                    <p>The Transport Office can walk you through it directly.</p>
+                </div>
+                <div class="pp-cta-actions">
+                    <a href="/home/report-issue" class="btn btn-brass">
+                        <span class="icon">&#128221;</span> Report an Issue
+                    </a>
+                    <a href="/home/transport-office" class="btn btn-outline">
+                        Contact Transport Office
+                    </a>
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+<%- include('../partials/footer') %>

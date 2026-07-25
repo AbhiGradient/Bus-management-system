@@ -1,0 +1,523 @@
+<%- include('../partials/header', { title: 'Safety Guidelines | CampusTransit' }) %>
+
+<style>
+    /* =====================================================
+       SAFETY GUIDELINES — scoped internal styles
+       Uses tokens from main.css directly. Never redeclares
+       shared classes (.clay-card, .btn) at global specificity —
+       only compound-scoped so nothing leaks to footer/navbar.
+    ===================================================== */
+
+    .sg-page{
+        --sg-brass-light: #D3A05C;
+        display:flex;
+        flex-direction:column;
+        gap:28px;
+        padding:26px 0 56px;
+    }
+
+    /* ---------- HERO ---------- */
+    .sg-hero.clay-card{
+        position:relative;
+        padding:44px 48px;
+        background:linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 100%);
+        color:var(--paper);
+        border-radius:var(--radius-lg);
+        overflow:hidden;
+    }
+
+    .sg-hero-eyebrow{
+        font-family:var(--font-mono);
+        font-size:12px;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+        color:var(--sg-brass-light);
+    }
+
+    .sg-hero-title{
+        font-family:var(--font-display);
+        font-size:40px;
+        font-weight:600;
+        margin:10px 0 12px;
+        color:#fff;
+    }
+
+    .sg-hero-sub{
+        font-family:var(--font-body);
+        max-width:560px;
+        line-height:1.7;
+        color:rgba(246,243,236,.82);
+    }
+
+    /* ---------- EMERGENCY STRIP ---------- */
+    .sg-emergency.clay-card{
+        display:flex;
+        align-items:center;
+        gap:18px;
+        padding:22px 28px;
+        border-radius:var(--radius-md);
+        background:var(--rust-soft);
+        border-color:rgba(178,59,46,.3);
+    }
+
+    .sg-emergency-icon{
+        font-size:30px;
+        flex-shrink:0;
+    }
+
+    .sg-emergency-text{
+        flex:1;
+        min-width:200px;
+    }
+    .sg-emergency-text h3{
+        font-family:var(--font-display);
+        font-size:17px;
+        color:var(--rust);
+        margin-bottom:4px;
+    }
+    .sg-emergency-text p{
+        font-family:var(--font-body);
+        font-size:13.5px;
+        color:var(--rust);
+    }
+
+    /* ---------- STAT ROW ---------- */
+    .sg-stats{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:18px;
+    }
+
+    .sg-stat{
+        color:#fff;
+        border-radius:var(--radius-md);
+        padding:20px 22px;
+        box-shadow:var(--shadow-card);
+        transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out);
+    }
+    .sg-stat:hover{
+        transform:translateY(-4px);
+        box-shadow:var(--shadow-lift);
+    }
+
+    .sg-stat-icon{ font-size:22px; display:block; margin-bottom:8px; }
+    .sg-stat h4{
+        font-family:var(--font-display);
+        font-size:15px;
+        color:#fff;
+        margin-bottom:4px;
+    }
+    .sg-stat p{
+        font-family:var(--font-body);
+        font-size:12.5px;
+        color:rgba(255,255,255,.85);
+        line-height:1.5;
+    }
+
+    .sg-stat.bg-c1{ background:linear-gradient(135deg, #1F5C4F, #2E7D6B); }
+    .sg-stat.bg-c2{ background:linear-gradient(135deg, #B8863C, #D3A05C); }
+    .sg-stat.bg-c3{ background:linear-gradient(135deg, #16332C, #274A40); }
+    .sg-stat.bg-c4{ background:linear-gradient(135deg, #B23B2E, #C9584A); }
+
+    /* ---------- GUIDELINE SECTIONS ---------- */
+    .sg-section{
+        display:flex;
+        flex-direction:column;
+        gap:14px;
+    }
+
+    .sg-section-title{
+        font-family:var(--font-display);
+        font-size:20px;
+        color:var(--ink-hi);
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+    .sg-section-title .sg-tag{
+        font-family:var(--font-mono);
+        font-size:10.5px;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        color:var(--pine);
+        background:var(--pine-soft);
+        border:1px solid var(--line);
+        padding:4px 10px;
+        border-radius:100px;
+    }
+
+    .sg-list.clay-card{
+        border-radius:var(--radius-md);
+        padding:8px 0;
+    }
+
+    .sg-item{
+        display:flex;
+        gap:16px;
+        align-items:flex-start;
+        padding:16px 22px;
+    }
+    .sg-item + .sg-item{
+        border-top:1px solid var(--line-soft);
+    }
+
+    .sg-item-num{
+        font-family:var(--font-mono);
+        font-size:12px;
+        font-weight:600;
+        color:var(--brass);
+        background:var(--brass-soft);
+        border-radius:50%;
+        width:28px;
+        height:28px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        flex-shrink:0;
+        margin-top:2px;
+    }
+
+    .sg-item-body h4{
+        font-family:var(--font-display);
+        font-size:15px;
+        color:var(--ink-hi);
+        margin-bottom:4px;
+    }
+    .sg-item-body p{
+        font-family:var(--font-body);
+        font-size:13.5px;
+        line-height:1.65;
+        color:var(--ink-mid);
+    }
+
+    /* ---------- PARENT/GUARDIAN CALLOUT ---------- */
+    .sg-callout.clay-card{
+        padding:28px 32px;
+        border-radius:var(--radius-lg);
+        display:flex;
+        gap:20px;
+        align-items:flex-start;
+    }
+    .sg-callout-icon{
+        font-size:28px;
+        flex-shrink:0;
+    }
+    .sg-callout h3{
+        font-family:var(--font-display);
+        font-size:18px;
+        color:var(--ink-hi);
+        margin-bottom:8px;
+    }
+    .sg-callout p{
+        font-family:var(--font-body);
+        font-size:14px;
+        line-height:1.7;
+        color:var(--ink-mid);
+        margin-bottom:14px;
+    }
+
+    /* ---------- CTA ---------- */
+    .sg-cta.clay-card{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:20px;
+        padding:32px 36px;
+        border-radius:var(--radius-lg);
+    }
+    .sg-cta-text h3{
+        font-family:var(--font-display);
+        font-size:20px;
+        color:var(--ink-hi);
+        margin-bottom:6px;
+    }
+    .sg-cta-text p{
+        font-family:var(--font-body);
+        font-size:14px;
+        color:var(--ink-mid);
+    }
+    .sg-cta-actions{
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+    }
+
+    /* ---------- button modifiers (extend existing .btn base) ---------- */
+    .sg-page .btn-brass{
+        background:linear-gradient(135deg, var(--brass), var(--sg-brass-light));
+        color:#2A1B04;
+        box-shadow:0 8px 20px rgba(184,134,60,.28);
+    }
+    .sg-page .btn-brass:hover{
+        transform:translateY(-2px);
+        filter:brightness(1.05);
+    }
+
+    .sg-page .btn-outline{
+        background:transparent;
+        color:var(--pine);
+        border:1.5px solid var(--pine);
+    }
+    .sg-page .btn-outline:hover{
+        background:var(--pine);
+        color:var(--paper);
+    }
+
+    .sg-page .btn-rust{
+        background:linear-gradient(135deg, var(--rust), #C9584A);
+        color:#fff;
+        box-shadow:0 8px 20px rgba(178,59,46,.28);
+    }
+    .sg-page .btn-rust:hover{
+        transform:translateY(-2px);
+        filter:brightness(1.06);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width:900px){
+        .sg-hero.clay-card{ padding:34px 26px; }
+        .sg-emergency.clay-card{ flex-direction:column; align-items:flex-start; }
+        .sg-callout.clay-card{ flex-direction:column; }
+        .sg-cta.clay-card{ flex-direction:column; align-items:flex-start; }
+        .sg-cta-actions{ width:100%; }
+        .sg-cta-actions .btn{ flex:1; }
+    }
+</style>
+
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar') %>
+
+    <main class="app-main">
+
+        <div class="container sg-page">
+
+            <!-- =====================================================
+                 HERO
+            ====================================================== -->
+
+            <section class="sg-hero clay-card">
+                <span class="sg-hero-eyebrow">Route&nbsp;00 &middot; Support Desk</span>
+                <h1 class="sg-hero-title">Safety Guidelines</h1>
+                <p class="sg-hero-sub">
+                    How CampusTransit keeps every ride safe &mdash; what to
+                    expect from us, and what we ask of you, from boarding
+                    to drop-off.
+                </p>
+            </section>
+
+            <!-- =====================================================
+                 EMERGENCY STRIP
+            ====================================================== -->
+
+            <div class="sg-emergency clay-card">
+                <span class="sg-emergency-icon">&#9888;</span>
+                <div class="sg-emergency-text">
+                    <h3>In an emergency, call &mdash; don&rsquo;t wait to file a report</h3>
+                    <p>Transport Office: +91 90116 85965 &middot; Available Mon&ndash;Sat, 9 AM&ndash;5 PM</p>
+                </div>
+                <a href="tel:+919011685965" class="btn btn-rust">
+                    &#9742; Call Now
+                </a>
+            </div>
+
+            <!-- =====================================================
+                 QUICK STATS
+            ====================================================== -->
+
+            <div class="sg-stats">
+                <div class="sg-stat bg-c1">
+                    <span class="sg-stat-icon">&#128737;</span>
+                    <h4>Live GPS Tracking</h4>
+                    <p>Every bus is trackable in real time while on shift</p>
+                </div>
+                <div class="sg-stat bg-c2">
+                    <span class="sg-stat-icon">&#128100;</span>
+                    <h4>Verified Drivers</h4>
+                    <p>Licensed and vetted before being assigned a route</p>
+                </div>
+                <div class="sg-stat bg-c3">
+                    <span class="sg-stat-icon">&#9989;</span>
+                    <h4>Attendance Logging</h4>
+                    <p>Boarding is recorded so we know who's on board</p>
+                </div>
+                <div class="sg-stat bg-c4">
+                    <span class="sg-stat-icon">&#128222;</span>
+                    <h4>Direct Escalation</h4>
+                    <p>Urgent concerns reach the Transport Office immediately</p>
+                </div>
+            </div>
+
+            <!-- =====================================================
+                 BEFORE YOU BOARD
+            ====================================================== -->
+
+            <section class="sg-section">
+                <h3 class="sg-section-title">
+                    Before You Board <span class="sg-tag">4</span>
+                </h3>
+
+                <div class="sg-list clay-card">
+                    <div class="sg-item">
+                        <span class="sg-item-num">1</span>
+                        <div class="sg-item-body">
+                            <h4>Arrive at your stop early</h4>
+                            <p>Be at your designated stop at least 5 minutes before the scheduled time. Buses cannot wait beyond a short grace window without affecting the rest of the route.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">2</span>
+                        <div class="sg-item-body">
+                            <h4>Wait clear of the road edge</h4>
+                            <p>Stand back from the curb until the bus has fully stopped and the door opens. Don't step toward the bus while it's still moving.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">3</span>
+                        <div class="sg-item-body">
+                            <h4>Keep your ID or bus pass ready</h4>
+                            <p>Drivers and conductors may ask for verification, especially at the start of a semester or on an unfamiliar route.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">4</span>
+                        <div class="sg-item-body">
+                            <h4>Board and disembark only at designated stops</h4>
+                            <p>Requesting a mid-route stop outside the official list isn't permitted &mdash; it compromises both scheduling and safety tracking.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =====================================================
+                 WHILE ON THE BUS
+            ====================================================== -->
+
+            <section class="sg-section">
+                <h3 class="sg-section-title">
+                    While On the Bus <span class="sg-tag">5</span>
+                </h3>
+
+                <div class="sg-list clay-card">
+                    <div class="sg-item">
+                        <span class="sg-item-num">1</span>
+                        <div class="sg-item-body">
+                            <h4>Stay seated once the bus is moving</h4>
+                            <p>Standing in the aisle while the bus is in motion is not allowed, even for a short ride.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">2</span>
+                        <div class="sg-item-body">
+                            <h4>Keep bags and belongings out of the aisle</h4>
+                            <p>Store bags under the seat or on your lap so the walkway stays clear for others and for a quick exit if needed.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">3</span>
+                        <div class="sg-item-body">
+                            <h4>No distracting the driver</h4>
+                            <p>Loud noise, standing near the driver's seat, or blocking the mirror's view puts everyone on board at risk.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">4</span>
+                        <div class="sg-item-body">
+                            <h4>Report unsafe driving immediately</h4>
+                            <p>Speeding, harsh braking, or a driver who seems unwell should be reported to the Transport Office right after the ride &mdash; or during it, if it feels urgent.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">5</span>
+                        <div class="sg-item-body">
+                            <h4>Know your exits</h4>
+                            <p>Take note of the emergency exit and fire extinguisher location when you board a new bus for the first time.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =====================================================
+                 DRIVER & VEHICLE STANDARDS
+            ====================================================== -->
+
+            <section class="sg-section">
+                <h3 class="sg-section-title">
+                    Driver &amp; Vehicle Standards <span class="sg-tag">3</span>
+                </h3>
+
+                <div class="sg-list clay-card">
+                    <div class="sg-item">
+                        <span class="sg-item-num">1</span>
+                        <div class="sg-item-body">
+                            <h4>Licensed and background-verified drivers</h4>
+                            <p>Every driver holds a valid commercial license and is verified before being assigned to a campus route.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">2</span>
+                        <div class="sg-item-body">
+                            <h4>Routine vehicle inspection</h4>
+                            <p>Buses are checked for brakes, tyres, and general roadworthiness on a set maintenance schedule before being cleared for service.</p>
+                        </div>
+                    </div>
+                    <div class="sg-item">
+                        <span class="sg-item-num">3</span>
+                        <div class="sg-item-body">
+                            <h4>Speed and route adherence</h4>
+                            <p>Drivers follow set speed limits and approved routes, monitored through the live tracking system.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =====================================================
+                 PARENT / GUARDIAN CALLOUT
+            ====================================================== -->
+
+            <div class="sg-callout clay-card">
+                <span class="sg-callout-icon">&#128101;</span>
+                <div>
+                    <h3>For Parents &amp; Guardians</h3>
+                    <p>
+                        You can follow your student's bus in real time
+                        through the live tracking page once they've boarded.
+                        If a bus is running significantly late or off-route,
+                        the Transport Office is the fastest way to get a
+                        direct answer &mdash; please call rather than wait
+                        for an in-app update during an active concern.
+                    </p>
+                    <a href="tel:+919011685965" class="btn btn-outline">
+                        &#9742; Call Transport Office
+                    </a>
+                </div>
+            </div>
+
+            <!-- =====================================================
+                 CTA
+            ====================================================== -->
+
+            <section class="sg-cta clay-card">
+                <div class="sg-cta-text">
+                    <h3>Noticed something unsafe?</h3>
+                    <p>Don't sit on it &mdash; a quick report helps us fix it faster.</p>
+                </div>
+                <div class="sg-cta-actions">
+                    <a href="/home/report-issue" class="btn btn-brass">
+                        <span class="icon">&#128221;</span> Report an Issue
+                    </a>
+                    <a href="/home/help" class="btn btn-outline">
+                        Visit Help Center
+                    </a>
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+<%- include('../partials/footer') %>

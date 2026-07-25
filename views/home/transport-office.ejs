@@ -1,0 +1,171 @@
+<%- include('../partials/header', { title: 'Transport Office | CampusTransit' }) %>
+
+<link rel="stylesheet" href="/css/transport-office.css">
+
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar') %>
+
+    <main class="app-main">
+
+        <div class="container to-page">
+
+            <!-- =====================================================
+                 TICKET HEADER
+            ====================================================== -->
+
+            <section class="to-hero clay-card">
+
+                <div class="to-hero-stub">
+                    <span class="to-hero-eyebrow">Route&nbsp;00 &middot; Support Desk</span>
+                    <h1 class="to-hero-title">Transport Office</h1>
+                    <p class="to-hero-sub">
+                        Route changes, bus passes, fee queries, lost items,
+                        or an emergency on the road — the Transport Office
+                        is your single stop for all of it.
+                    </p>
+
+                    <div class="to-hero-actions">
+                        <a href="tel:+919011685965" class="btn btn-brass">
+                            <span class="icon">&#9742;</span> Call Transport Office
+                        </a>
+                        <a href="/home/report-issue" class="btn btn-outline">
+                            Report an Issue
+                        </a>
+                    </div>
+                </div>
+
+                <div class="to-hero-punch" aria-hidden="true"></div>
+
+                <div class="to-hero-stamp">
+                    <span>OPEN</span>
+                    <small>Mon&ndash;Sat</small>
+                </div>
+
+            </section>
+
+            <!-- =====================================================
+                 MAIN GRID: MANAGER CARD + INFO
+            ====================================================== -->
+
+            <div class="to-grid">
+
+                <!-- ============ MANAGER TICKET CARD ============ -->
+                <aside class="to-manager clay-card ticket-stub">
+
+                    <div class="to-manager-avatar">
+                        <img src="/images/amol-bhate.jpg" alt="Transport Manager, Amol Bhate">
+                    </div>
+
+                    <h2 class="to-manager-name">Amol Bhate</h2>
+                    <span class="to-manager-role">Transport Manager</span>
+
+                    <p class="to-manager-desc">
+                        For route assignments, emergency assistance, or any
+                        bus-related concern, reach out directly &mdash;
+                        the fastest way to get help.
+                    </p>
+
+                    <div class="ticket-divider">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+
+                    <a href="tel:+919011685965" class="btn btn-brass btn-block">
+                        <span class="icon">&#9742;</span> +91 90116 85965
+                    </a>
+
+                    <a href="mailto:transport@zcoer.in" class="to-manager-email">
+                        transport@zcoer.in
+                    </a>
+
+                </aside>
+
+                <!-- ============ INFO + SERVICES ============ -->
+                <div class="to-info-col">
+
+                    <div class="to-info-grid">
+
+                        <div class="to-info-card clay-card">
+                            <span class="to-info-icon">&#128205;</span>
+                            <h3>Office</h3>
+                            <p>
+                                E Building, Ground Floor<br>
+                                Transport Department<br>
+                                Zeal College of Engineering &amp; Research
+                            </p>
+                        </div>
+
+                        <div class="to-info-card clay-card">
+                            <span class="to-info-icon">&#128222;</span>
+                            <h3>Contact</h3>
+                            <p>+91 90116 85965</p>
+                            <a href="tel:+919011685965" class="to-info-link">Call now &rarr;</a>
+                        </div>
+
+                        <div class="to-info-card clay-card">
+                            <span class="to-info-icon">&#128340;</span>
+                            <h3>Office Hours</h3>
+                            <p>
+                                Monday &ndash; Saturday<br>
+                                9:00 AM &ndash; 5:00 PM
+                            </p>
+                        </div>
+
+                        <div class="to-info-card clay-card">
+                            <span class="to-info-icon">&#127760;</span>
+                            <h3>Website</h3>
+                            <p>Official college portal</p>
+                            <a href="https://zcoer.in/" target="_blank" rel="noopener noreferrer" class="to-info-link">
+                                zcoer.in &rarr;
+                            </a>
+                        </div>
+
+                    </div>
+
+                    <!-- ============ SERVICES TICKET ============ -->
+                    <div class="to-services clay-card">
+
+                        <h3 class="to-services-title">What We Can Help With</h3>
+
+                        <div class="to-tags">
+                            <span>Bus Route</span>
+                            <span>Bus Pass</span>
+                            <span>Fee Queries</span>
+                            <span>Attendance</span>
+                            <span>Driver Support</span>
+                            <span>Emergency Help</span>
+                            <span>Lost Items</span>
+                            <span>Complaints</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- =====================================================
+                 BACK TO LOGIN / DASHBOARD
+            ====================================================== -->
+
+            <div class="to-back">
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/<%= user.role %>/dashboard" class="btn btn-outline btn-block">
+                        &larr; Back to Dashboard
+                    </a>
+                <% } else { %>
+                    <a href="/login" class="btn btn-outline btn-block">
+                        &larr; Back to Login
+                    </a>
+                <% } %>
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<%- include('../partials/footer') %>

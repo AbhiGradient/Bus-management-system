@@ -1,0 +1,565 @@
+<%- include('../partials/header', { title: 'Help Center | CampusTransit' }) %>
+
+<style>
+    /* =====================================================
+       HELP CENTER — scoped internal styles
+       Uses tokens from main.css directly. Never redeclares
+       shared classes (.clay-card, .btn) at global specificity —
+       only compound-scoped so nothing leaks to footer/navbar.
+    ===================================================== */
+
+    .hc-page{
+        --hc-brass-light: #D3A05C;
+        display:flex;
+        flex-direction:column;
+        gap:28px;
+        padding:26px 0 56px;
+    }
+
+    /* ---------- HERO / SEARCH ---------- */
+    .hc-hero.clay-card{
+        position:relative;
+        padding:44px 48px;
+        background:linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 100%);
+        color:var(--paper);
+        border-radius:var(--radius-lg);
+        overflow:hidden;
+    }
+
+    .hc-hero-eyebrow{
+        font-family:var(--font-mono);
+        font-size:12px;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+        color:var(--hc-brass-light);
+    }
+
+    .hc-hero-title{
+        font-family:var(--font-display);
+        font-size:40px;
+        font-weight:600;
+        margin:10px 0 12px;
+        color:#fff;
+    }
+
+    .hc-hero-sub{
+        font-family:var(--font-body);
+        max-width:540px;
+        line-height:1.7;
+        color:rgba(246,243,236,.82);
+        margin-bottom:26px;
+    }
+
+    .hc-search{
+        position:relative;
+        max-width:520px;
+    }
+
+    .hc-search input{
+        width:100%;
+        font-family:var(--font-body);
+        font-size:15px;
+        color:var(--ink-hi);
+        background:var(--paper-raised);
+        border:1px solid transparent;
+        border-radius:var(--radius-md);
+        padding:15px 18px 15px 46px;
+        outline:none;
+        box-shadow:var(--shadow-card);
+    }
+    .hc-search input:focus{
+        box-shadow:0 0 0 4px rgba(184,134,60,.28);
+    }
+
+    .hc-search-icon{
+        position:absolute;
+        left:16px;
+        top:50%;
+        transform:translateY(-50%);
+        font-size:16px;
+        color:var(--ink-low);
+    }
+
+    /* ---------- CATEGORY QUICK LINKS ---------- */
+    .hc-cats{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+        gap:16px;
+    }
+
+    .hc-cat.clay-card{
+        padding:20px;
+        text-align:center;
+        border-radius:var(--radius-md);
+        cursor:pointer;
+        transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out), border-color .22s;
+        text-decoration:none;
+        display:block;
+    }
+    .hc-cat.clay-card:hover{
+        transform:translateY(-4px);
+        box-shadow:var(--shadow-lift);
+        border-color:rgba(31,92,79,.28);
+    }
+
+    .hc-cat-icon{
+        font-size:26px;
+        display:block;
+        margin-bottom:10px;
+    }
+
+    .hc-cat-label{
+        font-family:var(--font-display);
+        font-size:14.5px;
+        color:var(--ink-hi);
+        font-weight:600;
+    }
+
+    .hc-cat-count{
+        display:block;
+        font-family:var(--font-mono);
+        font-size:11px;
+        color:var(--ink-low);
+        margin-top:4px;
+    }
+
+    /* ---------- FAQ SECTIONS ---------- */
+    .hc-section{
+        display:flex;
+        flex-direction:column;
+        gap:14px;
+    }
+
+    .hc-section-title{
+        font-family:var(--font-display);
+        font-size:20px;
+        color:var(--ink-hi);
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+
+    .hc-section-title .hc-tag{
+        font-family:var(--font-mono);
+        font-size:10.5px;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        color:var(--pine);
+        background:var(--pine-soft);
+        border:1px solid var(--line);
+        padding:4px 10px;
+        border-radius:100px;
+    }
+
+    .hc-faq.clay-card{
+        border-radius:var(--radius-md);
+        overflow:hidden;
+        padding:0;
+    }
+
+    .hc-faq summary{
+        list-style:none;
+        cursor:pointer;
+        padding:18px 22px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:14px;
+        font-family:var(--font-body);
+        font-weight:600;
+        font-size:15px;
+        color:var(--ink-hi);
+    }
+    .hc-faq summary::-webkit-details-marker{ display:none; }
+
+    .hc-faq summary::after{
+        content:"+";
+        font-family:var(--font-mono);
+        font-size:18px;
+        color:var(--brass);
+        flex-shrink:0;
+        transition:transform .22s var(--ease-out);
+    }
+    .hc-faq[open] summary::after{
+        transform:rotate(45deg);
+    }
+
+    .hc-faq[open] summary{
+        border-bottom:1px solid var(--line);
+    }
+
+    .hc-faq-body{
+        padding:0 22px 20px;
+        font-family:var(--font-body);
+        font-size:14px;
+        line-height:1.75;
+        color:var(--ink-mid);
+    }
+
+    .hc-faq[data-hidden="true"]{
+        display:none;
+    }
+
+    /* ---------- CTA ---------- */
+    .hc-cta.clay-card{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:20px;
+        padding:32px 36px;
+        border-radius:var(--radius-lg);
+    }
+
+    .hc-cta-text h3{
+        font-family:var(--font-display);
+        font-size:20px;
+        color:var(--ink-hi);
+        margin-bottom:6px;
+    }
+    .hc-cta-text p{
+        font-family:var(--font-body);
+        font-size:14px;
+        color:var(--ink-mid);
+    }
+
+    .hc-cta-actions{
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+    }
+
+    /* ---------- button modifiers (extend existing .btn base) ---------- */
+    .hc-page .btn-brass{
+        background:linear-gradient(135deg, var(--brass), var(--hc-brass-light));
+        color:#2A1B04;
+        box-shadow:0 8px 20px rgba(184,134,60,.28);
+    }
+    .hc-page .btn-brass:hover{
+        transform:translateY(-2px);
+        filter:brightness(1.05);
+    }
+
+    .hc-page .btn-outline{
+        background:transparent;
+        color:var(--pine);
+        border:1.5px solid var(--pine);
+    }
+    .hc-page .btn-outline:hover{
+        background:var(--pine);
+        color:var(--paper);
+    }
+
+    .hc-no-results{
+        font-family:var(--font-body);
+        font-size:14px;
+        color:var(--ink-low);
+        text-align:center;
+        padding:30px 0;
+        display:none;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width:900px){
+        .hc-hero.clay-card{ padding:34px 26px; }
+        .hc-cta.clay-card{ flex-direction:column; align-items:flex-start; }
+        .hc-cta-actions{ width:100%; }
+        .hc-cta-actions .btn{ flex:1; }
+    }
+</style>
+
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar') %>
+
+    <main class="app-main">
+
+        <div class="container hc-page">
+
+            <!-- =====================================================
+                 HERO + SEARCH
+            ====================================================== -->
+
+            <section class="hc-hero clay-card">
+                <span class="hc-hero-eyebrow">Route&nbsp;00 &middot; Support Desk</span>
+                <h1 class="hc-hero-title">Help Center</h1>
+                <p class="hc-hero-sub">
+                    Answers to the questions students, drivers, and admins
+                    ask most. Can&rsquo;t find yours? Reach the Transport
+                    Office directly at the bottom of this page.
+                </p>
+
+                <div class="hc-search">
+                    <span class="hc-search-icon">&#128269;</span>
+                    <input
+                        type="text"
+                        id="hcSearchInput"
+                        placeholder="Search for a topic, e.g. 'bus pass' or 'payment failed'"
+                        autocomplete="off"
+                    >
+                </div>
+            </section>
+
+            <!-- =====================================================
+                 CATEGORY QUICK LINKS
+            ====================================================== -->
+
+            <div class="hc-cats">
+                <a href="#cat-routes" class="hc-cat clay-card">
+                    <span class="hc-cat-icon">&#128663;</span>
+                    <span class="hc-cat-label">Routes &amp; Schedules</span>
+                    <span class="hc-cat-count">4 articles</span>
+                </a>
+                <a href="#cat-payments" class="hc-cat clay-card">
+                    <span class="hc-cat-icon">&#128179;</span>
+                    <span class="hc-cat-label">Payments &amp; Fees</span>
+                    <span class="hc-cat-count">4 articles</span>
+                </a>
+                <a href="#cat-account" class="hc-cat clay-card">
+                    <span class="hc-cat-icon">&#128100;</span>
+                    <span class="hc-cat-label">Account &amp; Login</span>
+                    <span class="hc-cat-count">3 articles</span>
+                </a>
+                <a href="#cat-safety" class="hc-cat clay-card">
+                    <span class="hc-cat-icon">&#128737;</span>
+                    <span class="hc-cat-label">Safety &amp; Tracking</span>
+                    <span class="hc-cat-count">3 articles</span>
+                </a>
+            </div>
+
+            <!-- =====================================================
+                 ROUTES & SCHEDULES
+            ====================================================== -->
+
+            <section class="hc-section" id="cat-routes">
+                <h3 class="hc-section-title">
+                    Routes &amp; Schedules <span class="hc-tag">4</span>
+                </h3>
+
+                <details class="hc-faq clay-card">
+                    <summary>How do I find my assigned bus and route?</summary>
+                    <div class="hc-faq-body">
+                        Your assigned bus number and route appear on your
+                        dashboard under &ldquo;My Route.&rdquo; If nothing
+                        shows, your route hasn&rsquo;t been allotted yet &mdash;
+                        contact the Transport Office to get one assigned.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>Can I switch to a different route or bus?</summary>
+                    <div class="hc-faq-body">
+                        Route changes need approval from the Transport Office
+                        since seat capacity is fixed per bus. Submit a
+                        request through &ldquo;Report an Issue&rdquo; with
+                        your preferred route and reason.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>Why does the live tracking map show my bus as offline?</summary>
+                    <div class="hc-faq-body">
+                        Tracking only goes live once the driver starts their
+                        shift and the app has GPS signal. Tunnels, basements,
+                        and low network areas can cause brief gaps.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>What happens if my bus is delayed or breaks down?</summary>
+                    <div class="hc-faq-body">
+                        You&rsquo;ll get a notification with the updated ETA
+                        where possible. For breakdowns, the Transport Office
+                        arranges a substitute vehicle and will notify affected
+                        routes directly.
+                    </div>
+                </details>
+            </section>
+
+            <!-- =====================================================
+                 PAYMENTS & FEES
+            ====================================================== -->
+
+            <section class="hc-section" id="cat-payments">
+                <h3 class="hc-section-title">
+                    Payments &amp; Fees <span class="hc-tag">4</span>
+                </h3>
+
+                <details class="hc-faq clay-card">
+                    <summary>How do I pay my bus fee?</summary>
+                    <div class="hc-faq-body">
+                        Go to &ldquo;Payments&rdquo; on your dashboard and pay
+                        via UPI. A receipt is generated automatically and
+                        emailed to your registered address once the payment
+                        is confirmed.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>My payment was deducted but not reflected. What do I do?</summary>
+                    <div class="hc-faq-body">
+                        This usually resolves within a few hours as the
+                        payment confirmation syncs. If it&rsquo;s still not
+                        showing after 24 hours, report it under &ldquo;Payment
+                        &amp; Fees&rdquo; with your transaction ID.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>Where can I find my payment history and receipts?</summary>
+                    <div class="hc-faq-body">
+                        All past payments and downloadable PDF receipts are
+                        under &ldquo;Payment History&rdquo; in your dashboard,
+                        sorted by most recent first.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>Is there a penalty for late fee payment?</summary>
+                    <div class="hc-faq-body">
+                        Late fee policies are set by the Transport Office per
+                        semester. Check the notice on your dashboard or ask
+                        the office directly for the current cycle&rsquo;s
+                        deadline.
+                    </div>
+                </details>
+            </section>
+
+            <!-- =====================================================
+                 ACCOUNT & LOGIN
+            ====================================================== -->
+
+            <section class="hc-section" id="cat-account">
+                <h3 class="hc-section-title">
+                    Account &amp; Login <span class="hc-tag">3</span>
+                </h3>
+
+                <details class="hc-faq clay-card">
+                    <summary>I forgot my password. How do I reset it?</summary>
+                    <div class="hc-faq-body">
+                        Use &ldquo;Forgot Password&rdquo; on the login page.
+                        A reset link is emailed to your registered address
+                        and expires after a short window for security.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>Can I update my registered email or phone number?</summary>
+                    <div class="hc-faq-body">
+                        Contact info changes go through the Transport Office
+                        to keep records verified &mdash; submit a request via
+                        &ldquo;Report an Issue&rdquo; with your new details.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>Why can't I see the driver or admin dashboard?</summary>
+                    <div class="hc-faq-body">
+                        Your dashboard view is tied to your account role.
+                        If you believe your role is set incorrectly, reach
+                        out to the Transport Office to have it corrected.
+                    </div>
+                </details>
+            </section>
+
+            <!-- =====================================================
+                 SAFETY & TRACKING
+            ====================================================== -->
+
+            <section class="hc-section" id="cat-safety">
+                <h3 class="hc-section-title">
+                    Safety &amp; Tracking <span class="hc-tag">3</span>
+                </h3>
+
+                <details class="hc-faq clay-card">
+                    <summary>How accurate is the live bus tracking?</summary>
+                    <div class="hc-faq-body">
+                        Location updates stream in real time while the
+                        driver's shift is active. Accuracy depends on GPS
+                        signal, typically within a few metres in open areas.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>What should I do if I feel unsafe on a bus?</summary>
+                    <div class="hc-faq-body">
+                        Call the Transport Office immediately &mdash; don&rsquo;t
+                        wait to file a report first. Safety concerns are
+                        treated as urgent and escalated right away.
+                    </div>
+                </details>
+
+                <details class="hc-faq clay-card">
+                    <summary>How is my attendance marked on the bus?</summary>
+                    <div class="hc-faq-body">
+                        Attendance is logged when you board, based on the
+                        driver's check-in or your card/QR scan depending on
+                        your campus's setup. It reflects on your dashboard
+                        the same day.
+                    </div>
+                </details>
+            </section>
+
+            <p class="hc-no-results" id="hcNoResults">
+                No results found. Try a different search term, or reach out
+                to the Transport Office below.
+            </p>
+
+            <!-- =====================================================
+                 CTA
+            ====================================================== -->
+
+            <section class="hc-cta clay-card">
+                <div class="hc-cta-text">
+                    <h3>Still need help?</h3>
+                    <p>The Transport Office is happy to sort it out directly.</p>
+                </div>
+                <div class="hc-cta-actions">
+                    <a href="/home/report-issue" class="btn btn-brass">
+                        <span class="icon">&#128221;</span> Report an Issue
+                    </a>
+                    <a href="/home/transport-office" class="btn btn-outline">
+                        Contact Transport Office
+                    </a>
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+    (function () {
+        const input = document.getElementById('hcSearchInput');
+        const faqs = Array.from(document.querySelectorAll('.hc-faq'));
+        const sections = Array.from(document.querySelectorAll('.hc-section'));
+        const noResults = document.getElementById('hcNoResults');
+
+        input.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+            let anyVisible = false;
+
+            faqs.forEach(function (faq) {
+                const text = faq.textContent.toLowerCase();
+                const matches = query === '' || text.indexOf(query) !== -1;
+                faq.dataset.hidden = matches ? 'false' : 'true';
+                if (matches) anyVisible = true;
+                if (query !== '' && matches) faq.setAttribute('open', '');
+                if (query === '') faq.removeAttribute('open');
+            });
+
+            sections.forEach(function (section) {
+                const visibleFaqs = section.querySelectorAll('.hc-faq[data-hidden="false"], .hc-faq:not([data-hidden])');
+                const hasVisible = query === '' || section.querySelectorAll('.hc-faq[data-hidden="false"]').length > 0;
+                section.style.display = hasVisible ? '' : 'none';
+            });
+
+            noResults.style.display = (query !== '' && !anyVisible) ? 'block' : 'none';
+        });
+    })();
+</script>
+
+<%- include('../partials/footer') %>

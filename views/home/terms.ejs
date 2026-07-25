@@ -1,0 +1,525 @@
+<%- include('../partials/header', { title: 'Terms of Service | CampusTransit' }) %>
+
+<style>
+    /* =====================================================
+       TERMS OF SERVICE — scoped internal styles
+       Uses tokens from main.css directly. Never redeclares
+       shared classes (.clay-card, .btn) at global specificity —
+       only compound-scoped so nothing leaks to footer/navbar.
+    ===================================================== */
+
+    .tos-page{
+        --tos-brass-light: #D3A05C;
+        display:flex;
+        flex-direction:column;
+        gap:28px;
+        padding:26px 0 56px;
+    }
+
+    /* ---------- HERO ---------- */
+    .tos-hero.clay-card{
+        position:relative;
+        padding:44px 48px;
+        background:linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 100%);
+        color:var(--paper);
+        border-radius:var(--radius-lg);
+        overflow:hidden;
+    }
+
+    .tos-hero-eyebrow{
+        font-family:var(--font-mono);
+        font-size:12px;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+        color:var(--tos-brass-light);
+    }
+
+    .tos-hero-title{
+        font-family:var(--font-display);
+        font-size:40px;
+        font-weight:600;
+        margin:10px 0 12px;
+        color:#fff;
+    }
+
+    .tos-hero-sub{
+        font-family:var(--font-body);
+        max-width:560px;
+        line-height:1.7;
+        color:rgba(246,243,236,.82);
+    }
+
+    .tos-hero-updated{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        margin-top:18px;
+        font-family:var(--font-mono);
+        font-size:12px;
+        color:var(--tos-brass-light);
+        background:rgba(0,0,0,.16);
+        border:1px solid rgba(246,243,236,.18);
+        padding:8px 14px;
+        border-radius:100px;
+    }
+
+    /* ---------- LAYOUT: TOC + CONTENT ---------- */
+    .tos-layout{
+        display:grid;
+        grid-template-columns:250px 1fr;
+        gap:26px;
+        align-items:start;
+    }
+
+    /* ---------- TABLE OF CONTENTS ---------- */
+    .tos-toc.clay-card{
+        position:sticky;
+        top:20px;
+        padding:22px 20px;
+        border-radius:var(--radius-md);
+    }
+
+    .tos-toc h4{
+        font-family:var(--font-mono);
+        font-size:11px;
+        letter-spacing:.1em;
+        text-transform:uppercase;
+        color:var(--ink-low);
+        margin-bottom:14px;
+    }
+
+    .tos-toc ul{
+        list-style:none;
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+        padding:0;
+        margin:0;
+    }
+
+    .tos-toc a{
+        display:block;
+        font-family:var(--font-body);
+        font-size:13.5px;
+        color:var(--ink-mid);
+        text-decoration:none;
+        padding:8px 10px;
+        border-radius:var(--radius-sm);
+        border-left:2px solid transparent;
+        transition:background .2s, color .2s, border-color .2s;
+    }
+    .tos-toc a:hover{
+        background:var(--pine-soft);
+        color:var(--pine);
+        border-left-color:var(--brass);
+    }
+
+    /* ---------- CONTENT SECTIONS ---------- */
+    .tos-content{
+        display:flex;
+        flex-direction:column;
+        gap:20px;
+    }
+
+    .tos-section.clay-card{
+        padding:30px 34px;
+        border-radius:var(--radius-md);
+        scroll-margin-top:20px;
+    }
+
+    .tos-section-num{
+        font-family:var(--font-mono);
+        font-size:11px;
+        letter-spacing:.1em;
+        text-transform:uppercase;
+        color:var(--brass);
+        margin-bottom:6px;
+        display:block;
+    }
+
+    .tos-section h2{
+        font-family:var(--font-display);
+        font-size:21px;
+        color:var(--ink-hi);
+        margin-bottom:14px;
+    }
+
+    .tos-section p{
+        font-family:var(--font-body);
+        font-size:14.5px;
+        line-height:1.8;
+        color:var(--ink-mid);
+        margin-bottom:12px;
+    }
+
+    .tos-section p:last-child{ margin-bottom:0; }
+
+    .tos-section ul{
+        margin:0 0 12px;
+        padding-left:0;
+        list-style:none;
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+    }
+
+    .tos-section ul:last-child{ margin-bottom:0; }
+
+    .tos-section li{
+        font-family:var(--font-body);
+        font-size:14.5px;
+        line-height:1.7;
+        color:var(--ink-mid);
+        padding-left:20px;
+        position:relative;
+    }
+    .tos-section li::before{
+        content:"\2022";
+        position:absolute;
+        left:2px;
+        color:var(--brass);
+    }
+
+    .tos-section li strong{
+        color:var(--ink-hi);
+    }
+
+    .tos-highlight{
+        background:var(--amber-soft);
+        border-left:3px solid var(--amber);
+        border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+        padding:14px 18px;
+        margin:14px 0;
+    }
+    .tos-highlight p{
+        margin-bottom:0;
+        color:#5c3e10;
+        font-size:14px;
+    }
+
+    .tos-danger{
+        background:var(--rust-soft);
+        border-left:3px solid var(--rust);
+        border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+        padding:14px 18px;
+        margin:14px 0;
+    }
+    .tos-danger p{
+        margin-bottom:0;
+        color:var(--rust);
+        font-size:14px;
+    }
+
+    /* ---------- CONTACT CTA ---------- */
+    .tos-cta.clay-card{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:20px;
+        padding:32px 36px;
+        border-radius:var(--radius-lg);
+    }
+    .tos-cta-text h3{
+        font-family:var(--font-display);
+        font-size:20px;
+        color:var(--ink-hi);
+        margin-bottom:6px;
+    }
+    .tos-cta-text p{
+        font-family:var(--font-body);
+        font-size:14px;
+        color:var(--ink-mid);
+    }
+    .tos-cta-actions{
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+    }
+
+    /* ---------- button modifiers (extend existing .btn base) ---------- */
+    .tos-page .btn-brass{
+        background:linear-gradient(135deg, var(--brass), var(--tos-brass-light));
+        color:#2A1B04;
+        box-shadow:0 8px 20px rgba(184,134,60,.28);
+    }
+    .tos-page .btn-brass:hover{
+        transform:translateY(-2px);
+        filter:brightness(1.05);
+    }
+
+    .tos-page .btn-outline{
+        background:transparent;
+        color:var(--pine);
+        border:1.5px solid var(--pine);
+    }
+    .tos-page .btn-outline:hover{
+        background:var(--pine);
+        color:var(--paper);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width:900px){
+        .tos-layout{ grid-template-columns:1fr; }
+        .tos-toc.clay-card{ position:static; }
+        .tos-hero.clay-card{ padding:34px 26px; }
+        .tos-section.clay-card{ padding:24px 22px; }
+        .tos-cta.clay-card{ flex-direction:column; align-items:flex-start; }
+        .tos-cta-actions{ width:100%; }
+        .tos-cta-actions .btn{ flex:1; }
+    }
+</style>
+
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar') %>
+
+    <main class="app-main">
+
+        <div class="container tos-page">
+
+            <!-- =====================================================
+                 HERO
+            ====================================================== -->
+
+            <section class="tos-hero clay-card">
+                <span class="tos-hero-eyebrow">Route&nbsp;00 &middot; Legal</span>
+                <h1 class="tos-hero-title">Terms of Service</h1>
+                <p class="tos-hero-sub">
+                    The rules of the road for using CampusTransit &mdash;
+                    please read this before you register or use the
+                    platform.
+                </p>
+                <span class="tos-hero-updated">
+                    &#128337; Last updated: July 2026
+                </span>
+            </section>
+
+            <!-- =====================================================
+                 TOC + CONTENT
+            ====================================================== -->
+
+            <div class="tos-layout">
+
+                <!-- ============ TABLE OF CONTENTS ============ -->
+                <aside class="tos-toc clay-card">
+                    <h4>On This Page</h4>
+                    <ul>
+                        <li><a href="#tos-acceptance">Acceptance of Terms</a></li>
+                        <li><a href="#tos-eligibility">Eligibility &amp; Accounts</a></li>
+                        <li><a href="#tos-use">Acceptable Use</a></li>
+                        <li><a href="#tos-conduct">Conduct on Buses</a></li>
+                        <li><a href="#tos-payments">Fees &amp; Payments</a></li>
+                        <li><a href="#tos-availability">Service Availability</a></li>
+                        <li><a href="#tos-liability">Limitation of Liability</a></li>
+                        <li><a href="#tos-suspension">Suspension &amp; Termination</a></li>
+                        <li><a href="#tos-ip">Intellectual Property</a></li>
+                        <li><a href="#tos-law">Governing Law</a></li>
+                        <li><a href="#tos-changes">Changes to These Terms</a></li>
+                        <li><a href="#tos-contact">Contact Us</a></li>
+                    </ul>
+                </aside>
+
+                <!-- ============ CONTENT ============ -->
+                <div class="tos-content">
+
+                    <section class="tos-section clay-card" id="tos-acceptance">
+                        <span class="tos-section-num">01</span>
+                        <h2>Acceptance of Terms</h2>
+                        <p>
+                            By creating an account or using CampusTransit in
+                            any capacity &mdash; student, driver, or admin
+                            &mdash; you agree to be bound by these Terms of
+                            Service and our
+                            <a href="/home/privacy" style="color:var(--pine);font-weight:600;">Privacy Policy</a>.
+                            If you don't agree with any part of these terms,
+                            please don't use the platform.
+                        </p>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-eligibility">
+                        <span class="tos-section-num">02</span>
+                        <h2>Eligibility &amp; Accounts</h2>
+                        <ul>
+                            <li>CampusTransit is available only to current students, drivers, and staff affiliated with Zeal College of Engineering &amp; Research</li>
+                            <li>You must provide accurate registration information and keep your account credentials confidential</li>
+                            <li>You're responsible for all activity that occurs under your account &mdash; notify the Transport Office immediately if you suspect unauthorised access</li>
+                            <li>Accounts are personal and may not be shared or transferred</li>
+                        </ul>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-use">
+                        <span class="tos-section-num">03</span>
+                        <h2>Acceptable Use</h2>
+                        <p>When using CampusTransit, you agree not to:</p>
+                        <ul>
+                            <li>Attempt to access another user's account or data without authorisation</li>
+                            <li>Interfere with, disrupt, or attempt to reverse-engineer the platform or its underlying systems</li>
+                            <li>Submit false attendance, payment, or incident information</li>
+                            <li>Use the platform for any purpose unrelated to campus transportation</li>
+                        </ul>
+                        <div class="tos-danger">
+                            <p>
+                                Violating these terms may result in
+                                suspension of your account and, where
+                                relevant, escalation to college
+                                administration.
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-conduct">
+                        <span class="tos-section-num">04</span>
+                        <h2>Conduct on Buses</h2>
+                        <p>
+                            Use of the physical transport service is subject
+                            to the guidelines described in our
+                            <a href="/home/safety" style="color:var(--pine);font-weight:600;">Safety Guidelines</a>.
+                            Repeated or serious violations &mdash; unsafe
+                            behaviour, harassment of drivers or other
+                            passengers, damage to college property &mdash;
+                            may result in loss of bus privileges in addition
+                            to any platform account action.
+                        </p>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-payments">
+                        <span class="tos-section-num">05</span>
+                        <h2>Fees &amp; Payments</h2>
+                        <ul>
+                            <li>Transport fees are set by the college and displayed in the Payments section of your dashboard</li>
+                            <li>Payments made through the platform are processed via UPI and confirmed by receipt</li>
+                            <li>Refunds, where applicable, are handled directly by the Transport Office on a case-by-case basis</li>
+                            <li>Continued use of the bus service is contingent on fees being paid as per the college's schedule</li>
+                        </ul>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-availability">
+                        <span class="tos-section-num">06</span>
+                        <h2>Service Availability</h2>
+                        <p>
+                            We aim to keep CampusTransit &mdash; including
+                            live tracking, payments, and notifications &mdash;
+                            available and reliable, but the platform is
+                            provided on an &ldquo;as available&rdquo; basis.
+                            Scheduled maintenance, connectivity issues, or
+                            factors outside our control (weather, traffic,
+                            vehicle breakdowns) may affect availability of
+                            certain features or the bus service itself.
+                        </p>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-liability">
+                        <span class="tos-section-num">07</span>
+                        <h2>Limitation of Liability</h2>
+                        <div class="tos-highlight">
+                            <p>
+                                CampusTransit is a scheduling, tracking, and
+                                payment platform for the college's transport
+                                service. It is not a substitute for
+                                emergency services &mdash; in an emergency,
+                                contact the Transport Office or local
+                                emergency services directly.
+                            </p>
+                        </div>
+                        <p>
+                            To the fullest extent permitted by law, the
+                            college and CampusTransit's development team are
+                            not liable for indirect or incidental damages
+                            arising from use of the platform, including
+                            delays, missed buses, or data transmission
+                            errors, except where caused by gross negligence.
+                        </p>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-suspension">
+                        <span class="tos-section-num">08</span>
+                        <h2>Suspension &amp; Termination</h2>
+                        <p>
+                            We may suspend or terminate your access to
+                            CampusTransit if you violate these terms, provide
+                            false information, or misuse the platform.
+                            Students who graduate, withdraw, or otherwise
+                            leave the college will have their accounts
+                            deactivated in line with standard offboarding.
+                        </p>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-ip">
+                        <span class="tos-section-num">09</span>
+                        <h2>Intellectual Property</h2>
+                        <p>
+                            The CampusTransit platform, including its design,
+                            codebase, and branding, is the property of its
+                            developers and Zeal College of Engineering &amp;
+                            Research. You may not copy, redistribute, or
+                            create derivative works from the platform without
+                            explicit permission.
+                        </p>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-law">
+                        <span class="tos-section-num">10</span>
+                        <h2>Governing Law</h2>
+                        <p>
+                            These terms are governed by the laws of India,
+                            and any disputes arising from use of the platform
+                            will be subject to the jurisdiction of the courts
+                            in Pune, Maharashtra.
+                        </p>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-changes">
+                        <span class="tos-section-num">11</span>
+                        <h2>Changes to These Terms</h2>
+                        <p>
+                            These terms may be updated as CampusTransit
+                            evolves. Material changes will be communicated
+                            through an in-app notification. Continued use of
+                            the platform after an update constitutes
+                            acceptance of the revised terms.
+                        </p>
+                    </section>
+
+                    <section class="tos-section clay-card" id="tos-contact">
+                        <span class="tos-section-num">12</span>
+                        <h2>Contact Us</h2>
+                        <p>
+                            Questions about these terms can be directed to
+                            the Transport Office at E Building, Ground Floor,
+                            Zeal College of Engineering &amp; Research, or by
+                            phone at +91 90116 85965.
+                        </p>
+                    </section>
+
+                </div>
+
+            </div>
+
+            <!-- =====================================================
+                 CTA
+            ====================================================== -->
+
+            <section class="tos-cta clay-card">
+                <div class="tos-cta-text">
+                    <h3>Have a question about these terms?</h3>
+                    <p>The Transport Office can walk you through it directly.</p>
+                </div>
+                <div class="tos-cta-actions">
+                    <a href="/home/report-issue" class="btn btn-brass">
+                        <span class="icon">&#128221;</span> Report an Issue
+                    </a>
+                    <a href="/home/transport-office" class="btn btn-outline">
+                        Contact Transport Office
+                    </a>
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+<%- include('../partials/footer') %>

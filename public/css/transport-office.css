@@ -1,0 +1,292 @@
+/* =====================================================
+   TRANSPORT OFFICE — scoped page styles
+   Uses tokens from main.css directly. Never redeclares
+   shared classes (.clay-card, .btn) at global specificity —
+   only compound-scoped so nothing leaks to footer/navbar.
+===================================================== */
+
+.to-page{
+    --to-brass-light: #D3A05C; /* matches your bg-c2 gradient endpoint */
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+    padding:26px 0 56px;
+}
+
+/* ---------- ticket-divider dots (unique to this page) ---------- */
+.to-page .ticket-divider{
+    display:flex;
+    justify-content:space-between;
+    margin:22px 0;
+}
+.to-page .ticket-divider span{
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--paper-sunk);
+    border:1px solid var(--line);
+}
+
+/* ---------- HERO ---------- */
+.to-hero.clay-card{
+    position:relative;
+    display:flex;
+    align-items:center;
+    padding:44px 48px;
+    background:linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 100%);
+    color:var(--paper);
+    overflow:hidden;
+    border-radius:var(--radius-lg);
+}
+
+.to-hero-eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--to-brass-light);
+}
+
+.to-hero-title{
+    font-family:var(--font-display);
+    font-size:42px;
+    font-weight:600;
+    margin:10px 0 14px;
+    color:#fff;
+}
+
+.to-hero-sub{
+    font-family:var(--font-body);
+    max-width:520px;
+    line-height:1.7;
+    color:rgba(246,243,236,.82);
+}
+
+.to-hero-actions{
+    display:flex;
+    gap:14px;
+    margin-top:26px;
+    flex-wrap:wrap;
+}
+
+.to-hero-punch{
+    position:absolute;
+    top:0;bottom:0;
+    right:170px;
+    width:0;
+    border-left:2px dashed rgba(246,243,236,.22);
+}
+
+.to-hero-stamp{
+    margin-left:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    width:104px;
+    height:104px;
+    border:2px solid var(--to-brass-light);
+    border-radius:50%;
+    transform:rotate(-8deg);
+    font-family:var(--font-mono);
+    flex-shrink:0;
+}
+.to-hero-stamp span{
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:.08em;
+    color:var(--to-brass-light);
+}
+.to-hero-stamp small{
+    font-size:10px;
+    color:rgba(246,243,236,.65);
+    margin-top:2px;
+}
+
+/* ---------- BUTTON MODIFIERS (extend existing .btn base) ---------- */
+.to-page .btn-brass{
+    background:linear-gradient(135deg, var(--brass), var(--to-brass-light));
+    color:#2A1B04;
+    box-shadow:0 8px 20px rgba(184,134,60,.28);
+}
+.to-page .btn-brass:hover{
+    transform:translateY(-2px);
+    filter:brightness(1.05);
+}
+
+.to-page .btn-outline{
+    background:transparent;
+    color:var(--pine);
+    border:1.5px solid var(--pine);
+}
+.to-page .btn-outline:hover{
+    background:var(--pine);
+    color:var(--paper);
+}
+
+.to-page .btn-block{ width:100%; }
+
+/* ---------- GRID ---------- */
+.to-grid{
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:26px;
+}
+
+/* ---------- MANAGER CARD ---------- */
+.to-manager.clay-card{
+    padding:36px 30px;
+    text-align:center;
+    border-radius:var(--radius-lg);
+}
+
+.to-manager-avatar{
+    width:120px;height:120px;
+    margin:0 auto 18px;
+    border-radius:50%;
+    overflow:hidden;
+    border:4px solid var(--paper-raised);
+    box-shadow:var(--shadow-card);
+}
+.to-manager-avatar img{
+    width:100%;height:100%;
+    object-fit:cover;
+}
+
+.to-manager-name{
+    font-family:var(--font-display);
+    font-size:24px;
+    color:var(--ink-hi);
+    margin-bottom:4px;
+}
+
+.to-manager-role{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--pine);
+    background:var(--pine-soft);
+    border:1px solid var(--line);
+    padding:6px 14px;
+    border-radius:100px;
+    margin-bottom:18px;
+}
+
+.to-manager-desc{
+    font-family:var(--font-body);
+    font-size:14px;
+    line-height:1.7;
+    color:var(--ink-mid);
+    margin-bottom:6px;
+}
+
+.to-manager-email{
+    display:block;
+    margin-top:14px;
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--pine);
+    text-decoration:none;
+}
+.to-manager-email:hover{ text-decoration:underline; }
+
+/* ---------- INFO CARDS ---------- */
+.to-info-col{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+
+.to-info-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:18px;
+}
+
+.to-info-card.clay-card{
+    padding:24px;
+    border-radius:var(--radius-md);
+    transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out);
+}
+.to-info-card.clay-card:hover{
+    transform:translateY(-4px);
+    box-shadow:var(--shadow-lift);
+}
+
+.to-info-icon{
+    font-size:22px;
+    display:inline-block;
+    margin-bottom:10px;
+}
+
+.to-info-card h3{
+    font-family:var(--font-display);
+    font-size:17px;
+    color:var(--ink-hi);
+    margin-bottom:8px;
+}
+
+.to-info-card p{
+    font-family:var(--font-body);
+    font-size:13.5px;
+    color:var(--ink-mid);
+    line-height:1.6;
+}
+
+.to-info-link{
+    display:inline-block;
+    margin-top:10px;
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    color:var(--brass);
+    text-decoration:none;
+}
+.to-info-link:hover{ text-decoration:underline; }
+
+/* ---------- SERVICES ---------- */
+.to-services.clay-card{
+    padding:28px 30px;
+    border-radius:var(--radius-lg);
+}
+
+.to-services-title{
+    font-family:var(--font-display);
+    font-size:19px;
+    color:var(--ink-hi);
+    margin-bottom:18px;
+}
+
+.to-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.to-tags span{
+    padding:9px 16px;
+    border-radius:100px;
+    background:var(--pine);
+    color:#fff;
+    font-family:var(--font-body);
+    font-size:13px;
+    font-weight:600;
+    transition:background .22s, transform .22s;
+}
+.to-tags span:hover{
+    background:var(--brass);
+    color:#2A1B04;
+    transform:translateY(-2px);
+}
+
+/* ---------- BACK LINK ---------- */
+.to-back{ max-width:320px; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:900px){
+    .to-grid{ grid-template-columns:1fr; }
+    .to-hero.clay-card{ flex-direction:column; align-items:flex-start; padding:36px 26px; }
+    .to-hero-stamp{ margin:24px 0 0; align-self:flex-start; }
+    .to-hero-punch{ display:none; }
+    .to-back{ max-width:100%; }
+}

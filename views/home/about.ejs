@@ -1,0 +1,668 @@
+<%- include('../partials/header', { title: 'About CampusTransit' }) %>
+
+<style>
+    /* =====================================================
+       ABOUT / OUR TEAM — scoped internal styles
+       Uses tokens from main.css directly. Never redeclares
+       shared classes (.clay-card, .btn) at global specificity —
+       only compound-scoped so nothing leaks to footer/navbar.
+    ===================================================== */
+
+    .ab-page{
+        --ab-brass-light: #D3A05C;
+        display:flex;
+        flex-direction:column;
+        gap:34px;
+        padding:26px 0 56px;
+    }
+
+    /* ---------- HERO ---------- */
+    .ab-hero.clay-card{
+        position:relative;
+        padding:48px 50px;
+        background:linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 100%);
+        color:var(--paper);
+        border-radius:var(--radius-lg);
+        overflow:hidden;
+        text-align:center;
+    }
+
+    .ab-hero-eyebrow{
+        font-family:var(--font-mono);
+        font-size:12px;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+        color:var(--ab-brass-light);
+    }
+
+    .ab-hero-title{
+        font-family:var(--font-display);
+        font-size:42px;
+        font-weight:600;
+        margin:12px 0 14px;
+        color:#fff;
+    }
+
+    .ab-hero-sub{
+        font-family:var(--font-body);
+        max-width:640px;
+        margin:0 auto;
+        line-height:1.8;
+        color:rgba(246,243,236,.85);
+    }
+
+    /* ---------- STORY SECTION ---------- */
+    .ab-story{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:26px;
+        align-items:center;
+    }
+
+    .ab-story-card.clay-card{
+        padding:34px 36px;
+        border-radius:var(--radius-lg);
+    }
+
+    .ab-story-card h2{
+        font-family:var(--font-display);
+        font-size:24px;
+        color:var(--ink-hi);
+        margin-bottom:14px;
+    }
+
+    .ab-story-card p{
+        font-family:var(--font-body);
+        font-size:14.5px;
+        line-height:1.85;
+        color:var(--ink-mid);
+        margin-bottom:12px;
+    }
+    .ab-story-card p:last-child{ margin-bottom:0; }
+
+    .ab-facts{
+        display:flex;
+        flex-direction:column;
+        gap:14px;
+    }
+
+    .ab-fact.clay-card{
+        display:flex;
+        align-items:center;
+        gap:16px;
+        padding:20px 22px;
+        border-radius:var(--radius-md);
+    }
+
+    .ab-fact-icon{
+        font-size:24px;
+        width:48px;
+        height:48px;
+        flex-shrink:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:50%;
+        background:var(--pine-soft);
+    }
+
+    .ab-fact-body h4{
+        font-family:var(--font-display);
+        font-size:16px;
+        color:var(--ink-hi);
+        margin-bottom:2px;
+    }
+    .ab-fact-body p{
+        font-family:var(--font-body);
+        font-size:13px;
+        color:var(--ink-mid);
+    }
+
+    /* ---------- SECTION HEADINGS ---------- */
+    .ab-section-head{
+        text-align:center;
+        max-width:600px;
+        margin:0 auto;
+    }
+    .ab-section-eyebrow{
+        font-family:var(--font-mono);
+        font-size:11.5px;
+        letter-spacing:.12em;
+        text-transform:uppercase;
+        color:var(--brass);
+    }
+    .ab-section-head h2{
+        font-family:var(--font-display);
+        font-size:30px;
+        color:var(--ink-hi);
+        margin:8px 0 10px;
+    }
+    .ab-section-head p{
+        font-family:var(--font-body);
+        font-size:14.5px;
+        line-height:1.7;
+        color:var(--ink-mid);
+    }
+
+    /* ---------- LEADERSHIP ---------- */
+    .ab-leads{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:26px;
+    }
+
+    .ab-lead.clay-card{
+        position:relative;
+        padding:38px 34px;
+        border-radius:var(--radius-lg);
+        background:linear-gradient(160deg, var(--pine-deep) 0%, var(--pine) 100%);
+        color:var(--paper);
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        text-align:center;
+    }
+
+    .ab-lead::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:
+            radial-gradient(circle at 100% 0%, rgba(184,134,60,.18), transparent 55%);
+        pointer-events:none;
+    }
+
+    .ab-lead-ribbon{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        font-family:var(--font-mono);
+        font-size:10.5px;
+        letter-spacing:.1em;
+        text-transform:uppercase;
+        color:var(--pine-deep);
+        background:linear-gradient(135deg, var(--ab-brass-light), var(--brass));
+        padding:7px 16px;
+        border-radius:100px;
+        margin-bottom:20px;
+        box-shadow:0 6px 16px rgba(184,134,60,.35);
+    }
+
+    .ab-lead-avatar{
+        width:130px;
+        height:130px;
+        border-radius:50%;
+        overflow:hidden;
+        border:4px solid var(--ab-brass-light);
+        box-shadow:0 12px 28px rgba(0,0,0,.28);
+        margin-bottom:20px;
+        position:relative;
+        z-index:1;
+    }
+    .ab-lead-avatar img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+    }
+
+    .ab-lead-name{
+        font-family:var(--font-display);
+        font-weight:700;
+        font-size:24px;
+        color:#fff;
+        margin-bottom:4px;
+        position:relative;
+        z-index:1;
+    }
+
+    .ab-lead-role{
+        font-family:var(--font-mono);
+        font-size:12px;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        color:var(--ab-brass-light);
+        margin-bottom:16px;
+        position:relative;
+        z-index:1;
+    }
+
+    .ab-lead-desc{
+        font-family:var(--font-body);
+        font-size:13.5px;
+        line-height:1.75;
+        color:rgba(246,243,236,.85);
+        position:relative;
+        z-index:1;
+    }
+
+    .ab-lead-divider{
+        width:40px;
+        height:2px;
+        background:var(--ab-brass-light);
+        margin:16px 0;
+        opacity:.6;
+        position:relative;
+        z-index:1;
+    }
+
+    /* ---------- TEAM GRID (rest of the members) ---------- */
+    .ab-team{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+        gap:20px;
+    }
+
+    .ab-member.clay-card{
+        padding:26px 22px;
+        border-radius:var(--radius-md);
+        text-align:center;
+        transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out);
+    }
+    .ab-member.clay-card:hover{
+        transform:translateY(-5px);
+        box-shadow:var(--shadow-lift);
+    }
+
+    .ab-member-avatar{
+        width:88px;
+        height:88px;
+        margin:0 auto 16px;
+        border-radius:50%;
+        overflow:hidden;
+        border:3px solid var(--paper-raised);
+        box-shadow:var(--shadow-card);
+    }
+    .ab-member-avatar img{
+        width:100%;
+        height:100%;
+        object-fit:cover;
+    }
+
+    .ab-member-name{
+        font-family:var(--font-display);
+        font-size:16px;
+        font-weight:600;
+        color:var(--ink-hi);
+        margin-bottom:4px;
+    }
+
+    .ab-member-role{
+        display:inline-block;
+        font-family:var(--font-mono);
+        font-size:10.5px;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        color:var(--pine);
+        background:var(--pine-soft);
+        border:1px solid var(--line);
+        padding:5px 12px;
+        border-radius:100px;
+        margin-bottom:12px;
+    }
+
+    .ab-member-desc{
+        font-family:var(--font-body);
+        font-size:12.5px;
+        line-height:1.6;
+        color:var(--ink-mid);
+    }
+
+    /* ---------- STAT ROW ---------- */
+    .ab-stats{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+        gap:18px;
+    }
+
+    .ab-stat{
+        color:#fff;
+        border-radius:var(--radius-md);
+        padding:22px;
+        text-align:center;
+        box-shadow:var(--shadow-card);
+        transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out);
+    }
+    .ab-stat:hover{
+        transform:translateY(-4px);
+        box-shadow:var(--shadow-lift);
+    }
+    .ab-stat h3{
+        font-family:var(--font-display);
+        font-size:28px;
+        color:#fff;
+        margin-bottom:4px;
+    }
+    .ab-stat p{
+        font-family:var(--font-body);
+        font-size:12.5px;
+        color:rgba(255,255,255,.85);
+    }
+    .ab-stat.bg-c1{ background:linear-gradient(135deg, #1F5C4F, #2E7D6B); }
+    .ab-stat.bg-c2{ background:linear-gradient(135deg, #B8863C, #D3A05C); }
+    .ab-stat.bg-c3{ background:linear-gradient(135deg, #16332C, #274A40); }
+    .ab-stat.bg-c5{ background:linear-gradient(135deg, #3F7D58, #5A9A73); }
+
+    /* ---------- CTA ---------- */
+    .ab-cta.clay-card{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        flex-wrap:wrap;
+        gap:20px;
+        padding:32px 36px;
+        border-radius:var(--radius-lg);
+    }
+    .ab-cta-text h3{
+        font-family:var(--font-display);
+        font-size:20px;
+        color:var(--ink-hi);
+        margin-bottom:6px;
+    }
+    .ab-cta-text p{
+        font-family:var(--font-body);
+        font-size:14px;
+        color:var(--ink-mid);
+    }
+    .ab-cta-actions{
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+    }
+
+    /* ---------- button modifiers (extend existing .btn base) ---------- */
+    .ab-page .btn-brass{
+        background:linear-gradient(135deg, var(--brass), var(--ab-brass-light));
+        color:#2A1B04;
+        box-shadow:0 8px 20px rgba(184,134,60,.28);
+    }
+    .ab-page .btn-brass:hover{
+        transform:translateY(-2px);
+        filter:brightness(1.05);
+    }
+    .ab-page .btn-outline{
+        background:transparent;
+        color:var(--pine);
+        border:1.5px solid var(--pine);
+    }
+    .ab-page .btn-outline:hover{
+        background:var(--pine);
+        color:var(--paper);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width:900px){
+        .ab-hero.clay-card{ padding:36px 26px; }
+        .ab-story{ grid-template-columns:1fr; }
+        .ab-leads{ grid-template-columns:1fr; }
+        .ab-cta.clay-card{ flex-direction:column; align-items:flex-start; }
+        .ab-cta-actions{ width:100%; }
+        .ab-cta-actions .btn{ flex:1; }
+    }
+</style>
+
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar') %>
+
+    <main class="app-main">
+
+        <div class="container ab-page">
+
+            <!-- =====================================================
+                 HERO
+            ====================================================== -->
+
+            <section class="ab-hero clay-card">
+                <span class="ab-hero-eyebrow">Route&nbsp;00 &middot; Our Story</span>
+                <h1 class="ab-hero-title">About CampusTransit</h1>
+                <p class="ab-hero-sub">
+                    Built by a team of 11 students at Zeal College of
+                    Engineering &amp; Research to make campus bus travel
+                    simpler, safer, and easier to track &mdash; for
+                    students, drivers, and the Transport Office alike.
+                </p>
+            </section>
+
+            <!-- =====================================================
+                 STORY + QUICK FACTS
+            ====================================================== -->
+
+            <div class="ab-story">
+
+                <div class="ab-story-card clay-card">
+                    <h2>Why We Built This</h2>
+                    <p>
+                        Campus transport used to mean guessing when the bus
+                        would arrive, paper fee receipts that got lost, and
+                        no easy way to report a problem. CampusTransit was
+                        built to fix that &mdash; one connected platform for
+                        route allotment, live tracking, attendance, and fee
+                        payment.
+                    </p>
+                    <p>
+                        What started as a small project has grown into a
+                        full system actively used across the college's bus
+                        routes, built and maintained entirely by a student
+                        team.
+                    </p>
+                </div>
+
+                <div class="ab-facts">
+                    <div class="ab-fact clay-card">
+                        <span class="ab-fact-icon">&#128101;</span>
+                        <div class="ab-fact-body">
+                            <h4>11-Member Team</h4>
+                            <p>Designers, developers, and testers working together</p>
+                        </div>
+                    </div>
+                    <div class="ab-fact clay-card">
+                        <span class="ab-fact-icon">&#127891;</span>
+                        <div class="ab-fact-body">
+                            <h4>Student-Built</h4>
+                            <p>Conceived, coded, and shipped by ZCOER students</p>
+                        </div>
+                    </div>
+                    <div class="ab-fact clay-card">
+                        <span class="ab-fact-icon">&#128736;</span>
+                        <div class="ab-fact-body">
+                            <h4>Actively Maintained</h4>
+                            <p>Continuously improved with new features each semester</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- =====================================================
+                 LEADERSHIP
+            ====================================================== -->
+
+            <section class="ab-section-head">
+                <span class="ab-section-eyebrow">Leadership</span>
+                <h2>Founded &amp; Led By</h2>
+                <p>The two who laid the foundation and built it forward.</p>
+            </section>
+
+            <div class="ab-leads">
+
+                <div class="ab-lead clay-card">
+                    <span class="ab-lead-ribbon">&#9733; Lead Developer</span>
+                    <div class="ab-lead-avatar">
+                        <img src="/images/member-1.jpg" alt="[Member 1 Name]">
+                    </div>
+                    <h3 class="ab-lead-name">[Member&nbsp;1&nbsp;Name]</h3>
+                    <span class="ab-lead-role">Team Lead &middot; Full-Stack Development</span>
+                    <div class="ab-lead-divider"></div>
+                    <p class="ab-lead-desc">
+                        Led the team of 11 and built out the majority of
+                        CampusTransit's features and interface on top of the
+                        project's foundation &mdash; from the dashboard
+                        experience to the design system that ties every page
+                        together.
+                    </p>
+                </div>
+
+                <div class="ab-lead clay-card">
+                    <span class="ab-lead-ribbon">&#9733; Founding Engineer</span>
+                    <div class="ab-lead-avatar">
+                        <img src="/images/member-2.jpg" alt="[Member 2 Name]">
+                    </div>
+                    <h3 class="ab-lead-name">[Member&nbsp;2&nbsp;Name]</h3>
+                    <span class="ab-lead-role">Co-Lead &middot; Core Architecture</span>
+                    <div class="ab-lead-divider"></div>
+                    <p class="ab-lead-desc">
+                        Developed the project's core files and architecture
+                        from the ground up &mdash; laying the foundation
+                        the rest of CampusTransit, and the whole team, was
+                        built on.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- =====================================================
+                 TEAM GRID
+            ====================================================== -->
+
+            <section class="ab-section-head">
+                <span class="ab-section-eyebrow">The Team</span>
+                <h2>Everyone Who Made It Happen</h2>
+                <p>Nine more students behind the parts you use every day.</p>
+            </section>
+
+            <div class="ab-team">
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-3.jpg" alt="[Member 3 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 3 Name]</h4>
+                    <span class="ab-member-role">Backend &amp; Database</span>
+                    <p class="ab-member-desc">Designed and maintained the database schema powering routes, seats, and attendance.</p>
+                </div>
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-4.jpg" alt="[Member 4 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 4 Name]</h4>
+                    <span class="ab-member-role">UI / UX Design</span>
+                    <p class="ab-member-desc">Shaped the look and feel of key screens, from wireframes to final styling.</p>
+                </div>
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-5.jpg" alt="[Member 5 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 5 Name]</h4>
+                    <span class="ab-member-role">Quality Assurance</span>
+                    <p class="ab-member-desc">Tested every feature end-to-end and tracked down edge cases before release.</p>
+                </div>
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-6.jpg" alt="[Member 6 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 6 Name]</h4>
+                    <span class="ab-member-role">Deployment &amp; DevOps</span>
+                    <p class="ab-member-desc">Handled hosting, environment setup, and keeping the platform live and stable.</p>
+                </div>
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-7.jpg" alt="[Member 7 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 7 Name]</h4>
+                    <span class="ab-member-role">Payments Module</span>
+                    <p class="ab-member-desc">Built out the fee payment flow, receipts, and email delivery system.</p>
+                </div>
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-8.jpg" alt="[Member 8 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 8 Name]</h4>
+                    <span class="ab-member-role">Admin Dashboard</span>
+                    <p class="ab-member-desc">Developed the admin-side tools for managing routes, buses, and users.</p>
+                </div>
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-9.jpg" alt="[Member 9 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 9 Name]</h4>
+                    <span class="ab-member-role">Notifications System</span>
+                    <p class="ab-member-desc">Built the alerts and notification flows that keep everyone in the loop.</p>
+                </div>
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-10.jpg" alt="[Member 10 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 10 Name]</h4>
+                    <span class="ab-member-role">Documentation</span>
+                    <p class="ab-member-desc">Kept the project's technical documentation and conventions organised and current.</p>
+                </div>
+
+                <div class="ab-member clay-card">
+                    <div class="ab-member-avatar">
+                        <img src="/images/member-11.jpg" alt="[Member 11 Name]">
+                    </div>
+                    <h4 class="ab-member-name">[Member 11 Name]</h4>
+                    <span class="ab-member-role">Branding &amp; Content</span>
+                    <p class="ab-member-desc">Worked on the visual identity, copywriting, and content across the platform.</p>
+                </div>
+
+            </div>
+
+            <!-- =====================================================
+                 STATS
+            ====================================================== -->
+
+            <div class="ab-stats">
+                <div class="ab-stat bg-c1">
+                    <h3>11</h3>
+                    <p>Team Members</p>
+                </div>
+                <div class="ab-stat bg-c2">
+                    <h3>1</h3>
+                    <p>College, One Team</p>
+                </div>
+                <div class="ab-stat bg-c3">
+                    <h3>2</h3>
+                    <p>Founding Leads</p>
+                </div>
+                <div class="ab-stat bg-c5">
+                    <h3>&#8734;</h3>
+                    <p>Late-Night Debug Sessions</p>
+                </div>
+            </div>
+
+            <!-- =====================================================
+                 CTA
+            ====================================================== -->
+
+            <section class="ab-cta clay-card">
+                <div class="ab-cta-text">
+                    <h3>Want to know more, or spotted a bug?</h3>
+                    <p>We'd genuinely like to hear about it.</p>
+                </div>
+                <div class="ab-cta-actions">
+                    <a href="/home/report-issue" class="btn btn-brass">
+                        <span class="icon">&#128221;</span> Report an Issue
+                    </a>
+                    <a href="/home/transport-office" class="btn btn-outline">
+                        Contact Transport Office
+                    </a>
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,290 @@
+/* =====================================================
+   REPORT AN ISSUE — scoped page styles
+   Uses tokens from main.css directly. Never redeclares
+   shared classes (.clay-card, .btn) at global specificity —
+   only compound-scoped so nothing leaks to footer/navbar.
+===================================================== */
+
+.ri-page{
+    --ri-brass-light: #D3A05C; /* matches your bg-c2 gradient endpoint */
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+    padding:26px 0 56px;
+}
+
+.ri-page .ticket-divider{
+    display:flex;
+    justify-content:space-between;
+    margin:22px 0;
+}
+.ri-page .ticket-divider span{
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--paper-sunk);
+    border:1px solid var(--line);
+}
+
+/* ---------- HERO ---------- */
+.ri-hero.clay-card{
+    position:relative;
+    display:flex;
+    align-items:center;
+    padding:40px 46px;
+    background:linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 100%);
+    color:var(--paper);
+    border-radius:var(--radius-lg);
+}
+
+.ri-hero-eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ri-brass-light);
+}
+
+.ri-hero-title{
+    font-family:var(--font-display);
+    font-size:38px;
+    font-weight:600;
+    margin:10px 0 12px;
+    color:#fff;
+}
+
+.ri-hero-sub{
+    font-family:var(--font-body);
+    max-width:540px;
+    line-height:1.7;
+    color:rgba(246,243,236,.82);
+}
+
+.ri-hero-stamp{
+    margin-left:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    width:96px;
+    height:96px;
+    border:2px solid var(--ri-brass-light);
+    border-radius:50%;
+    transform:rotate(-8deg);
+    font-family:var(--font-mono);
+    flex-shrink:0;
+}
+.ri-hero-stamp span{
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:.08em;
+    color:var(--ri-brass-light);
+}
+.ri-hero-stamp small{
+    font-size:10px;
+    color:rgba(246,243,236,.65);
+    margin-top:2px;
+}
+
+/* ---------- BANNERS (reuse existing status tokens) ---------- */
+.ri-banner{
+    padding:16px 22px;
+    border-radius:var(--radius-md);
+    font-family:var(--font-body);
+    font-size:14px;
+    line-height:1.6;
+}
+.ri-banner-success{
+    background:var(--moss-soft);
+    color:var(--moss);
+    border:1px solid rgba(63,125,88,.28);
+}
+.ri-banner-error{
+    background:var(--rust-soft);
+    color:var(--rust);
+    border:1px solid rgba(178,59,46,.28);
+}
+
+/* ---------- GRID ---------- */
+.ri-grid{
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:26px;
+    align-items:start;
+}
+
+/* ---------- FORM ---------- */
+.ri-form.clay-card{
+    padding:36px 38px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    border-radius:var(--radius-lg);
+}
+
+.ri-form-row{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.ri-form-row-split{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.ri-form label{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--pine);
+}
+
+.ri-optional{
+    text-transform:none;
+    color:var(--ink-low);
+    font-family:var(--font-body);
+    letter-spacing:0;
+}
+
+/* form-control already styled by main.css; only add page-specific tweaks */
+.ri-form input[type="text"],
+.ri-form input[type="tel"],
+.ri-form input[type="file"],
+.ri-form select,
+.ri-form textarea{
+    font-family:var(--font-body);
+    font-size:14.5px;
+    color:var(--ink-hi);
+    background:var(--paper-sunk);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+    outline:none;
+    transition:border-color .2s, box-shadow .2s, background .2s;
+    width:100%;
+}
+
+.ri-form input:focus,
+.ri-form select:focus,
+.ri-form textarea:focus{
+    border-color:var(--brass);
+    background:var(--paper-raised);
+    box-shadow:0 0 0 4px var(--brass-soft);
+}
+
+.ri-form textarea{
+    resize:vertical;
+    line-height:1.6;
+}
+
+.ri-form input[type="file"]{
+    padding:10px 14px;
+    cursor:pointer;
+}
+
+/* ---------- BUTTON MODIFIERS (extend existing .btn base) ---------- */
+.ri-page .btn-brass{
+    background:linear-gradient(135deg, var(--brass), var(--ri-brass-light));
+    color:#2A1B04;
+    box-shadow:0 8px 20px rgba(184,134,60,.28);
+}
+.ri-page .btn-brass:hover{
+    transform:translateY(-2px);
+    filter:brightness(1.05);
+}
+
+.ri-page .btn-outline{
+    background:transparent;
+    color:var(--pine);
+    border:1.5px solid var(--pine);
+}
+.ri-page .btn-outline:hover{
+    background:var(--pine);
+    color:var(--paper);
+}
+
+.ri-page .btn-block{ width:100%; }
+
+/* ---------- SIDEBAR ---------- */
+.ri-info-col{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.ri-info-card.clay-card{
+    padding:24px;
+    border-radius:var(--radius-md);
+}
+
+.ri-info-icon{
+    font-size:20px;
+    display:inline-block;
+    margin-bottom:10px;
+}
+
+.ri-info-card h3{
+    font-family:var(--font-display);
+    font-size:16.5px;
+    color:var(--ink-hi);
+    margin-bottom:8px;
+}
+
+.ri-info-card p{
+    font-family:var(--font-body);
+    font-size:13.5px;
+    color:var(--ink-mid);
+    line-height:1.6;
+}
+
+.ri-tips{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:0;
+    margin:0;
+}
+.ri-tips li{
+    font-family:var(--font-body);
+    font-size:13.5px;
+    color:var(--ink-mid);
+    line-height:1.5;
+    padding-left:18px;
+    position:relative;
+}
+.ri-tips li::before{
+    content:"\2022";
+    position:absolute;
+    left:2px;
+    color:var(--brass);
+}
+
+.ri-info-card-alert.clay-card{
+    background:var(--rust-soft);
+    border-color:rgba(178,59,46,.28);
+}
+.ri-info-card-alert h3{ color:var(--rust); }
+.ri-info-card-alert p{ color:var(--rust); margin-bottom:14px; }
+.ri-page .ri-info-card-alert .btn-outline{
+    border-color:var(--rust);
+    color:var(--rust);
+}
+.ri-page .ri-info-card-alert .btn-outline:hover{
+    background:var(--rust);
+    color:#fff;
+}
+
+/* ---------- BACK LINK ---------- */
+.ri-back{ max-width:320px; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:900px){
+    .ri-grid{ grid-template-columns:1fr; }
+    .ri-form-row-split{ grid-template-columns:1fr; }
+    .ri-hero.clay-card{ flex-direction:column; align-items:flex-start; padding:32px 26px; }
+    .ri-hero-stamp{ margin:20px 0 0; align-self:flex-start; }
+    .ri-back{ max-width:100%; }
+}

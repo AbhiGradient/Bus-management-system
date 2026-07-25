@@ -37,6 +37,7 @@ const driverRoutes = require('./routes/driver');
 const qrRoutes = require('./routes/qr');
 const paymentRoutes =
     require('./routes/payment');
+const homeRoutes = require('./routes/home');
 
 app.use('/', authRoutes);
 app.use('/admin', adminRoutes);
@@ -47,6 +48,15 @@ app.use(
     '/payment',
     paymentRoutes
 );
+app.use('/home', homeRoutes);
+// ------- Public Home / General Pages -------
+
+app.get('/home/contact', (req, res) => {
+    res.render('home/contact');
+});
+app.get('/home/transport-office', (req, res) => {
+    res.render('home/transport-office');
+});
 
 // Root -> login page
 app.get('/', (req, res) => res.redirect('/login'));
@@ -61,6 +71,10 @@ app.get('/test-mail', async (req, res) => {
     );
 
     res.json(result);
+});
+
+app.get('/home/report-issue', (req, res) => {
+    res.render('home/report-issue');
 });
 
 // ------- 404 handler -------

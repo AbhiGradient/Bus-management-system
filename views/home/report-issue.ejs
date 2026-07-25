@@ -1,0 +1,238 @@
+<%- include('../partials/header', { title: 'Report an Issue | CampusTransit' }) %>
+
+<link rel="stylesheet" href="/css/report-issue.css">
+
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar') %>
+
+    <main class="app-main">
+
+        <div class="container ri-page">
+
+            <!-- =====================================================
+                 TICKET HEADER
+            ====================================================== -->
+
+            <section class="ri-hero clay-card">
+
+                <div class="ri-hero-stub">
+                    <span class="ri-hero-eyebrow">Route&nbsp;00 &middot; Support Desk</span>
+                    <h1 class="ri-hero-title">Report an Issue</h1>
+                    <p class="ri-hero-sub">
+                        Late bus, driver concern, a payment that didn&rsquo;t
+                        go through, or something on the app not working &mdash;
+                        tell us what happened and we&rsquo;ll take it from here.
+                    </p>
+                </div>
+
+                <div class="ri-hero-stamp">
+                    <span>LOG</span>
+                    <small>a ticket</small>
+                </div>
+
+            </section>
+
+            <!-- =====================================================
+                 SUCCESS / ERROR BANNER (server-driven)
+            ====================================================== -->
+
+            <% if (typeof success !== 'undefined' && success) { %>
+                <div class="ri-banner ri-banner-success">
+                    Your report has been logged. The Transport Office
+                    will reach out if more details are needed.
+                </div>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="ri-banner ri-banner-error">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <!-- =====================================================
+                 MAIN GRID: FORM + SIDEBAR
+            ====================================================== -->
+
+            <div class="ri-grid">
+
+                <!-- ============ REPORT FORM (TICKET) ============ -->
+                <form
+                    class="ri-form clay-card ticket-stub"
+                    action="/home/report-issue"
+                    method="POST"
+                    enctype="multipart/form-data"
+                >
+
+                    <div class="ri-form-row">
+                        <label for="issueType">Issue Type</label>
+                        <select id="issueType" name="issueType" required>
+                            <option value="" disabled selected>Select a category</option>
+                            <option value="route_schedule">Route &amp; Schedule</option>
+                            <option value="driver_conduct">Driver Conduct</option>
+                            <option value="bus_condition">Bus Condition / Safety</option>
+                            <option value="payment_fees">Payment &amp; Fees</option>
+                            <option value="attendance">Attendance Marking</option>
+                            <option value="lost_item">Lost Item</option>
+                            <option value="app_technical">App / Technical</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="ri-form-row-split">
+
+                        <div class="ri-form-row">
+                            <label for="busRoute">Bus / Route No. <span class="ri-optional">(optional)</span></label>
+                            <input
+                                type="text"
+                                id="busRoute"
+                                name="busRoute"
+                                placeholder="e.g. Route 4 / Bus 12"
+                            >
+                        </div>
+
+                        <div class="ri-form-row">
+                            <label for="priority">Priority</label>
+                            <select id="priority" name="priority" required>
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent &mdash; Safety Concern</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="ri-form-row">
+                        <label for="subject">Subject</label>
+                        <input
+                            type="text"
+                            id="subject"
+                            name="subject"
+                            placeholder="Short summary of the issue"
+                            maxlength="120"
+                            required
+                        >
+                    </div>
+
+                    <div class="ri-form-row">
+                        <label for="description">Description</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="6"
+                            placeholder="What happened, when, and where? The more detail, the faster we can act."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="ri-form-row">
+                        <label for="attachment">Attach a Photo <span class="ri-optional">(optional)</span></label>
+                        <input
+                            type="file"
+                            id="attachment"
+                            name="attachment"
+                            accept="image/*"
+                        >
+                    </div>
+
+                    <div class="ri-form-row-split">
+
+                        <div class="ri-form-row">
+                            <label for="contactName">Your Name</label>
+                            <input
+                                type="text"
+                                id="contactName"
+                                name="contactName"
+                                value="<%= typeof user !== 'undefined' && user ? user.name : '' %>"
+                                required
+                            >
+                        </div>
+
+                        <div class="ri-form-row">
+                            <label for="contactNumber">Contact Number</label>
+                            <input
+                                type="tel"
+                                id="contactNumber"
+                                name="contactNumber"
+                                placeholder="For urgent follow-up"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="ticket-divider">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-brass btn-block">
+                        <span class="icon">&#128221;</span> Submit Report
+                    </button>
+
+                </form>
+
+                <!-- ============ SIDEBAR ============ -->
+                <aside class="ri-info-col">
+
+                    <div class="ri-info-card clay-card">
+                        <span class="ri-info-icon">&#9201;</span>
+                        <h3>Response Time</h3>
+                        <p>
+                            Most reports are reviewed within
+                            <strong>24&ndash;48 hours</strong> on working days.
+                            Urgent safety concerns are prioritised immediately.
+                        </p>
+                    </div>
+
+                    <div class="ri-info-card clay-card">
+                        <span class="ri-info-icon">&#128161;</span>
+                        <h3>Before You Report</h3>
+                        <ul class="ri-tips">
+                            <li>Note the bus number or route if you can</li>
+                            <li>Mention the approximate time it happened</li>
+                            <li>Attach a photo for lost items or bus condition</li>
+                        </ul>
+                    </div>
+
+                    <div class="ri-info-card ri-info-card-alert clay-card">
+                        <span class="ri-info-icon">&#9888;</span>
+                        <h3>Emergency Right Now?</h3>
+                        <p>
+                            Don&rsquo;t wait on a form &mdash; call the
+                            Transport Office directly.
+                        </p>
+                        <a href="tel:+919011685965" class="btn btn-outline btn-block">
+                            &#9742; Call Transport Office
+                        </a>
+                    </div>
+
+                </aside>
+
+            </div>
+
+            <!-- =====================================================
+                 BACK LINK
+            ====================================================== -->
+
+           <div class="to-back">
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/<%= user.role %>/dashboard" class="btn btn-outline btn-block">
+                        &larr; Back to Dashboard
+                    </a>
+                <% } else { %>
+                    <a href="/login" class="btn btn-outline btn-block">
+                        &larr; Back to Login
+                    </a>
+                <% } %>
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<%- include('../partials/footer') %>
