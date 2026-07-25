@@ -68,28 +68,140 @@ Visit **http://localhost:3000** in your browser.
 | Student | student2@college.edu    | student123  |
 | Student | student3@college.edu    | student123  |
 
-## Project Structure
+## Project Structure: 
+
+# Smart College Bus Management System
 
 ```
-college-bus-management/
-├── server.js              # App entry point
-├── package.json
-├── .env                    # Environment config
+Bus-management-system/
+│
 ├── config/
-│   └── db.js               # MySQL connection pool
-├── routes/
-│   ├── auth.js              # Login / logout
-│   ├── admin.js              # Buses, students, assign-bus, requests, fees, profile
-│   ├── student.js           # Dashboard, requests, fees, profile
-│   └── driver.js             # Dashboard, profile
-├── views/                   # EJS templates (Bootstrap 5 UI)
+│   ├── constants.js
+│   ├── db.js
+│   ├── mailer.js
+│   ├── multer.js
+│   ├── razorpay.js
+│   └── socket.js
+│
+├── database/
+│   └── bus_management.sql
+│
+├── middleware/
+│   ├── adminAuth.js
+│   ├── auth.js
+│   ├── driverAuth.js
+│   ├── errorHandler.js
+│   ├── logger.js
+│   └── studentAuth.js
+│
+├── models/
+│   ├── Admin.js
+│   ├── Bus.js
+│   ├── Driver.js
+│   ├── Payment.js
+│   ├── Request.js
+│   ├── Student.js
+│   └── User.js
+│
 ├── public/
-│   ├── css/style.css
-│   ├── js/script.js
-│   └── images/
-└── database/
-    └── bus_management.sql   # Schema + seed data
+│   ├── css/
+│   │   ├── admin-dashboard.css
+│   │   ├── attendance-report.css
+│   │   ├── auth.css
+│   │   ├── buses.css
+│   │   ├── driver-dashboard.css
+│   │   ├── fees.css
+│   │   ├── notifications.css
+│   │   ├── payment.css
+│   │   ├── profile.css
+│   │   ├── requests.css
+│   │   ├── student-dashboard.css
+│   │   ├── style.css
+│   │   └── transport-office.css
+│   │
+│   ├── js/
+│   │   ├── admin.js
+│   │   ├── attendance.js
+│   │   ├── driver.js
+│   │   ├── payment.js
+│   │   ├── qr.js
+│   │   ├── student.js
+│   │   └── script.js
+│   │
+│   ├── images/
+│   │   ├── buses/
+│   │   ├── drivers/
+│   │   ├── students/
+│   │   ├── icons/
+│   │   └── logo.png
+│   │
+│   └── uploads/
+│       ├── drivers/
+│       └── students/
+│
+├── routes/
+│   ├── admin.js
+│   ├── auth.js
+│   ├── driver.js
+│   ├── payment.js
+│   ├── qr.js
+│   ├── student.js
+│   └── transport.js
+│
+├── views/
+│   │
+│   ├── admin/
+│   │   ├── admin-dashboard.ejs
+│   │   ├── assign-bus.ejs
+│   │   ├── attendance-report.ejs
+│   │   ├── buses.ejs
+│   │   ├── drivers.ejs
+│   │   ├── fees.ejs
+│   │   ├── notifications.ejs
+│   │   ├── profile.ejs
+│   │   ├── requests.ejs
+│   │   ├── settings.ejs
+│   │   ├── students.ejs
+│   │   └── transport-office.ejs
+│   │
+│   ├── driver/
+│   │   ├── driver-dashboard.ejs
+│   │   ├── notifications.ejs
+│   │   ├── profile.ejs
+│   │   ├── qr-scanner.ejs
+│   │   └── route-details.ejs
+│   │
+│   ├── student/
+│   │   ├── bus-change-request.ejs
+│   │   ├── help-center.ejs
+│   │   ├── notifications.ejs
+│   │   ├── payment-history.ejs
+│   │   ├── payment-success.ejs
+│   │   ├── payment.ejs
+│   │   ├── profile.ejs
+│   │   ├── receipt.ejs
+│   │   ├── request-status.ejs
+│   │   ├── student-dashboard.ejs
+│   │   └── track-bus.ejs
+│   │
+│   ├── partials/
+│   │   ├── footer.ejs
+│   │   ├── header.ejs
+│   │   ├── navbar.ejs
+│   │   └── sidebar.ejs
+│   │
+│   ├── error.ejs
+│   ├── index.ejs
+│   └── login.ejs
+│
+├── .env
+├── .gitignore
+├── package-lock.json
+├── package.json
+├── README.md
+└── server.js
 ```
+
 
 ## Notes
 
