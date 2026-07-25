@@ -1,882 +1,534 @@
-<!DOCTYPE html>
-
-<html lang="en">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Transport Support Center</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<%- include('../partials/header', { title: 'Contact Us | CampusTransit' }) %>
 
 <style>
-
-:root{
-
---bg:#f4f7fc;
---bg2:#edf4ff;
-
---primary:#2563eb;
---secondary:#4f46e5;
---accent:#0ea5e9;
-
---glass:rgba(255,255,255,.92);
---border:#dce8f8;
-
---text:#1e293b;
---muted:#64748b;
-
-}
-
-*{
-
-margin:0;
-padding:0;
-box-sizing:border-box;
-
-}
-
-html{
-
-scroll-behavior:smooth;
-
-}
-
-body{
-
-font-family:'Inter',sans-serif;
-
-background:
-radial-gradient(circle at top left,#bfdbfe 0%,transparent 32%),
-radial-gradient(circle at bottom right,#c7d2fe 0%,transparent 30%),
-linear-gradient(135deg,#f8fbff,#eef4ff);
-
-min-height:100vh;
-
-display:flex;
-justify-content:center;
-align-items:center;
-
-padding:45px;
-
-overflow-x:hidden;
-
-color:var(--text);
-
-}
-
-body::before{
-
-content:"";
-
-position:fixed;
-
-width:520px;
-height:520px;
-
-background:#60a5fa22;
-
-border-radius:50%;
-
-filter:blur(110px);
-
-top:-180px;
-left:-180px;
-
-animation:move1 12s infinite alternate;
-
-z-index:0;
-
-}
-
-body::after{
-
-content:"";
-
-position:fixed;
-
-width:460px;
-height:460px;
-
-background:#818cf822;
-
-border-radius:50%;
-
-filter:blur(110px);
-
-right:-120px;
-bottom:-160px;
-
-animation:move2 14s infinite alternate;
-
-z-index:0;
-
-}
-
-@keyframes move1{
-
-to{
-
-transform:translate(80px,80px);
-
-}
-
-}
-
-@keyframes move2{
-
-to{
-
-transform:translate(-60px,-80px);
-
-}
-
-}
-
-.card{
-
-position:relative;
-
-z-index:2;
-
-width:100%;
-max-width:1000px;
-
-background:var(--glass);
-
-border:1px solid var(--border);
-
-backdrop-filter:blur(18px);
-
-border-radius:30px;
-
-overflow:hidden;
-
-box-shadow:
-
-0 18px 45px rgba(15,23,42,.08),
-0 8px 20px rgba(37,99,235,.05);
-
-}
-
-.hero{
-
-padding:60px;
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-flex-wrap:wrap;
-
-gap:35px;
-
-background:
-linear-gradient(135deg,#eff6ff,#ffffff);
-
-border-bottom:1px solid #e5eefc;
-
-}
-
-.left{
-
-flex:1;
-
-min-width:280px;
-
-}
-
-.badge{
-
-display:inline-flex;
-
-align-items:center;
-
-gap:8px;
-
-padding:10px 18px;
-
-background:#dbeafe;
-
-color:#1d4ed8;
-
-border-radius:100px;
-
-font-size:13px;
-
-font-weight:700;
-
-margin-bottom:22px;
-
-}
-
-h1{
-
-font-size:48px;
-
-font-weight:800;
-
-line-height:1.1;
-
-margin-bottom:18px;
-
-color:#0f172a;
-
-}
-
-.subtitle{
-
-font-size:17px;
-
-line-height:1.8;
-
-color:var(--muted);
-
-max-width:600px;
-
-}
-
-.bus{
-
-font-size:110px;
-
-filter:drop-shadow(0 15px 25px rgba(37,99,235,.15));
-
-animation:bounce 2.5s infinite;
-
-}
-
-@keyframes bounce{
-
-50%{
-
-transform:translateY(-8px);
-
-}
-
-}
-
-.content{
-
-padding:45px;
-
-display:grid;
-
-grid-template-columns:360px 1fr;
-
-gap:35px;
-
-}
-
-.profile{
-
-background:white;
-
-border-radius:24px;
-
-padding:35px;
-
-text-align:center;
-
-border:1px solid #e5eefc;
-
-box-shadow:
-
-0 10px 30px rgba(15,23,42,.05);
-
-}
-
-.avatar{
-
-width:135px;
-height:135px;
-
-margin:auto;
-margin-bottom:22px;
-
-border-radius:50%;
-
-overflow:hidden;
-
-border:5px solid white;
-
-box-shadow:
-
-0 8px 25px rgba(37,99,235,.18);
-
-background:#f8fafc;
-
-}
-
-.avatar img{
-
-width:100%;
-height:100%;
-
-object-fit:cover;
-
-display:block;
-
-transition:.4s;
-
-}
-
-.avatar:hover img{
-
-transform:scale(1.08);
-
-}
-
-.profile h2{
-
-font-size:30px;
-
-margin-bottom:6px;
-
-color:#0f172a;
-
-}
-
-.role{
-
-display:inline-block;
-
-padding:8px 18px;
-
-background:#eff6ff;
-
-color:#2563eb;
-
-border-radius:50px;
-
-font-weight:700;
-
-margin-bottom:20px;
-
-}
-
-.desc{
-
-line-height:1.8;
-
-font-size:15px;
-
-color:var(--muted);
-
-margin-bottom:30px;
-
-}
-
-.call{
-
-display:flex;
-
-justify-content:center;
-align-items:center;
-
-gap:10px;
-
-padding:16px;
-
-text-decoration:none;
-
-border-radius:14px;
-
-font-size:18px;
-
-font-weight:700;
-
-color:white;
-
-background:linear-gradient(135deg,#2563eb,#0ea5e9);
-
-transition:.35s;
-
-box-shadow:
-
-0 10px 25px rgba(37,99,235,.25);
-
-}
-
-.call:hover{
-
-transform:translateY(-4px);
-
-box-shadow:
-
-0 18px 35px rgba(37,99,235,.30);
-
-}
-
-.info{
-
-display:grid;
-
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-
-gap:20px;
-
-margin-bottom:30px;
-
-}
-
-.box{
-
-background:white;
-
-padding:24px;
-
-border-radius:18px;
-
-border:1px solid #e5eefc;
-
-transition:.35s;
-
-box-shadow:
-
-0 8px 18px rgba(15,23,42,.04);
-
-}
-
-.box:hover{
-
-transform:translateY(-6px);
-
-box-shadow:
-
-0 15px 30px rgba(37,99,235,.10);
-
-}
-
-.box h3{
-
-font-size:18px;
-
-margin-bottom:12px;
-
-color:#0f172a;
-
-}
-
-.box p{
-
-line-height:1.7;
-
-color:var(--muted);
-
-}
-
-.services{
-
-background:white;
-
-padding:28px;
-
-border-radius:22px;
-
-border:1px solid #e5eefc;
-
-box-shadow:
-
-0 8px 20px rgba(15,23,42,.04);
-
-}
-
-.services h3{
-
-font-size:22px;
-
-margin-bottom:20px;
-
-color:#0f172a;
-
-}
-
-.tags{
-
-display:flex;
-
-flex-wrap:wrap;
-
-gap:12px;
-
-}
-
-.tags span{
-
-padding:11px 18px;
-
-border-radius:100px;
-
-background:linear-gradient(135deg,#2563eb,#4f46e5);
-
-color:white;
-
-font-size:14px;
-
-font-weight:600;
-
-box-shadow:
-
-0 5px 12px rgba(37,99,235,.15);
-
-transition:.3s;
-
-}
-
-.tags span:hover{
-
-transform:translateY(-3px);
-
-}
-
-.footer{
-
-margin-top:35px;
-
-padding-top:25px;
-
-border-top:1px solid #e5eefc;
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-flex-wrap:wrap;
-
-gap:18px;
-
-}
-
-.website{
-
-color:#2563eb;
-
-font-weight:700;
-
-text-decoration:none;
-
-transition:.3s;
-
-}
-
-.website:hover{
-
-color:#1d4ed8;
-
-text-decoration:underline;
-
-}
-
-.copy{
-
-color:#64748b;
-
-font-size:14px;
-
-}
-
-@media(max-width:900px){
-
-.hero{
-
-padding:40px;
-
-text-align:center;
-
-justify-content:center;
-
-}
-
-.content{
-
-grid-template-columns:1fr;
-
-padding:30px;
-
-}
-
-.bus{
-
-font-size:85px;
-
-}
-
-h1{
-
-font-size:36px;
-
-}
-
-.footer{
-
-justify-content:center;
-
-text-align:center;
-
-}
-
-}
-
+    /* =====================================================
+       CONTACT US — scoped internal styles
+       Uses tokens from main.css directly. Never redeclares
+       shared classes (.clay-card, .btn) at global specificity —
+       only compound-scoped so nothing leaks to footer/navbar.
+    ===================================================== */
+
+    .ct-page{
+        --ct-brass-light: #D3A05C;
+        display:flex;
+        flex-direction:column;
+        gap:28px;
+        padding:26px 0 56px;
+    }
+
+    /* ---------- HERO ---------- */
+    .ct-hero.clay-card{
+        position:relative;
+        display:flex;
+        align-items:center;
+        gap:30px;
+        padding:44px 48px;
+        background:linear-gradient(135deg, var(--pine) 0%, var(--pine-deep) 100%);
+        color:var(--paper);
+        border-radius:var(--radius-lg);
+        overflow:hidden;
+    }
+
+    .ct-hero-stub{ flex:1; min-width:260px; }
+
+    .ct-hero-eyebrow{
+        font-family:var(--font-mono);
+        font-size:12px;
+        letter-spacing:.14em;
+        text-transform:uppercase;
+        color:var(--ct-brass-light);
+    }
+
+    .ct-hero-title{
+        font-family:var(--font-display);
+        font-size:40px;
+        font-weight:600;
+        margin:10px 0 12px;
+        color:#fff;
+    }
+
+    .ct-hero-sub{
+        font-family:var(--font-body);
+        max-width:480px;
+        line-height:1.7;
+        color:rgba(246,243,236,.82);
+    }
+
+    .ct-hero-icon{
+        font-size:80px;
+        opacity:.9;
+        flex-shrink:0;
+        filter:drop-shadow(0 10px 20px rgba(0,0,0,.25));
+    }
+
+    /* ---------- GRID ---------- */
+    .ct-grid{
+        display:grid;
+        grid-template-columns:320px 1fr;
+        gap:26px;
+    }
+
+    /* ---------- MANAGER CARD ---------- */
+    .ct-manager.clay-card{
+        padding:36px 30px;
+        text-align:center;
+        border-radius:var(--radius-lg);
+    }
+
+    .ct-manager-avatar{
+        width:120px;height:120px;
+        margin:0 auto 18px;
+        border-radius:50%;
+        overflow:hidden;
+        border:4px solid var(--paper-raised);
+        box-shadow:var(--shadow-card);
+    }
+    .ct-manager-avatar img{
+        width:100%;height:100%;
+        object-fit:cover;
+    }
+
+    .ct-manager-name{
+        font-family:var(--font-display);
+        font-size:24px;
+        color:var(--ink-hi);
+        margin-bottom:4px;
+    }
+
+    .ct-manager-role{
+        display:inline-block;
+        font-family:var(--font-mono);
+        font-size:11px;
+        letter-spacing:.08em;
+        text-transform:uppercase;
+        color:var(--pine);
+        background:var(--pine-soft);
+        border:1px solid var(--line);
+        padding:6px 14px;
+        border-radius:100px;
+        margin-bottom:18px;
+    }
+
+    .ct-manager-desc{
+        font-family:var(--font-body);
+        font-size:14px;
+        line-height:1.7;
+        color:var(--ink-mid);
+        margin-bottom:6px;
+    }
+
+    .ct-page .ticket-divider{
+        display:flex;
+        justify-content:space-between;
+        margin:22px 0;
+    }
+    .ct-page .ticket-divider span{
+        width:8px;height:8px;
+        border-radius:50%;
+        background:var(--paper-sunk);
+        border:1px solid var(--line);
+    }
+
+    .ct-manager-email{
+        display:block;
+        margin-top:14px;
+        font-family:var(--font-mono);
+        font-size:13px;
+        color:var(--pine);
+        text-decoration:none;
+    }
+    .ct-manager-email:hover{ text-decoration:underline; }
+
+    /* ---------- RIGHT COLUMN ---------- */
+    .ct-right{
+        display:flex;
+        flex-direction:column;
+        gap:22px;
+    }
+
+    .ct-info-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+        gap:16px;
+    }
+
+    .ct-info-card.clay-card{
+        padding:22px;
+        border-radius:var(--radius-md);
+        transition:transform .22s var(--ease-out), box-shadow .22s var(--ease-out);
+    }
+    .ct-info-card.clay-card:hover{
+        transform:translateY(-4px);
+        box-shadow:var(--shadow-lift);
+    }
+
+    .ct-info-icon{
+        font-size:20px;
+        display:inline-block;
+        margin-bottom:8px;
+    }
+
+    .ct-info-card h3{
+        font-family:var(--font-display);
+        font-size:15.5px;
+        color:var(--ink-hi);
+        margin-bottom:6px;
+    }
+
+    .ct-info-card p{
+        font-family:var(--font-body);
+        font-size:13px;
+        color:var(--ink-mid);
+        line-height:1.6;
+    }
+
+    .ct-info-link{
+        display:inline-block;
+        margin-top:8px;
+        font-family:var(--font-mono);
+        font-size:12px;
+        color:var(--brass);
+        text-decoration:none;
+    }
+    .ct-info-link:hover{ text-decoration:underline; }
+
+    /* ---------- MESSAGE FORM ---------- */
+    .ct-form.clay-card{
+        padding:30px 32px;
+        border-radius:var(--radius-lg);
+        display:flex;
+        flex-direction:column;
+        gap:18px;
+    }
+
+    .ct-form-title{
+        font-family:var(--font-display);
+        font-size:19px;
+        color:var(--ink-hi);
+    }
+    .ct-form-sub{
+        font-family:var(--font-body);
+        font-size:13.5px;
+        color:var(--ink-mid);
+        margin-top:-10px;
+    }
+
+    .ct-form-row{
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+    }
+
+    .ct-form-row-split{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:18px;
+    }
+
+    .ct-form label{
+        font-family:var(--font-mono);
+        font-size:12px;
+        letter-spacing:.05em;
+        text-transform:uppercase;
+        color:var(--pine);
+    }
+
+    .ct-form input[type="text"],
+    .ct-form input[type="email"],
+    .ct-form select,
+    .ct-form textarea{
+        font-family:var(--font-body);
+        font-size:14.5px;
+        color:var(--ink-hi);
+        background:var(--paper-sunk);
+        border:1px solid var(--line);
+        border-radius:var(--radius-sm);
+        padding:12px 14px;
+        outline:none;
+        transition:border-color .2s, box-shadow .2s, background .2s;
+        width:100%;
+    }
+
+    .ct-form input:focus,
+    .ct-form select:focus,
+    .ct-form textarea:focus{
+        border-color:var(--brass);
+        background:var(--paper-raised);
+        box-shadow:0 0 0 4px var(--brass-soft);
+    }
+
+    .ct-form textarea{
+        resize:vertical;
+        line-height:1.6;
+    }
+
+    /* ---------- SERVICES ---------- */
+    .ct-services.clay-card{
+        padding:26px 28px;
+        border-radius:var(--radius-lg);
+    }
+
+    .ct-services-title{
+        font-family:var(--font-display);
+        font-size:18px;
+        color:var(--ink-hi);
+        margin-bottom:16px;
+    }
+
+    .ct-tags{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+    }
+
+    .ct-tags span{
+        padding:9px 16px;
+        border-radius:100px;
+        background:var(--pine);
+        color:#fff;
+        font-family:var(--font-body);
+        font-size:13px;
+        font-weight:600;
+        transition:background .22s, transform .22s;
+    }
+    .ct-tags span:hover{
+        background:var(--brass);
+        color:#2A1B04;
+        transform:translateY(-2px);
+    }
+
+    /* ---------- button modifiers (extend existing .btn base) ---------- */
+    .ct-page .btn-brass{
+        background:linear-gradient(135deg, var(--brass), var(--ct-brass-light));
+        color:#2A1B04;
+        box-shadow:0 8px 20px rgba(184,134,60,.28);
+    }
+    .ct-page .btn-brass:hover{
+        transform:translateY(-2px);
+        filter:brightness(1.05);
+    }
+
+    .ct-page .btn-outline{
+        background:transparent;
+        color:var(--pine);
+        border:1.5px solid var(--pine);
+    }
+    .ct-page .btn-outline:hover{
+        background:var(--pine);
+        color:var(--paper);
+    }
+
+    .ct-page .btn-block{ width:100%; }
+
+    /* ---------- BACK LINK ---------- */
+    .ct-back{ max-width:320px; }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width:900px){
+        .ct-grid{ grid-template-columns:1fr; }
+        .ct-hero.clay-card{ flex-direction:column; align-items:flex-start; padding:34px 26px; }
+        .ct-hero-icon{ align-self:flex-end; }
+        .ct-form-row-split{ grid-template-columns:1fr; }
+        .ct-back{ max-width:100%; }
+    }
 </style>
 
-</head>
-
-<body>
-
-<div class="card">
-
-<!-- =========================================
-     HERO SECTION
-========================================= -->
-
-<div class="hero">
-
-<div class="left">
-
-<div class="badge">
-🚌 Zeal College Transport Support
-</div>
-
-<h1>
-Need Help With Your Bus Service?
-</h1>
-
-<p class="subtitle">
-
-Whether you have questions about your assigned bus,
-route timings, transportation fees, attendance, or any
-travel-related issue, our Transport Office is here to assist you.
-
-</p>
-
-</div>
-
-<div class="bus">
-🚌
-</div>
-
-</div>
-
-<!-- =========================================
-     MAIN CONTENT
-========================================= -->
-
-<div class="content">
-
-<!-- =========================================
-     TRANSPORT MANAGER PROFILE
-========================================= -->
-
-<div class="profile">
-
-<div class="avatar">
-
-<img
-src="/images/amol-bhate.jpg"
-alt="Transport Manager"
-
->
-
-</div>
-
-<h2>
-Amol Bhate
-</h2>
-
-<div class="role">
-Transport Manager
-</div>
-
-<p class="desc">
-
-For transportation support, route changes, emergency
-assistance, or bus-related queries, please contact the
-Transport Manager directly.
-
-</p>
-
-<a
-class="call"
-href="tel:+919011685965"
-
->
-
-📞 Call Now
-
-</a>
-
-</div>
-
-<!-- =========================================
-     RIGHT SIDE CONTENT
-========================================= -->
-
-<div>
-
-<!-- =========================================
-     INFORMATION CARDS
-========================================= -->
-
-<div class="info">
-
-<div class="box">
-
-<h3>
-📍 Office
-</h3>
-
-<p>
-
-E Building, Ground Floor<br>
-Transport Department<br>
-Zeal College of Engineering & Research
-
-</p>
-
-</div>
-
-<div class="box">
-
-<h3>
-📞 Contact
-</h3>
-
-<p>
-
-+91 90116 85965
-
-</p>
-
-</div>
-
-<div class="box">
-
-<h3>
-🕒 Office Hours
-</h3>
-
-<p>
-
-Monday – Saturday<br>
-9:00 AM – 5:00 PM
-
-</p>
-
-</div>
-
-<div class="box">
-
-<h3>
-🌐 Website
-</h3>
-
-<p>
-
-<a
-href="https://zcoer.in/"
-target="_blank"
-rel="noopener noreferrer"
-style="display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#fff;text-decoration:none;border-radius:50px;font-weight:600;box-shadow:0 8px 20px rgba(37,99,235,.2);"
-
->
-
-Official College Website
-
-</a>
-
-</p>
-
-</div>
-
-</div>
-
-<!-- =========================================
-     BACK TO LOGIN BUTTON
-========================================= -->
-
-<div style="margin:24px 0;">
-
-<a
-href="/login"
-style="display:flex;justify-content:center;align-items:center;width:100%;padding:18px 24px;background:linear-gradient(135deg,#2563eb,#0ea5e9);color:#ffffff;text-decoration:none;font-size:17px;font-weight:700;border-radius:16px;box-shadow:0 10px 25px rgba(37,99,235,.18);">
-
-← Back to Login Page
-
-</a>
-
-</div>
-
-<!-- =========================================
-     TRANSPORT SERVICES
-========================================= -->
-
-<div class="services">
-
-<h3>
-Transport Office Can Help You With
-</h3>
-
-<div class="tags">
-
-<span>Bus Route</span>
-
-<span>Bus Pass</span>
-
-<span>Fee Queries</span>
-
-<span>Attendance</span>
-
-<span>Driver Support</span>
-
-<span>Emergency Help</span>
-
-<span>Lost Items</span>
-
-<span>Complaints</span>
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar') %>
+
+    <main class="app-main">
+
+        <div class="container ct-page">
+
+            <!-- =====================================================
+                 HERO
+            ====================================================== -->
+
+            <section class="ct-hero clay-card">
+                <div class="ct-hero-stub">
+                    <span class="ct-hero-eyebrow">Route&nbsp;00 &middot; Support Desk</span>
+                    <h1 class="ct-hero-title">Contact Us</h1>
+                    <p class="ct-hero-sub">
+                        Questions about your bus, route timings, fees,
+                        attendance, or anything else &mdash; the Transport
+                        Office is here to help.
+                    </p>
+                </div>
+                <span class="ct-hero-icon">&#128222;</span>
+            </section>
+
+            <!-- =====================================================
+                 MAIN GRID: MANAGER CARD + RIGHT COLUMN
+            ====================================================== -->
+
+            <div class="ct-grid">
+
+                <!-- ============ MANAGER CARD ============ -->
+                <aside class="ct-manager clay-card">
+
+                    <div class="ct-manager-avatar">
+                        <img src="/images/amol-bhate.jpg" alt="Transport Manager, Amol Bhate">
+                    </div>
+
+                    <h2 class="ct-manager-name">Amol Bhate</h2>
+                    <span class="ct-manager-role">Transport Manager</span>
+
+                    <p class="ct-manager-desc">
+                        For transportation support, route changes, emergency
+                        assistance, or bus-related queries, reach out
+                        directly.
+                    </p>
+
+                    <div class="ticket-divider">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+
+                    <a href="tel:+919011685965" class="btn btn-brass btn-block">
+                        <span class="icon">&#9742;</span> +91 90116 85965
+                    </a>
+
+                    <a href="mailto:transport@zcoer.in" class="ct-manager-email">
+                        transport@zcoer.in
+                    </a>
+
+                </aside>
+
+                <!-- ============ RIGHT COLUMN ============ -->
+                <div class="ct-right">
+
+                    <div class="ct-info-grid">
+
+                        <div class="ct-info-card clay-card">
+                            <span class="ct-info-icon">&#128205;</span>
+                            <h3>Office</h3>
+                            <p>
+                                E Building, Ground Floor<br>
+                                Transport Department, ZCOER
+                            </p>
+                        </div>
+
+                        <div class="ct-info-card clay-card">
+                            <span class="ct-info-icon">&#128340;</span>
+                            <h3>Office Hours</h3>
+                            <p>Monday &ndash; Saturday<br>9:00 AM &ndash; 5:00 PM</p>
+                        </div>
+
+                        <div class="ct-info-card clay-card">
+                            <span class="ct-info-icon">&#127760;</span>
+                            <h3>Website</h3>
+                            <p>Official college portal</p>
+                            <a href="https://zcoer.in/" target="_blank" rel="noopener noreferrer" class="ct-info-link">
+                                zcoer.in &rarr;
+                            </a>
+                        </div>
+
+                    </div>
+
+                    <!-- ============ MESSAGE FORM ============ -->
+                    <form class="ct-form clay-card" action="/home/contact" method="POST">
+
+                        <div>
+                            <h3 class="ct-form-title">Send a Message</h3>
+                            <p class="ct-form-sub">Not urgent? Drop a message and we'll get back to you.</p>
+                        </div>
+
+                        <div class="ct-form-row-split">
+                            <div class="ct-form-row">
+                                <label for="ctName">Your Name</label>
+                                <input
+                                    type="text"
+                                    id="ctName"
+                                    name="name"
+                                    value="<%= typeof user !== 'undefined' && user ? user.name : '' %>"
+                                    required
+                                >
+                            </div>
+                            <div class="ct-form-row">
+                                <label for="ctEmail">Email</label>
+                                <input
+                                    type="email"
+                                    id="ctEmail"
+                                    name="email"
+                                    value="<%= typeof user !== 'undefined' && user ? user.email : '' %>"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="ct-form-row">
+                            <label for="ctSubject">Subject</label>
+                            <input
+                                type="text"
+                                id="ctSubject"
+                                name="subject"
+                                placeholder="What's this about?"
+                                maxlength="120"
+                                required
+                            >
+                        </div>
+
+                        <div class="ct-form-row">
+                            <label for="ctMessage">Message</label>
+                            <textarea
+                                id="ctMessage"
+                                name="message"
+                                rows="5"
+                                placeholder="Tell us what's going on"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-brass btn-block">
+                            <span class="icon">&#9993;</span> Send Message
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+            <!-- =====================================================
+                 SERVICES
+            ====================================================== -->
+
+            <div class="ct-services clay-card">
+                <h3 class="ct-services-title">Transport Office Can Help You With</h3>
+                <div class="ct-tags">
+                    <span>Bus Route</span>
+                    <span>Bus Pass</span>
+                    <span>Fee Queries</span>
+                    <span>Attendance</span>
+                    <span>Driver Support</span>
+                    <span>Emergency Help</span>
+                    <span>Lost Items</span>
+                    <span>Complaints</span>
+                </div>
+            </div>
+
+            <!-- =====================================================
+                 BACK LINK
+            ====================================================== -->
+
+            <div class="ct-back">
+                <% if (typeof user !== 'undefined' && user) { %>
+                    <a href="/<%= user.role %>/dashboard" class="btn btn-outline btn-block">
+                        &larr; Back to Dashboard
+                    </a>
+                <% } else { %>
+                    <a href="/login" class="btn btn-outline btn-block">
+                        &larr; Back to Login
+                    </a>
+                <% } %>
+            </div>
+
+        </div>
+
+    </main>
 
 </div>
 
-<!-- =========================================
-     FOOTER
-========================================= -->
-
-<div class="footer">
-
-<a
-class="website"
-href="https://zcoer.in"
-target="_blank"
-rel="noopener noreferrer"
-
->
-
-Visit Official College Website →
-
-</a>
-
-<div class="copy">
-
-© <%= new Date().getFullYear() %> Smart College Bus Management System
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</body>
-
-</html>
+<%- include('../partials/footer') %>
