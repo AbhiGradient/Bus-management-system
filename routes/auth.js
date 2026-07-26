@@ -101,7 +101,7 @@ router.post('/auth/forgot-password', async (req, res) => {
         [hashToken(token), expires, user.id]
       );
 
-      const resetLink = `${req.protocol}://${req.get('host')}/auth/reset-password/${token}`;
+      const resetLink = `${process.env.BASE_URL}/auth/reset-password/${token}`;
 
       await sendMail(
         user.email,

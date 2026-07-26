@@ -1,150 +1,72 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-const smtpPort = Number(process.env.SMTP_PORT || 587);
+const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-
     port: smtpPort,
-
     secure: smtpPort === 465,
-
-    family: 4,
+    requireTLS: smtpPort !== 465,
 
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
     },
 
+    family: 4,
+
     connectionTimeout: 30000,
-
     greetingTimeout: 30000,
+    socketTimeout: 30000,
 
-    socketTimeout: 30000
-});
-
-
-// =====================================================
-// VERIFY SMTP CONNECTION
-// =====================================================
-
-transporter.verify((error, success) => {
-
-    if (error) {
-
-        console.error(
-            '❌ Mailer connection failed:',
-            error.code || '',
-            error.message
-        );
-
-    } else {
-
-        console.log(
-            '✅ Mailer ready to send emails'
-        );
-
+    tls: {
+        rejectUnauthorized: false,
+        minVersion: 'TLSv1.2'
     }
-
 });
 
-
-// =====================================================
-// SEND EMAIL
-// =====================================================
+(async () => {
+    try {
+        await transporter.verify();
+        console.log('✅ Mailer connected successfully');
+    } catch (err) {
+        console.error('❌ Mailer connection failed');
+        console.error(err);
+    }
+})();
 
 async function sendMail(to, subject, html) {
-
     try {
 
-        if (!to) {
-
-            throw new Error(
-                'Recipient email address is missing'
-            );
-
-        }
-
-        if (!process.env.SMTP_USER) {
-
-            throw new Error(
-                'SMTP_USER is not configured'
-            );
-
-        }
-
-        if (!process.env.SMTP_PASS) {
-
-            throw new Error(
-                'SMTP_PASS is not configured'
-            );
-
-        }
-
-
         const info = await transporter.sendMail({
-
-            from:
-                `"Smart College Bus" <${process.env.SMTP_USER}>`,
-
-            to: to,
-
-            subject: subject,
-
-            html: html
-
+            from: `"CampusTransit" <${process.env.SMTP_USER}>`,
+            to,
+            subject,
+            html
         });
 
-
-        console.log(
-            '✅ Email sent successfully to:',
-            to
-        );
-
-        console.log(
-            '📨 Message ID:',
-            info.messageId
-        );
-
+        console.log(`✅ Email sent to ${to}`);
+        console.log(`📨 Message ID: ${info.messageId}`);
 
         return {
-
             success: true,
-
-            messageId:
-                info.messageId
-
+            messageId: info.messageId
         };
 
+    } catch (err) {
 
-    } catch (error) {
-
-        console.error(
-            '❌ Email send failed:',
-            error.code || '',
-            error.message
-        );
-
+        console.error('❌ Email send failed');
+        console.error(err);
 
         return {
-
             success: false,
-
-            error:
-                error.message
-
+            error: err.message
         };
-
     }
-
 }
 
-
 module.exports = {
-
     transporter,
-
     sendMail
-
 };
