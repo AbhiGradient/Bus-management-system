@@ -516,9 +516,6 @@ const newCount = reportList.filter(r => r.status === 'new').length
 
         <div class="msg-modal-actions">
             <a href="#" id="msgModalContactBtn" class="btn btn-primary">Contact</a>
-            <form id="msgModalResolveForm" method="POST" action="">
-                <button type="submit" class="btn btn-success">Mark Resolved</button>
-            </form>
         </div>
 
     </div>
@@ -610,12 +607,6 @@ const newCount = reportList.filter(r => r.status === 'new').length
                     contactBtn.href = 'mailto:' + d.email;
                     contactBtn.textContent = '\u2709 Email ' + d.name;
                 }
-
-                // resolve form action
-                const resolveForm = document.getElementById('msgModalResolveForm');
-                resolveForm.action = isReport
-                    ? '/admin/reports/' + d.id + '/resolve'
-                    : '/admin/messages/' + d.id + '/resolve';
 
                 overlay.classList.add('active');
             });
