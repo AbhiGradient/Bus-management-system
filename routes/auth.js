@@ -15,9 +15,9 @@ const { isValidEmail, isValidPassword } = require('../utils/validators');
     if (err.code !== 'ER_DUP_FIELDNAME') console.error('reset_token column check failed:', err.message);
   }
   try {
-    await db.query('ALTER TABLE users ADD COLUMN reset_token_expires DATETIME NULL');
+    await db.query('ALTER TABLE users ADD COLUMN reset_token_expiry DATETIME NULL');
   } catch (err) {
-    if (err.code !== 'ER_DUP_FIELDNAME') console.error('reset_token_expires column check failed:', err.message);
+    if (err.code !== 'ER_DUP_FIELDNAME') console.error('reset_token_expiry column check failed:', err.message);
   }
 })();
 
@@ -97,7 +97,7 @@ router.post('/auth/forgot-password', async (req, res) => {
       const expires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
 
       await db.query(
-        'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
+        'UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?',
         [hashToken(token), expires, user.id]
       );
 
@@ -126,7 +126,7 @@ router.get('/auth/reset-password/:token', async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      'SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > NOW() LIMIT 1',
+      'SELECT id FROM users WHERE reset_token = ? AND reset_token_expiry > NOW() LIMIT 1',
       [hashToken(token)]
     );
 
@@ -158,7 +158,7 @@ router.post('/auth/reset-password/:token', async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      'SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > NOW() LIMIT 1',
+      'SELECT id FROM users WHERE reset_token = ? AND reset_token_expiry > NOW() LIMIT 1',
       [hashToken(token)]
     );
 
@@ -193,7 +193,7 @@ router.post('/auth/reset-password/:token', async (req, res) => {
     const user = rows[0];
 
     await db.query(
-      'UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
+      'UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?',
       [hashedPassword, user.id]
     );
 
