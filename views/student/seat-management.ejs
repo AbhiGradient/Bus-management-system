@@ -16,14 +16,22 @@
   <div class="app-main">
     <main class="main-content">
 
-      <h3 class="mb-3">
-        <i class="bi bi-grid-3x3-gap-fill"></i>
-        Seat Management
-      </h3>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Seat Management
+        </h3>
+        <% if (selectedBus) { %>
+          <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">
+            <i class="bi bi-printer-fill"></i>
+            Print PDF
+          </button>
+        <% } %>
+      </div>
 
       <% if (user.role === 'admin') { %>
         <!-- Bus Selector (admin only) -->
-        <div class="card p-3 mb-3">
+        <div class="card p-3 mb-3 no-print">
           <form action="/admin/seat-management" method="GET" class="row g-2 align-items-end">
             <div class="col-md-5">
               <label class="form-label">Select Bus</label>
@@ -58,88 +66,98 @@
 
       <% } else { %>
 
-        <div class="row mb-3 g-3">
-          <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="text-muted small">Total Capacity</div>
-              <div class="fs-3 fw-bold"><%= selectedBus.capacity %></div>
-            </div>
+        <div id="printable-area">
+
+          <div class="print-header d-none d-print-block mb-3">
+            <h4 class="mb-0">CampusTransit — Seat Allocation Report</h4>
+            <div class="text-muted small"><%= selectedBus.bus_number %> — <%= selectedBus.route_name %></div>
           </div>
-          <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="text-muted small">Allocated Seats</div>
-              <div class="fs-3 fw-bold text-danger"><%= allocatedStudents.length %></div>
+
+          <div class="row mb-3 g-3">
+            <div class="col-md-4">
+              <div class="card p-3 text-center">
+                <div class="text-muted small">Total Capacity</div>
+                <div class="fs-3 fw-bold"><%= selectedBus.capacity %></div>
+              </div>
             </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card p-3 text-center">
-              <div class="text-muted small">Vacant Seats</div>
-              <div class="fs-3 fw-bold text-success">
-                <%= selectedBus.capacity - allocatedStudents.length %>
+            <div class="col-md-4">
+              <div class="card p-3 text-center">
+                <div class="text-muted small">Allocated Seats</div>
+                <div class="fs-3 fw-bold text-danger"><%= allocatedStudents.length %></div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card p-3 text-center">
+                <div class="text-muted small">Vacant Seats</div>
+                <div class="fs-3 fw-bold text-success">
+                  <%= selectedBus.capacity - allocatedStudents.length %>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="card p-3">
-          <h5 class="mb-3"><%= selectedBus.bus_number %> — <%= selectedBus.route_name %></h5>
+          <div class="card p-3">
+            <h5 class="mb-3"><%= selectedBus.bus_number %> — <%= selectedBus.route_name %></h5>
 
-          <div class="d-flex gap-3 mb-3">
-            <span><span class="badge bg-danger">&nbsp;</span> Allocated</span>
-            <span><span class="badge bg-success">&nbsp;</span> Vacant</span>
-            <% if (user.role === 'student') { %>
-              <span><span class="badge bg-primary">&nbsp;</span> My Seat</span>
-            <% } %>
-          </div>
-
-          <div class="seat-grid d-flex flex-wrap gap-2">
-            <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
-              <% const s = allocatedStudents[seatNo - 1]; %>
-              <% const isMine = user.role === 'student' && s && s.id === student.id; %>
-              <% if (s) { %>
-                <div
-                  class="seat <%= isMine ? 'seat-mine' : 'seat-occupied' %>"
-                  data-bs-toggle="tooltip"
-                  title="<%= s.name %> (<%= s.roll_no %>)">
-                  <i class="bi bi-person-fill"></i>
-                  <small><%= seatNo %></small>
-                </div>
-              <% } else { %>
-                <div class="seat seat-vacant">
-                  <i class="bi bi-person"></i>
-                  <small><%= seatNo %></small>
-                </div>
+            <div class="d-flex gap-3 mb-3 no-print">
+              <span><span class="badge bg-danger">&nbsp;</span> Allocated</span>
+              <span><span class="badge bg-success">&nbsp;</span> Vacant</span>
+              <% if (user.role === 'student') { %>
+                <span><span class="badge bg-primary">&nbsp;</span> My Seat</span>
               <% } %>
-            <% } %>
-          </div>
-        </div>
+            </div>
 
-        <% if (user.role === 'admin') { %>
-        <div class="card p-3 mt-3">
-          <h5 class="mb-3">Students Allocated to <%= selectedBus.bus_number %></h5>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead>
-                <tr><th>Seat #</th><th>Name</th><th>Roll No</th><th>Department</th><th>Year</th></tr>
-              </thead>
-              <tbody>
-                <% if (allocatedStudents.length === 0) { %>
-                  <tr><td colspan="5" class="text-center text-muted py-3">No students allocated to this bus yet.</td></tr>
+            <div class="seat-grid d-flex flex-wrap gap-2">
+              <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
+                <% const s = allocatedStudents[seatNo - 1]; %>
+                <% const isMine = user.role === 'student' && s && s.id === student.id; %>
+                <% if (s) { %>
+                  <div
+                    class="seat <%= isMine ? 'seat-mine' : 'seat-occupied' %>"
+                    data-bs-toggle="tooltip"
+                    title="<%= s.name %> (<%= s.roll_no %>)">
+                    <i class="bi bi-person-fill"></i>
+                    <small><%= seatNo %></small>
+                  </div>
+                <% } else { %>
+                  <div class="seat seat-vacant">
+                    <i class="bi bi-person"></i>
+                    <small><%= seatNo %></small>
+                  </div>
                 <% } %>
-                <% allocatedStudents.forEach((s, i) => { %>
-                  <tr>
-                    <td><%= i + 1 %></td>
-                    <td><%= s.name %></td>
-                    <td><%= s.roll_no %></td>
-                    <td><%= s.department %></td>
-                    <td><%= s.year %></td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
+              <% } %>
+            </div>
           </div>
+
+          <% if (user.role === 'admin') { %>
+          <div class="card p-3 mt-3">
+            <h5 class="mb-3">Students Allocated to <%= selectedBus.bus_number %></h5>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead>
+                  <tr><th>Seat #</th><th>Name</th><th>Roll No</th><th>Department</th><th>Year</th></tr>
+                </thead>
+                <tbody>
+                  <% if (allocatedStudents.length === 0) { %>
+                    <tr><td colspan="5" class="text-center text-muted py-3">No students allocated to this bus yet.</td></tr>
+                  <% } %>
+                  <% allocatedStudents.forEach((s, i) => { %>
+                    <tr>
+                      <td><%= i + 1 %></td>
+                      <td><%= s.name %></td>
+                      <td><%= s.roll_no %></td>
+                      <td><%= s.department %></td>
+                      <td><%= s.year %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <% } %>
+
         </div>
-        <% } %>
+        <!-- /#printable-area -->
 
       <% } %>
 
@@ -159,6 +177,16 @@
   .seat-occupied { background-color: var(--bs-danger, #dc3545); }
   .seat-vacant   { background-color: var(--bs-success, #198754); }
   .seat-mine     { background-color: var(--bs-primary, #0d6efd); outline: 2px solid #fff; }
+
+  @media print {
+    .app-navbar, .app-sidebar, .app-footer, .no-print, .btn, script { display: none !important; }
+    .app-shell, .app-main, .main-content { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    .card { border: 1px solid #ccc !important; box-shadow: none !important; break-inside: avoid; }
+    .seat { border: 1px solid #999; color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .seat-occupied, .seat-vacant, .seat-mine { background-color: #fff !important; }
+    .seat-occupied::after, .seat-mine::after { content: "X"; font-weight: bold; }
+    table { width: 100% !important; }
+  }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
