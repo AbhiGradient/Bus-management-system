@@ -389,3 +389,139 @@ label {
   .stat-card { padding: 18px; }
   .stat-card::before, .stat-card::after { display: none; }
 }
+
+/* =========================================
+   MODERN TABLE ACTION BUTTONS
+   ========================================= */
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    height: 36px;
+    padding: 0 13px;
+
+    border-radius: 9px;
+    border: 1px solid transparent;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+
+    vertical-align: middle;
+}
+
+
+/* Icon */
+
+.action-btn i {
+    font-size: 15px;
+    line-height: 1;
+}
+
+
+/* =========================================
+   EDIT BUTTON
+   ========================================= */
+
+.action-btn-edit {
+    color: #2563eb !important;
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.08);
+}
+
+
+.action-btn-edit:hover {
+    color: #ffffff !important;
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 5px 12px rgba(37, 99, 235, 0.25);
+}
+
+
+.action-btn-edit:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================
+   DELETE BUTTON
+   ========================================= */
+
+.action-btn-delete {
+    color: #dc2626 !important;
+    background: #fef2f2 !important;
+    border-color: #fecaca !important;
+
+    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.08);
+}
+
+
+.action-btn-delete:hover {
+    color: #ffffff !important;
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 5px 12px rgba(220, 38, 38, 0.25);
+}
+
+
+.action-btn-delete:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================
+   BUTTON SPACING
+   ========================================= */
+
+.action-btn + .action-btn,
+.action-btn + form {
+    margin-left: 6px;
+}
+
+
+/* Remove default form spacing */
+
+.action-btn-delete {
+    margin-left: 0;
+}
+
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 768px) {
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        gap: 0;
+    }
+
+    .action-btn span {
+        display: none;
+    }
+
+}
