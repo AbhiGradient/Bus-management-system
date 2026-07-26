@@ -1,31 +1,31 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns');
 require('dotenv').config();
 
-const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
+// Prefer IPv4 over IPv6
+dns.setDefaultResultOrder('ipv4first');
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: smtpPort,
-    secure: smtpPort === 465,
-    requireTLS: smtpPort !== 465,
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
 
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
     },
 
-    family: 4,
-
-    connectionTimeout: 30000,
-    greetingTimeout: 30000,
-    socketTimeout: 30000,
-
     tls: {
-        rejectUnauthorized: false,
-        minVersion: 'TLSv1.2'
-    }
+        servername: 'smtp.gmail.com',
+        rejectUnauthorized: false
+    },
+
+    connectionTimeout: 60000,
+    greetingTimeout: 60000,
+    socketTimeout: 60000
 });
 
+// Verify SMTP connection
 (async () => {
     try {
         await transporter.verify();
@@ -36,9 +36,9 @@ const transporter = nodemailer.createTransport({
     }
 })();
 
+// Send email
 async function sendMail(to, subject, html) {
     try {
-
         const info = await transporter.sendMail({
             from: `"CampusTransit" <${process.env.SMTP_USER}>`,
             to,
@@ -53,9 +53,7 @@ async function sendMail(to, subject, html) {
             success: true,
             messageId: info.messageId
         };
-
     } catch (err) {
-
         console.error('❌ Email send failed');
         console.error(err);
 
