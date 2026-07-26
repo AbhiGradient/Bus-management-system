@@ -330,137 +330,93 @@ router.post(
 
 // =====================================================
 // ADMIN MESSAGE INBOX
-// URL: /home/messages
-//
-// View:
-// views/home/messages-inbox.ejs
-//
-// This page displays:
-// 1. Contact Us messages
-// 2. Reported Issues
-//
-// Only Admin can access this page.
 // =====================================================
 
 router.get('/messages-inbox', async (req, res) => {
 
-    // -------------------------------------------------
-    // ADMIN-ONLY ACCESS
-    // -------------------------------------------------
-
+    // Admin-only access
     if (
         !req.session.user ||
         req.session.user.role !== 'admin'
     ) {
-
         return res.redirect('/login');
-
     }
-
 
     try {
 
-        // =================================================
-        // FETCH ISSUE REPORTS
-        // =================================================
+        console.log('📨 Loading admin messages inbox...');
+
+        // ==========================================
+        // GET ISSUE REPORTS
+        // ==========================================
 
         const [reports] = await db.promise().query(`
-
             SELECT
-
                 id,
-
                 issue_type AS issueType,
-
                 bus_route AS busRoute,
-
                 priority,
-
                 subject,
-
                 description,
-
                 attachment AS attachmentUrl,
-
                 contact_name AS contactName,
-
                 contact_number AS contactNumber,
-
                 status,
-
                 created_at AS createdAt
-
             FROM issue_reports
-
             ORDER BY created_at DESC
-
         `);
 
-
-        // =================================================
-        // FETCH CONTACT MESSAGES
-        // =================================================
-
-        const [messages] = await db.promise().query(`
-
-            SELECT
-
-                id,
-
-                name,
-
-                email,
-
-                subject,
-
-                message,
-
-                status,
-
-                created_at AS createdAt
-
-            FROM contact_messages
-
-            ORDER BY created_at DESC
-
-        `);
-
-
-        // =================================================
-        // RENDER MESSAGES INBOX
-        //
-        // File:
-        // views/home/messages-inbox.ejs
-        // =================================================
-
-        return res.render(
-            'home/messages-inbox',
-            {
-                reports,
-                messages
-            }
+        console.log(
+            `✅ Issue reports loaded: ${reports.length}`
         );
 
+
+        // ==========================================
+        // GET CONTACT MESSAGES
+        // ==========================================
+
+        const [messages] = await db.promise().query(`
+            SELECT
+                id,
+                name,
+                email,
+                subject,
+                message,
+                status,
+                created_at AS createdAt
+            FROM contact_messages
+            ORDER BY created_at DESC
+        `);
+
+        console.log(
+            `✅ Contact messages loaded: ${messages.length}`
+        );
+
+
+        // ==========================================
+        // RENDER INBOX
+        // ==========================================
+
+        res.render('home/messages-inbox', {
+            reports: reports || [],
+            messages: messages || []
+        });
 
     } catch (error) {
 
         console.error(
-            'Error loading messages inbox:',
-            error
+            '❌ ERROR LOADING MESSAGE INBOX:'
         );
 
+        console.error(error);
 
-        return res.status(500).send(
-            'Unable to load messages inbox.'
-        );
+        res.status(500).send(`
+            <h2>Unable to load messages inbox.</h2>
+            <pre>${error.message}</pre>
+        `);
 
     }
 
 });
-
-
-// =====================================================
-// EXPORT ROUTER
-// =====================================================
-
 module.exports = router;
