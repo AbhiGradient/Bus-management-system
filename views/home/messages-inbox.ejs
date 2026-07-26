@@ -1,0 +1,635 @@
+<%
+/*
+  views/home/messages-inbox.ejs
+  Admin-only inbox combining:
+    - reports  (from report-issue.ejs submissions)
+    - messages (from contact.ejs submissions)
+
+  Expected locals:
+    reports  = [{ id, issueType, busRoute, priority, subject, description,
+                  attachmentUrl, contactName, contactNumber, status, createdAt }]
+    messages = [{ id, name, email, subject, message, status, createdAt }]
+    user     = current admin user (for sidebar/header)
+
+  Both arrays default to [] if not provided.
+*/
+const reportList = typeof reports !== 'undefined' ? reports : [];
+const messageList = typeof messages !== 'undefined' ? messages : [];
+
+const urgentCount = reportList.filter(r => r.priority === 'urgent').length;
+const newCount = reportList.filter(r => r.status === 'new').length
+               + messageList.filter(m => m.status === 'new').length;
+%>
+<%- include('../partials/header', { title: 'Messages | CampusTransit Admin' }) %>
+
+<style>
+    /* =====================================================
+       MESSAGES INBOX — scoped internal styles
+       Reuses existing .card / .table / .badge-status / .stat-card
+       components from main.css. Only adds scoped modifier classes
+       and layout — never redeclares the base component selectors.
+    ===================================================== */
+
+    .msg-page{
+        display:flex;
+        flex-direction:column;
+        gap:24px;
+        padding:26px 0 56px;
+    }
+
+    .msg-intro h3{ margin-bottom:2px; }
+    .msg-intro p{ color:var(--ink-low); margin:0; }
+
+    /* ---------- STAT ROW ---------- */
+    .msg-stats{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:18px;
+    }
+
+    /* ---------- TABS ---------- */
+    .msg-tabs{
+        display:flex;
+        gap:10px;
+        border-bottom:1px solid var(--line);
+        padding-bottom:0;
+    }
+
+    .msg-tab{
+        font-family:var(--font-body);
+        font-weight:600;
+        font-size:14px;
+        color:var(--ink-low);
+        background:none;
+        border:none;
+        border-bottom:2px solid transparent;
+        padding:12px 6px;
+        cursor:pointer;
+        display:flex;
+        align-items:center;
+        gap:8px;
+        transition:color .2s, border-color .2s;
+    }
+    .msg-tab .msg-tab-count{
+        font-family:var(--font-mono);
+        font-size:11px;
+        background:var(--paper-sunk);
+        color:var(--ink-mid);
+        padding:2px 8px;
+        border-radius:100px;
+    }
+    .msg-tab.active{
+        color:var(--pine);
+        border-bottom-color:var(--pine);
+    }
+    .msg-tab.active .msg-tab-count{
+        background:var(--pine-soft);
+        color:var(--pine);
+    }
+
+    .msg-panel{ display:none; }
+    .msg-panel.active{ display:block; }
+
+    /* ---------- TOOLBAR ---------- */
+    .msg-toolbar{
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-bottom:16px;
+    }
+
+    .msg-search{
+        flex:1;
+        min-width:220px;
+        position:relative;
+    }
+    .msg-search input{
+        width:100%;
+    }
+    .msg-search-icon{
+        position:absolute;
+        left:12px;
+        top:50%;
+        transform:translateY(-50%);
+        color:var(--ink-low);
+        font-size:14px;
+        pointer-events:none;
+    }
+    .msg-search input.form-control{
+        padding-left:34px;
+    }
+
+    /* ---------- BADGE MODIFIERS (extend existing .badge-status) ---------- */
+    .badge-status.badge-new{
+        background:var(--pine-soft);
+        color:var(--pine);
+        border-color:rgba(31,92,79,.25);
+    }
+    .badge-status.badge-in-progress{
+        background:var(--amber-soft);
+        color:#8a5c1c;
+        border-color:rgba(193,134,43,.3);
+    }
+    .badge-status.badge-resolved{
+        background:var(--moss-soft);
+        color:var(--moss);
+        border-color:rgba(63,125,88,.3);
+    }
+    .badge-status.badge-low{
+        background:var(--pine-soft);
+        color:var(--pine);
+    }
+    .badge-status.badge-medium{
+        background:var(--brass-soft);
+        color:#6b4c1f;
+    }
+    .badge-status.badge-high{
+        background:var(--amber-soft);
+        color:#8a5c1c;
+    }
+    .badge-status.badge-urgent{
+        background:var(--rust-soft);
+        color:var(--rust);
+        font-weight:700;
+    }
+
+    .msg-row-empty td{
+        text-align:center;
+        color:var(--ink-low);
+        font-family:var(--font-body);
+        padding:32px 16px;
+    }
+
+    .msg-cell-subject{
+        font-weight:600;
+        color:var(--ink-hi);
+    }
+    .msg-cell-meta{
+        font-family:var(--font-mono);
+        font-size:11.5px;
+        color:var(--ink-low);
+    }
+
+    .msg-view-btn{
+        white-space:nowrap;
+    }
+
+    tr[data-hidden="true"]{ display:none; }
+
+    /* ---------- MODAL ---------- */
+    .msg-modal-overlay{
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(22,51,44,.45);
+        backdrop-filter:blur(2px);
+        z-index:1000;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+    }
+    .msg-modal-overlay.active{ display:flex; }
+
+    .msg-modal{
+        background:var(--paper-raised);
+        border-radius:var(--radius-lg);
+        box-shadow:var(--shadow-lift);
+        max-width:560px;
+        width:100%;
+        max-height:85vh;
+        overflow-y:auto;
+        padding:30px 32px;
+    }
+
+    .msg-modal-head{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:16px;
+        margin-bottom:16px;
+    }
+
+    .msg-modal-head h3{
+        font-family:var(--font-display);
+        font-size:20px;
+        color:var(--ink-hi);
+    }
+
+    .msg-modal-close{
+        background:none;
+        border:none;
+        font-size:20px;
+        line-height:1;
+        color:var(--ink-low);
+        cursor:pointer;
+        padding:4px;
+    }
+    .msg-modal-close:hover{ color:var(--ink-hi); }
+
+    .msg-modal-badges{
+        display:flex;
+        gap:8px;
+        margin-bottom:18px;
+        flex-wrap:wrap;
+    }
+
+    .msg-modal-field{
+        margin-bottom:14px;
+    }
+    .msg-modal-field label{
+        display:block;
+        font-family:var(--font-mono);
+        font-size:11px;
+        letter-spacing:.06em;
+        text-transform:uppercase;
+        color:var(--ink-low);
+        margin-bottom:4px;
+    }
+    .msg-modal-field div{
+        font-family:var(--font-body);
+        font-size:14.5px;
+        line-height:1.7;
+        color:var(--ink-mid);
+    }
+
+    .msg-modal-actions{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top:20px;
+        padding-top:18px;
+        border-top:1px solid var(--line);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width:700px){
+        .msg-toolbar{ flex-direction:column; }
+        .msg-modal{ padding:24px 20px; }
+    }
+</style>
+
+<div class="app-shell">
+
+    <%- include('../partials/navbar') %>
+    <%- include('../partials/sidebar', { currentPage: 'messages' }) %>
+
+    <main class="app-main">
+
+        <div class="container msg-page">
+
+            <!-- =====================================================
+                 INTRO
+            ====================================================== -->
+
+            <div class="msg-intro">
+                <h3>Messages</h3>
+                <p>Reports and contact messages submitted by students, drivers, and visitors.</p>
+            </div>
+
+            <!-- =====================================================
+                 STATS
+            ====================================================== -->
+
+            <div class="msg-stats">
+                <div class="stat-card bg-c1">
+                    <span>Issue Reports</span>
+                    <h2><%= reportList.length %></h2>
+                </div>
+                <div class="stat-card bg-c3">
+                    <span>Contact Messages</span>
+                    <h2><%= messageList.length %></h2>
+                </div>
+                <div class="stat-card bg-c4">
+                    <span>Urgent Reports</span>
+                    <h2><%= urgentCount %></h2>
+                </div>
+                <div class="stat-card bg-c2">
+                    <span>Unread / New</span>
+                    <h2><%= newCount %></h2>
+                </div>
+            </div>
+
+            <!-- =====================================================
+                 TABS
+            ====================================================== -->
+
+            <div class="msg-tabs">
+                <button class="msg-tab active" data-tab="reports">
+                    Issue Reports <span class="msg-tab-count"><%= reportList.length %></span>
+                </button>
+                <button class="msg-tab" data-tab="messages">
+                    Contact Messages <span class="msg-tab-count"><%= messageList.length %></span>
+                </button>
+            </div>
+
+            <!-- =====================================================
+                 ISSUE REPORTS PANEL
+            ====================================================== -->
+
+            <div class="msg-panel active" id="panel-reports">
+
+                <div class="card">
+                    <div class="card-header">Issue Reports</div>
+
+                    <div style="padding:18px 22px 0;">
+                        <div class="msg-toolbar">
+                            <div class="msg-search">
+                                <span class="msg-search-icon">&#128269;</span>
+                                <input type="text" class="form-control" id="reportsSearch" placeholder="Search by subject, name, or route...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="table" id="reportsTable">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Type</th>
+                                    <th>Bus / Route</th>
+                                    <th>Priority</th>
+                                    <th>Reporter</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (reportList.length === 0) { %>
+                                    <tr class="msg-row-empty">
+                                        <td colspan="8">No issue reports yet.</td>
+                                    </tr>
+                                <% } else { %>
+                                    <% reportList.forEach(function(r) { %>
+                                        <tr>
+                                            <td class="msg-cell-subject"><%= r.subject %></td>
+                                            <td><%= r.issueType %></td>
+                                            <td><%= r.busRoute || '—' %></td>
+                                            <td><span class="badge-status badge-<%= r.priority %>"><%= r.priority %></span></td>
+                                            <td>
+                                                <%= r.contactName %>
+                                                <div class="msg-cell-meta"><%= r.contactNumber %></div>
+                                            </td>
+                                            <td class="msg-cell-meta"><%= new Date(r.createdAt).toLocaleDateString() %></td>
+                                            <td><span class="badge-status badge-<%= (r.status || 'new').replace('_','-') %>"><%= (r.status || 'new').replace('_',' ') %></span></td>
+                                            <td>
+                                                <button
+                                                    class="btn btn-secondary btn-sm msg-view-btn"
+                                                    data-modal-type="report"
+                                                    data-subject="<%= r.subject %>"
+                                                    data-type="<%= r.issueType %>"
+                                                    data-route="<%= r.busRoute || '—' %>"
+                                                    data-priority="<%= r.priority %>"
+                                                    data-status="<%= r.status || 'new' %>"
+                                                    data-name="<%= r.contactName %>"
+                                                    data-phone="<%= r.contactNumber %>"
+                                                    data-date="<%= new Date(r.createdAt).toLocaleString() %>"
+                                                    data-description="<%= r.description %>"
+                                                    data-attachment="<%= r.attachmentUrl || '' %>"
+                                                    data-id="<%= r.id %>"
+                                                >
+                                                    View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- =====================================================
+                 CONTACT MESSAGES PANEL
+            ====================================================== -->
+
+            <div class="msg-panel" id="panel-messages">
+
+                <div class="card">
+                    <div class="card-header">Contact Messages</div>
+
+                    <div style="padding:18px 22px 0;">
+                        <div class="msg-toolbar">
+                            <div class="msg-search">
+                                <span class="msg-search-icon">&#128269;</span>
+                                <input type="text" class="form-control" id="messagesSearch" placeholder="Search by name, email, or subject...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="table" id="messagesTable">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>From</th>
+                                    <th>Email</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (messageList.length === 0) { %>
+                                    <tr class="msg-row-empty">
+                                        <td colspan="6">No contact messages yet.</td>
+                                    </tr>
+                                <% } else { %>
+                                    <% messageList.forEach(function(m) { %>
+                                        <tr>
+                                            <td class="msg-cell-subject"><%= m.subject %></td>
+                                            <td><%= m.name %></td>
+                                            <td class="msg-cell-meta"><%= m.email %></td>
+                                            <td class="msg-cell-meta"><%= new Date(m.createdAt).toLocaleDateString() %></td>
+                                            <td><span class="badge-status badge-<%= (m.status || 'new').replace('_','-') %>"><%= (m.status || 'new').replace('_',' ') %></span></td>
+                                            <td>
+                                                <button
+                                                    class="btn btn-secondary btn-sm msg-view-btn"
+                                                    data-modal-type="message"
+                                                    data-subject="<%= m.subject %>"
+                                                    data-status="<%= m.status || 'new' %>"
+                                                    data-name="<%= m.name %>"
+                                                    data-email="<%= m.email %>"
+                                                    data-date="<%= new Date(m.createdAt).toLocaleString() %>"
+                                                    data-description="<%= m.message %>"
+                                                    data-id="<%= m.id %>"
+                                                >
+                                                    View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<!-- =====================================================
+     DETAIL MODAL (shared by both tabs)
+====================================================== -->
+
+<div class="msg-modal-overlay" id="msgModalOverlay">
+    <div class="msg-modal">
+
+        <div class="msg-modal-head">
+            <h3 id="msgModalSubject">Subject</h3>
+            <button class="msg-modal-close" id="msgModalClose" aria-label="Close">&times;</button>
+        </div>
+
+        <div class="msg-modal-badges" id="msgModalBadges"></div>
+
+        <div class="msg-modal-field" id="msgModalFromField">
+            <label>From</label>
+            <div id="msgModalFrom"></div>
+        </div>
+
+        <div class="msg-modal-field" id="msgModalRouteField">
+            <label>Bus / Route</label>
+            <div id="msgModalRoute"></div>
+        </div>
+
+        <div class="msg-modal-field">
+            <label>Date</label>
+            <div id="msgModalDate"></div>
+        </div>
+
+        <div class="msg-modal-field">
+            <label id="msgModalBodyLabel">Description</label>
+            <div id="msgModalBody"></div>
+        </div>
+
+        <div class="msg-modal-field" id="msgModalAttachmentField" style="display:none;">
+            <label>Attachment</label>
+            <div><a href="#" id="msgModalAttachmentLink" target="_blank" rel="noopener noreferrer">View attachment &rarr;</a></div>
+        </div>
+
+        <div class="msg-modal-actions">
+            <a href="#" id="msgModalContactBtn" class="btn btn-primary">Contact</a>
+            <form id="msgModalResolveForm" method="POST" action="">
+                <button type="submit" class="btn btn-success">Mark Resolved</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    (function () {
+        // ---------- TAB SWITCHING ----------
+        const tabs = document.querySelectorAll('.msg-tab');
+        const panels = document.querySelectorAll('.msg-panel');
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                tabs.forEach(function (t) { t.classList.remove('active'); });
+                panels.forEach(function (p) { p.classList.remove('active'); });
+                tab.classList.add('active');
+                document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ---------- SEARCH FILTER ----------
+        function wireSearch(inputId, tableId) {
+            const input = document.getElementById(inputId);
+            const rows = document.querySelectorAll('#' + tableId + ' tbody tr:not(.msg-row-empty)');
+            if (!input) return;
+            input.addEventListener('input', function () {
+                const query = this.value.trim().toLowerCase();
+                rows.forEach(function (row) {
+                    const matches = row.textContent.toLowerCase().indexOf(query) !== -1;
+                    row.dataset.hidden = matches ? 'false' : 'true';
+                });
+            });
+        }
+        wireSearch('reportsSearch', 'reportsTable');
+        wireSearch('messagesSearch', 'messagesTable');
+
+        // ---------- DETAIL MODAL ----------
+        const overlay = document.getElementById('msgModalOverlay');
+        const closeBtn = document.getElementById('msgModalClose');
+
+        document.querySelectorAll('.msg-view-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const d = btn.dataset;
+                const isReport = d.modalType === 'report';
+
+                document.getElementById('msgModalSubject').textContent = d.subject;
+                document.getElementById('msgModalDate').textContent = d.date;
+                document.getElementById('msgModalBody').textContent = d.description;
+                document.getElementById('msgModalBodyLabel').textContent = isReport ? 'Description' : 'Message';
+
+                // badges
+                const badgesEl = document.getElementById('msgModalBadges');
+                badgesEl.innerHTML = '';
+                if (isReport) {
+                    badgesEl.innerHTML += '<span class="badge-status badge-' + d.priority + '">' + d.priority + '</span>';
+                    badgesEl.innerHTML += '<span class="badge-status">' + d.type + '</span>';
+                }
+                badgesEl.innerHTML += '<span class="badge-status badge-' + d.status.replace('_','-') + '">' + d.status.replace('_',' ') + '</span>';
+
+                // from field
+                document.getElementById('msgModalFrom').textContent = isReport
+                    ? (d.name + ' \u00b7 ' + d.phone)
+                    : (d.name + ' \u00b7 ' + d.email);
+
+                // route field (reports only)
+                const routeField = document.getElementById('msgModalRouteField');
+                if (isReport) {
+                    routeField.style.display = '';
+                    document.getElementById('msgModalRoute').textContent = d.route;
+                } else {
+                    routeField.style.display = 'none';
+                }
+
+                // attachment
+                const attField = document.getElementById('msgModalAttachmentField');
+                if (isReport && d.attachment) {
+                    attField.style.display = '';
+                    document.getElementById('msgModalAttachmentLink').href = d.attachment;
+                } else {
+                    attField.style.display = 'none';
+                }
+
+                // contact button
+                const contactBtn = document.getElementById('msgModalContactBtn');
+                if (isReport) {
+                    contactBtn.href = 'tel:' + d.phone;
+                    contactBtn.textContent = '\u260E Call ' + d.name;
+                } else {
+                    contactBtn.href = 'mailto:' + d.email;
+                    contactBtn.textContent = '\u2709 Email ' + d.name;
+                }
+
+                // resolve form action
+                const resolveForm = document.getElementById('msgModalResolveForm');
+                resolveForm.action = isReport
+                    ? '/admin/reports/' + d.id + '/resolve'
+                    : '/admin/messages/' + d.id + '/resolve';
+
+                overlay.classList.add('active');
+            });
+        });
+
+        function closeModal() { overlay.classList.remove('active'); }
+        closeBtn.addEventListener('click', closeModal);
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeModal();
+        });
+    })();
+</script>
+
+<%- include('../partials/footer') %>
