@@ -7,6 +7,7 @@ const upload = require('../config/multer');
 
 // =====================================================
 // HELP CENTER
+// URL: /home/help-center
 // =====================================================
 
 router.get('/help-center', (req, res) => {
@@ -16,6 +17,7 @@ router.get('/help-center', (req, res) => {
 
 // =====================================================
 // SAFETY GUIDELINES
+// URL: /home/safety-guidelines
 // =====================================================
 
 router.get('/safety-guidelines', (req, res) => {
@@ -25,6 +27,7 @@ router.get('/safety-guidelines', (req, res) => {
 
 // =====================================================
 // PRIVACY POLICY
+// URL: /home/privacy-policy
 // =====================================================
 
 router.get('/privacy-policy', (req, res) => {
@@ -33,7 +36,8 @@ router.get('/privacy-policy', (req, res) => {
 
 
 // =====================================================
-// TERMS
+// TERMS & CONDITIONS
+// URL: /home/terms
 // =====================================================
 
 router.get('/terms', (req, res) => {
@@ -43,6 +47,7 @@ router.get('/terms', (req, res) => {
 
 // =====================================================
 // ABOUT
+// URL: /home/about
 // =====================================================
 
 router.get('/about', (req, res) => {
@@ -52,6 +57,7 @@ router.get('/about', (req, res) => {
 
 // =====================================================
 // CONTACT PAGE
+// URL: /home/contact
 // =====================================================
 
 router.get('/contact', (req, res) => {
@@ -71,6 +77,10 @@ router.get('/contact', (req, res) => {
 
 // =====================================================
 // CONTACT FORM SUBMISSION
+// URL: POST /home/contact
+//
+// Saves user messages into:
+// contact_messages
 // =====================================================
 
 router.post('/contact', (req, res) => {
@@ -82,7 +92,17 @@ router.post('/contact', (req, res) => {
         message
     } = req.body;
 
-    if (!name || !email || !subject || !message) {
+
+    // -------------------------------------------------
+    // Validate required fields
+    // -------------------------------------------------
+
+    if (
+        !name ||
+        !email ||
+        !subject ||
+        !message
+    ) {
 
         return res.redirect(
             '/home/contact?error=' +
@@ -92,6 +112,11 @@ router.post('/contact', (req, res) => {
         );
 
     }
+
+
+    // -------------------------------------------------
+    // Insert message into database
+    // -------------------------------------------------
 
     const sql = `
         INSERT INTO contact_messages
@@ -103,6 +128,7 @@ router.post('/contact', (req, res) => {
         )
         VALUES (?, ?, ?, ?)
     `;
+
 
     db.query(
         sql,
@@ -130,10 +156,16 @@ router.post('/contact', (req, res) => {
 
             }
 
+
             console.log(
                 'Contact message saved successfully. ID:',
                 result.insertId
             );
+
+
+            // -------------------------------------------------
+            // Redirect after successful submission
+            // -------------------------------------------------
 
             return res.redirect(
                 '/home/contact?success=1'
@@ -147,6 +179,7 @@ router.post('/contact', (req, res) => {
 
 // =====================================================
 // REPORT ISSUE PAGE
+// URL: /home/report-issue
 // =====================================================
 
 router.get('/report-issue', (req, res) => {
@@ -165,7 +198,13 @@ router.get('/report-issue', (req, res) => {
 
 
 // =====================================================
-// REPORT ISSUE SUBMISSION
+// REPORT ISSUE FORM SUBMISSION
+// URL: POST /home/report-issue
+//
+// Saves reports into:
+// issue_reports
+//
+// Supports optional image attachment.
 // =====================================================
 
 router.post(
@@ -182,6 +221,11 @@ router.post(
             contactName,
             contactNumber
         } = req.body;
+
+
+        // -------------------------------------------------
+        // Validate required fields
+        // -------------------------------------------------
 
         if (
             !issueType ||
@@ -201,9 +245,19 @@ router.post(
 
         }
 
+
+        // -------------------------------------------------
+        // Get uploaded image filename
+        // -------------------------------------------------
+
         const attachment = req.file
             ? req.file.filename
             : null;
+
+
+        // -------------------------------------------------
+        // Insert issue report into database
+        // -------------------------------------------------
 
         const sql = `
             INSERT INTO issue_reports
@@ -219,6 +273,7 @@ router.post(
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
+
 
         db.query(
             sql,
@@ -241,6 +296,7 @@ router.post(
                         err
                     );
 
+
                     return res.redirect(
                         '/home/report-issue?error=' +
                         encodeURIComponent(
@@ -250,10 +306,16 @@ router.post(
 
                 }
 
+
                 console.log(
                     'Issue report created successfully. ID:',
                     result.insertId
                 );
+
+
+                // -------------------------------------------------
+                // Redirect after successful submission
+                // -------------------------------------------------
 
                 return res.redirect(
                     '/home/report-issue?success=1'
@@ -268,62 +330,117 @@ router.post(
 
 // =====================================================
 // ADMIN MESSAGE INBOX
+// URL: /home/messages
+//
+// View:
+// views/home/messages-inbox.ejs
+//
+// This page displays:
+// 1. Contact Us messages
+// 2. Reported Issues
+//
+// Only Admin can access this page.
 // =====================================================
 
 router.get('/messages', async (req, res) => {
 
-    // Admin-only access
+    // -------------------------------------------------
+    // ADMIN-ONLY ACCESS
+    // -------------------------------------------------
+
     if (
         !req.session.user ||
         req.session.user.role !== 'admin'
     ) {
+
         return res.redirect('/login');
+
     }
+
 
     try {
 
-        // Get user issue reports
+        // =================================================
+        // FETCH ISSUE REPORTS
+        // =================================================
+
         const [reports] = await db.promise().query(`
+
             SELECT
+
                 id,
+
                 issue_type AS issueType,
+
                 bus_route AS busRoute,
+
                 priority,
+
                 subject,
+
                 description,
+
                 attachment AS attachmentUrl,
+
                 contact_name AS contactName,
+
                 contact_number AS contactNumber,
+
                 status,
+
                 created_at AS createdAt
+
             FROM issue_reports
+
             ORDER BY created_at DESC
+
         `);
 
 
-        // Get contact messages
+        // =================================================
+        // FETCH CONTACT MESSAGES
+        // =================================================
+
         const [messages] = await db.promise().query(`
+
             SELECT
+
                 id,
+
                 name,
+
                 email,
+
                 subject,
+
                 message,
+
                 status,
+
                 created_at AS createdAt
+
             FROM contact_messages
+
             ORDER BY created_at DESC
+
         `);
 
 
-        // Render inbox
-        res.render('home/messages-inbox', {
+        // =================================================
+        // RENDER MESSAGES INBOX
+        //
+        // File:
+        // views/home/messages-inbox.ejs
+        // =================================================
 
-            reports,
+        return res.render(
+            'home/messages-inbox',
+            {
+                reports,
+                messages
+            }
+        );
 
-            messages
-
-        });
 
     } catch (error) {
 
@@ -332,7 +449,8 @@ router.get('/messages', async (req, res) => {
             error
         );
 
-        res.status(500).send(
+
+        return res.status(500).send(
             'Unable to load messages inbox.'
         );
 
@@ -340,5 +458,9 @@ router.get('/messages', async (req, res) => {
 
 });
 
+
+// =====================================================
+// EXPORT ROUTER
+// =====================================================
 
 module.exports = router;
