@@ -7,7 +7,6 @@ const upload = require('../config/multer');
 
 // =====================================================
 // HELP CENTER
-// URL: /home/help-center
 // =====================================================
 
 router.get('/help-center', (req, res) => {
@@ -17,7 +16,6 @@ router.get('/help-center', (req, res) => {
 
 // =====================================================
 // SAFETY GUIDELINES
-// URL: /home/safety-guidelines
 // =====================================================
 
 router.get('/safety-guidelines', (req, res) => {
@@ -27,7 +25,6 @@ router.get('/safety-guidelines', (req, res) => {
 
 // =====================================================
 // PRIVACY POLICY
-// URL: /home/privacy-policy
 // =====================================================
 
 router.get('/privacy-policy', (req, res) => {
@@ -36,8 +33,7 @@ router.get('/privacy-policy', (req, res) => {
 
 
 // =====================================================
-// TERMS & CONDITIONS
-// URL: /home/terms
+// TERMS
 // =====================================================
 
 router.get('/terms', (req, res) => {
@@ -47,7 +43,6 @@ router.get('/terms', (req, res) => {
 
 // =====================================================
 // ABOUT
-// URL: /home/about
 // =====================================================
 
 router.get('/about', (req, res) => {
@@ -57,19 +52,14 @@ router.get('/about', (req, res) => {
 
 // =====================================================
 // CONTACT PAGE
-// URL: /home/contact
 // =====================================================
 
 router.get('/contact', (req, res) => {
 
     res.render('home/contact', {
-
         user: req.session.user || null,
-
         success: req.query.success === '1',
-
         error: req.query.error || null
-
     });
 
 });
@@ -77,10 +67,6 @@ router.get('/contact', (req, res) => {
 
 // =====================================================
 // CONTACT FORM SUBMISSION
-// URL: POST /home/contact
-//
-// Saves user messages into:
-// contact_messages
 // =====================================================
 
 router.post('/contact', (req, res) => {
@@ -93,16 +79,7 @@ router.post('/contact', (req, res) => {
     } = req.body;
 
 
-    // -------------------------------------------------
-    // Validate required fields
-    // -------------------------------------------------
-
-    if (
-        !name ||
-        !email ||
-        !subject ||
-        !message
-    ) {
+    if (!name || !email || !subject || !message) {
 
         return res.redirect(
             '/home/contact?error=' +
@@ -113,10 +90,6 @@ router.post('/contact', (req, res) => {
 
     }
 
-
-    // -------------------------------------------------
-    // Insert message into database
-    // -------------------------------------------------
 
     const sql = `
         INSERT INTO contact_messages
@@ -143,7 +116,7 @@ router.post('/contact', (req, res) => {
             if (err) {
 
                 console.error(
-                    'Contact form error:',
+                    'Contact form database error:',
                     err
                 );
 
@@ -163,10 +136,6 @@ router.post('/contact', (req, res) => {
             );
 
 
-            // -------------------------------------------------
-            // Redirect after successful submission
-            // -------------------------------------------------
-
             return res.redirect(
                 '/home/contact?success=1'
             );
@@ -179,7 +148,6 @@ router.post('/contact', (req, res) => {
 
 // =====================================================
 // REPORT ISSUE PAGE
-// URL: /home/report-issue
 // =====================================================
 
 router.get('/report-issue', (req, res) => {
@@ -198,13 +166,7 @@ router.get('/report-issue', (req, res) => {
 
 
 // =====================================================
-// REPORT ISSUE FORM SUBMISSION
-// URL: POST /home/report-issue
-//
-// Saves reports into:
-// issue_reports
-//
-// Supports optional image attachment.
+// REPORT ISSUE SUBMISSION
 // =====================================================
 
 router.post(
@@ -222,10 +184,6 @@ router.post(
             contactNumber
         } = req.body;
 
-
-        // -------------------------------------------------
-        // Validate required fields
-        // -------------------------------------------------
 
         if (
             !issueType ||
@@ -246,18 +204,10 @@ router.post(
         }
 
 
-        // -------------------------------------------------
-        // Get uploaded image filename
-        // -------------------------------------------------
-
         const attachment = req.file
             ? req.file.filename
             : null;
 
-
-        // -------------------------------------------------
-        // Insert issue report into database
-        // -------------------------------------------------
 
         const sql = `
             INSERT INTO issue_reports
@@ -292,10 +242,9 @@ router.post(
                 if (err) {
 
                     console.error(
-                        'Issue report error:',
+                        'Issue report database error:',
                         err
                     );
-
 
                     return res.redirect(
                         '/home/report-issue?error=' +
@@ -313,10 +262,6 @@ router.post(
                 );
 
 
-                // -------------------------------------------------
-                // Redirect after successful submission
-                // -------------------------------------------------
-
                 return res.redirect(
                     '/home/report-issue?success=1'
                 );
@@ -330,93 +275,126 @@ router.post(
 
 // =====================================================
 // ADMIN MESSAGE INBOX
+// URL:
+// /home/messages-inbox
 // =====================================================
 
-router.get('/messages-inbox', async (req, res) => {
+router.get('/messages-inbox', (req, res) => {
 
-    // Admin-only access
+    // -------------------------------------------------
+    // ADMIN ONLY
+    // -------------------------------------------------
+
     if (
         !req.session.user ||
         req.session.user.role !== 'admin'
     ) {
+
         return res.redirect('/login');
-    }
-
-    try {
-
-        console.log('📨 Loading admin messages inbox...');
-
-        // ==========================================
-        // GET ISSUE REPORTS
-        // ==========================================
-
-        const [reports] = await db.promise().query(`
-            SELECT
-                id,
-                issue_type AS issueType,
-                bus_route AS busRoute,
-                priority,
-                subject,
-                description,
-                attachment AS attachmentUrl,
-                contact_name AS contactName,
-                contact_number AS contactNumber,
-                status,
-                created_at AS createdAt
-            FROM issue_reports
-            ORDER BY created_at DESC
-        `);
-
-        console.log(
-            `✅ Issue reports loaded: ${reports.length}`
-        );
-
-
-        // ==========================================
-        // GET CONTACT MESSAGES
-        // ==========================================
-
-        const [messages] = await db.promise().query(`
-            SELECT
-                id,
-                name,
-                email,
-                subject,
-                message,
-                status,
-                created_at AS createdAt
-            FROM contact_messages
-            ORDER BY created_at DESC
-        `);
-
-        console.log(
-            `✅ Contact messages loaded: ${messages.length}`
-        );
-
-
-        // ==========================================
-        // RENDER INBOX
-        // ==========================================
-
-        res.render('home/messages-inbox', {
-            reports: reports || [],
-            messages: messages || []
-        });
-
-    } catch (error) {
-
-        console.error(
-            '❌ ERROR LOADING MESSAGE INBOX:'
-        );
-
-        console.error(error);
-
-        res.status(500).send(`
-            <h2>Unable to load messages inbox.</h2>
-            <pre>${error.message}</pre>
-        `);
 
     }
+
+
+    // -------------------------------------------------
+    // GET ISSUE REPORTS
+    // -------------------------------------------------
+
+    const reportsSql = `
+        SELECT
+            id,
+            issue_type AS issueType,
+            bus_route AS busRoute,
+            priority,
+            subject,
+            description,
+            attachment AS attachmentUrl,
+            contact_name AS contactName,
+            contact_number AS contactNumber,
+            status,
+            created_at AS createdAt
+        FROM issue_reports
+        ORDER BY created_at DESC
+    `;
+
+
+    db.query(
+        reportsSql,
+        (reportsError, reports) => {
+
+            if (reportsError) {
+
+                console.error(
+                    'Error loading issue reports:',
+                    reportsError
+                );
+
+                return res.status(500).send(
+                    'Unable to load messages inbox.'
+                );
+
+            }
+
+
+            // -------------------------------------------------
+            // GET CONTACT MESSAGES
+            // -------------------------------------------------
+
+            const messagesSql = `
+                SELECT
+                    id,
+                    name,
+                    email,
+                    subject,
+                    message,
+                    status,
+                    created_at AS createdAt
+                FROM contact_messages
+                ORDER BY created_at DESC
+            `;
+
+
+            db.query(
+                messagesSql,
+                (messagesError, messages) => {
+
+                    if (messagesError) {
+
+                        console.error(
+                            'Error loading contact messages:',
+                            messagesError
+                        );
+
+                        return res.status(500).send(
+                            'Unable to load messages inbox.'
+                        );
+
+                    }
+
+
+                    // -------------------------------------------------
+                    // RENDER MESSAGES INBOX
+                    // -------------------------------------------------
+
+                    console.log(
+                        `📨 Inbox loaded: ${reports.length} issue reports, ${messages.length} contact messages`
+                    );
+
+
+                    res.render(
+                        'home/messages-inbox',
+                        {
+                            reports: reports,
+                            messages: messages
+                        }
+                    );
+
+                }
+            );
+
+        }
+    );
 
 });
+
+
 module.exports = router;
