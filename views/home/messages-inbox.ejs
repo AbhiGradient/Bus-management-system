@@ -514,9 +514,11 @@ const newCount = reportList.filter(r => r.status === 'new').length
             <div><a href="#" id="msgModalAttachmentLink" target="_blank" rel="noopener noreferrer">View attachment &rarr;</a></div>
         </div>
 
-        <a href="/admin/messages/<%= report.id %>/resolve">
-    Resolve
-</a>
+        <form id="msgModalResolveForm" method="POST" action="">
+        <button type="submit" class="btn btn-success">
+            Mark Resolved
+        </button>
+    </form>
 
     </div>
 </div>
