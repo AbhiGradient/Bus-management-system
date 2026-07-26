@@ -279,120 +279,93 @@ router.post(
 // /home/messages-inbox
 // =====================================================
 
-router.get('/messages-inbox', (req, res) => {
+// =====================================================
+// ADMIN MESSAGE INBOX
+// =====================================================
 
-    // -------------------------------------------------
-    // ADMIN ONLY
-    // -------------------------------------------------
+router.get('/messages-inbox', async (req, res) => {
 
+    // Admin-only access
     if (
         !req.session.user ||
         req.session.user.role !== 'admin'
     ) {
-
         return res.redirect('/login');
-
     }
 
+    try {
 
-    // -------------------------------------------------
-    // GET ISSUE REPORTS
-    // -------------------------------------------------
+        console.log('📨 Loading admin message inbox...');
 
-    const reportsSql = `
-        SELECT
-            id,
-            issue_type AS issueType,
-            bus_route AS busRoute,
-            priority,
-            subject,
-            description,
-            attachment AS attachmentUrl,
-            contact_name AS contactName,
-            contact_number AS contactNumber,
-            status,
-            created_at AS createdAt
-        FROM issue_reports
-        ORDER BY created_at DESC
-    `;
+        // =================================================
+        // GET ISSUE REPORTS
+        // =================================================
 
+        const [reports] = await db.query(`
+            SELECT
+                id,
+                issue_type AS issueType,
+                bus_route AS busRoute,
+                priority,
+                subject,
+                description,
+                attachment AS attachmentUrl,
+                contact_name AS contactName,
+                contact_number AS contactNumber,
+                status,
+                created_at AS createdAt
+            FROM issue_reports
+            ORDER BY created_at DESC
+        `);
 
-    db.query(
-        reportsSql,
-        (reportsError, reports) => {
-
-            if (reportsError) {
-
-                console.error(
-                    'Error loading issue reports:',
-                    reportsError
-                );
-
-                return res.status(500).send(
-                    'Unable to load messages inbox.'
-                );
-
-            }
+        console.log(`✅ Issue reports loaded: ${reports.length}`);
 
 
-            // -------------------------------------------------
-            // GET CONTACT MESSAGES
-            // -------------------------------------------------
+        // =================================================
+        // GET CONTACT MESSAGES
+        // =================================================
 
-            const messagesSql = `
-                SELECT
-                    id,
-                    name,
-                    email,
-                    subject,
-                    message,
-                    status,
-                    created_at AS createdAt
-                FROM contact_messages
-                ORDER BY created_at DESC
-            `;
+        const [messages] = await db.query(`
+            SELECT
+                id,
+                name,
+                email,
+                subject,
+                message,
+                status,
+                created_at AS createdAt
+            FROM contact_messages
+            ORDER BY created_at DESC
+        `);
 
-
-            db.query(
-                messagesSql,
-                (messagesError, messages) => {
-
-                    if (messagesError) {
-
-                        console.error(
-                            'Error loading contact messages:',
-                            messagesError
-                        );
-
-                        return res.status(500).send(
-                            'Unable to load messages inbox.'
-                        );
-
-                    }
+        console.log(`✅ Contact messages loaded: ${messages.length}`);
 
 
-                    // -------------------------------------------------
-                    // RENDER MESSAGES INBOX
-                    // -------------------------------------------------
+        // =================================================
+        // RENDER INBOX
+        // =================================================
 
-                    console.log(
-                        `📨 Inbox loaded: ${reports.length} issue reports, ${messages.length} contact messages`
-                    );
+        res.render('home/messages-inbox', {
+            reports: reports || [],
+            messages: messages || []
+        });
 
 
-                    res.render(
-                        'home/messages-inbox',
-                        {
-                            reports: reports,
-                            messages: messages
-                        }
-                    );
+    } catch (error) {
 
-                }
-            );
+        console.error('========================================');
+        console.error('❌ MESSAGE INBOX ERROR');
+        console.error('========================================');
+        console.error(error);
+        console.error('========================================');
 
-        }
-    );
+        res.status(500).send(`
+            <h1>Internal Server Error</h1>
+            <h3>Message Inbox Error</h3>
+            <pre>${error.message}</pre>
+        `);
+
+    }
 
 });
 
