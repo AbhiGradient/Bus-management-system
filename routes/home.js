@@ -342,7 +342,7 @@ router.post(
 // Only Admin can access this page.
 // =====================================================
 
-router.get('/messages', async (req, res) => {
+router.get('/messages-inbox', async (req, res) => {
 
     // -------------------------------------------------
     // ADMIN-ONLY ACCESS
