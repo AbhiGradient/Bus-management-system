@@ -4,6 +4,8 @@ const upload = require('../config/multer');
 const bcrypt = require('bcryptjs');
 const db = require('../config/db');
 
+const trackingService = require('../services/trackingService');
+
 // -------- Auth guard: only logged-in admins --------
 const isAdmin = require('../middleware/adminAuth');
 
@@ -731,6 +733,58 @@ router.get('/settings', (req, res) => {
             db_status: 'Connected',
             server_status: 'Online'
         }
+
+    });
+
+});
+
+router.get('/live-tracking', isAdmin, async (req, res) => {
+
+    const [buses] = await db.query(`
+    SELECT
+        b.id,
+        b.bus_number,
+        b.route_name,
+        u.name AS driver_name,
+        u.phone AS driver_phone
+    FROM buses b
+    LEFT JOIN users u
+        ON b.driver_id = u.id
+    ORDER BY b.bus_number
+`);
+
+    const busId = req.query.bus_id;
+
+    let selectedBus = null;
+    let location = null;
+
+    if (busId) {
+
+        [[selectedBus]] = await db.query(`
+SELECT
+    b.*,
+    u.name AS driver_name,
+    u.phone AS driver_phone
+FROM buses b
+LEFT JOIN users u
+    ON u.id = b.driver_id
+WHERE b.id = ?
+`, [busId]);
+
+        location =
+            await trackingService.getLocation(busId);
+
+    }
+
+    res.render('admin/live-tracking',{
+
+        user:req.session.user,
+
+        buses,
+
+        selectedBus,
+
+        location
 
     });
 

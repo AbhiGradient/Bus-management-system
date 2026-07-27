@@ -358,50 +358,26 @@ router.post('/trip-start', async (req, res) => {
 // END TRIP PAGE
 // =====================================================
 
-router.get('/trip-end', async (req, res) => {
+router.get('/trip-end', isDriver, async (req, res) => {
 
-    try {
+    const driverId = req.session.user.id;
 
-        const bus =
-            await getDriverBus(
-                req.session.user.id
-            );
+    const [[bus]] = await db.query(
+        'SELECT * FROM buses WHERE driver_id=? LIMIT 1',
+        [driverId]
+    );
 
+    let activeJourney = null;
 
-        let activeJourney = null;
-
-
-        if (bus) {
-
-            activeJourney =
-                await trackingService.getActiveJourney(
-                    bus.id
-                );
-
-        }
-
-
-        res.render(
-            'driver/trip-end',
-            {
-                bus,
-                activeJourney
-            }
-        );
-
-
-    } catch (err) {
-
-        console.error(
-            'Trip end page error:',
-            err
-        );
-
-        res.status(500).send(
-            'Error loading trip end page'
-        );
-
+    if (bus) {
+        activeJourney = await trackingService.getActiveJourney(bus.id);
     }
+
+    res.render('driver/trip-end', {
+        user: req.session.user,
+        bus,
+        activeJourney
+    });
 
 });
 

@@ -497,4 +497,69 @@ router.get('/live-tracking', async (req, res) => {
     }
 
 });
+router.get('/route-map', isStudent, async (req, res) => {
+
+    try {
+
+        const [[student]] = await db.query(
+            `
+            SELECT
+                bus_id
+            FROM students
+            WHERE user_id = ?
+            LIMIT 1
+            `,
+            [req.session.user.id]
+        );
+
+        if (!student || !student.bus_id) {
+            return res.render('student/route-map', {
+                user: req.session.user,
+                route: null,
+                stops: []
+            });
+        }
+
+        const [[route]] = await db.query(
+            `
+            SELECT
+                r.*
+            FROM bus_route_assignment bra
+            JOIN routes r
+                ON bra.route_id = r.id
+            WHERE bra.bus_id = ?
+            LIMIT 1
+            `,
+            [student.bus_id]
+        );
+
+        let stops = [];
+
+        if (route) {
+            [stops] = await db.query(
+                `
+                SELECT *
+                FROM route_stops
+                WHERE route_id = ?
+                ORDER BY stop_order ASC
+                `,
+                [route.id]
+            );
+        }
+
+        res.render('student/route-map', {
+            user: req.session.user,
+            route,
+            stops
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).send('Internal Server Error');
+
+    }
+
+});
 module.exports = router;

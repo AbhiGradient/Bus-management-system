@@ -16,47 +16,143 @@
   <div class="app-main">
     <main class="main-content">
 
-      <h3 class="mb-3">
-        <i class="bi bi-stop-circle-fill text-danger"></i>
-        End Trip
-      </h3>
+      <div class="mb-4">
+        <h3 class="mb-1">
+          <i class="bi bi-stop-circle-fill text-danger"></i>
+          End Bus Trip
+        </h3>
+
+        <p class="text-muted mb-0">
+          Stop the current journey and stop sharing your live GPS location.
+        </p>
+      </div>
 
       <% if (!bus) { %>
 
-        <div class="card p-4 text-center text-muted">
-          No bus has been assigned to you yet. Please contact the administration.
+      <div class="card p-4">
+        <div class="text-center py-4">
+
+          <i class="bi bi-bus-front text-muted" style="font-size:4rem;"></i>
+
+          <h5 class="mt-3">No Bus Assigned</h5>
+
+          <p class="text-muted">
+            You currently do not have a bus assigned.
+          </p>
+
         </div>
+      </div>
 
       <% } else { %>
 
-        <div class="card p-4" style="max-width: 480px;">
+      <div class="row g-4">
 
-          <p class="mb-2"><strong>Bus:</strong> <%= bus.bus_number %></p>
-          <p class="mb-3"><strong>Route:</strong> <%= bus.route_name %></p>
+        <div class="col-lg-6">
 
-          <% if (bus.status !== 'active') { %>
+          <div class="card p-4 h-100">
 
-            <div class="alert alert-secondary mb-3">
-              <i class="bi bi-info-circle"></i>
-              There's no trip currently in progress.
+            <h5 class="mb-3">
+              <i class="bi bi-bus-front-fill text-primary"></i>
+              Assigned Bus
+            </h5>
+
+            <hr>
+
+            <div class="mb-3">
+              <small class="text-muted">Bus Number</small>
+              <h4><%= bus.bus_number %></h4>
             </div>
 
-          <% } else { %>
+            <div class="mb-3">
+              <small class="text-muted">Route</small>
+              <p class="fw-semibold mb-0">
+                <%= bus.route_name || 'Route not assigned' %>
+              </p>
+            </div>
 
-            <p class="text-muted mb-3">
-              Ending the trip marks your bus as inactive until the next trip starts.
-            </p>
+            <div class="mb-3">
+              <small class="text-muted">Capacity</small>
+              <p class="fw-semibold mb-0">
+                <%= bus.capacity %> Students
+              </p>
+            </div>
 
-            <form action="/driver/trip-end" method="POST">
-              <button type="submit" class="btn btn-danger w-100">
-                <i class="bi bi-stop-fill"></i>
-                Confirm & End Trip
-              </button>
-            </form>
-
-          <% } %>
+          </div>
 
         </div>
+
+        <div class="col-lg-6">
+
+          <div class="card p-4 h-100">
+
+            <h5 class="mb-3 text-danger">
+              <i class="bi bi-stop-circle-fill"></i>
+              Journey Control
+            </h5>
+
+            <hr>
+
+            <% if (activeJourney) { %>
+
+            <div class="alert alert-warning">
+
+              <i class="bi bi-exclamation-triangle-fill"></i>
+
+              <strong>Journey is currently running.</strong>
+
+              <br>
+
+              Ending this trip will stop GPS tracking for students.
+
+            </div>
+
+            <form id="endJourneyForm">
+
+              <button
+                class="btn btn-danger btn-lg w-100"
+                id="endJourneyBtn">
+
+                <i class="bi bi-stop-fill"></i>
+
+                End Journey
+
+              </button>
+
+            </form>
+
+            <div
+              id="endMessage"
+              class="mt-3"
+              style="display:none;">
+            </div>
+
+            <% } else { %>
+
+            <div class="alert alert-success">
+
+              <i class="bi bi-check-circle-fill"></i>
+
+              There is no active journey.
+
+            </div>
+
+            <a
+              href="/driver/trip-start"
+              class="btn btn-success w-100">
+
+              <i class="bi bi-play-fill"></i>
+
+              Start New Journey
+
+            </a>
+
+            <% } %>
+
+          </div>
+
+        </div>
+
+      </div>
 
       <% } %>
 
@@ -65,7 +161,88 @@
     <%- include('../partials/footer') %>
 
   </div>
+
 </div>
+
+<script>
+
+const endForm =
+document.getElementById("endJourneyForm");
+
+if(endForm){
+
+endForm.addEventListener("submit",async(e)=>{
+
+e.preventDefault();
+
+const btn=document.getElementById("endJourneyBtn");
+const msg=document.getElementById("endMessage");
+
+btn.disabled=true;
+
+btn.innerHTML='<span class="spinner-border spinner-border-sm me-2"></span>Ending Journey...';
+
+try{
+
+const res=await fetch("/tracking/stop",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+}
+
+});
+
+const data=await res.json();
+
+msg.style.display="block";
+
+if(data.success){
+
+msg.className="alert alert-success";
+
+msg.innerHTML='<i class="bi bi-check-circle-fill"></i> Journey ended successfully.';
+
+setTimeout(()=>{
+
+window.location="/driver/trip-start";
+
+},1500);
+
+}else{
+
+msg.className="alert alert-danger";
+
+msg.innerHTML=data.message;
+
+btn.disabled=false;
+
+btn.innerHTML='<i class="bi bi-stop-fill"></i> End Journey';
+
+}
+
+}catch(err){
+
+console.error(err);
+
+msg.style.display="block";
+
+msg.className="alert alert-danger";
+
+msg.innerHTML="Unable to connect to the server.";
+
+btn.disabled=false;
+
+btn.innerHTML='<i class="bi bi-stop-fill"></i> End Journey';
+
+}
+
+});
+
+}
+
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/script.js"></script>

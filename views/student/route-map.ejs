@@ -1,111 +1,199 @@
-<%- include('../partials/header', {
-  pageTitle: 'My Route',
-  pageCss: ['live-tracking']
+<%- include('../partials/header',{
+pageTitle:'Route Map',
+pageCss:[]
 }) %>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+
+#map{
+height:550px;
+border-radius:15px;
+}
+
+.stop-card{
+border-left:5px solid #0d6efd;
+margin-bottom:12px;
+}
+
+</style>
 
 <div class="app-shell">
 
-  <%- include('../partials/sidebar', {
-    currentPage: 'route-map'
-  }) %>
+<%- include('../partials/sidebar',{
+currentPage:'route-map'
+}) %>
 
-  <%- include('../partials/navbar', {
-    pageLabel: 'My Route'
-  }) %>
+<%- include('../partials/navbar',{
+pageLabel:'Route Map'
+}) %>
 
-  <div class="app-main">
-    <main class="main-content">
+<div class="app-main">
 
-      <h3 class="mb-3">My Route</h3>
+<main class="main-content">
 
-      <% if (!bus) { %>
+<div class="mb-4">
 
-        <div class="card p-4 text-center text-muted">
-          No bus has been assigned to you yet. Please contact the administration.
-        </div>
+<h3>
 
-      <% } else if (!route) { %>
+<i class="bi bi-signpost-2-fill text-primary"></i>
 
-        <div class="card p-4 text-center text-muted">
-          Your bus doesn't have a route assigned yet. Please check back later.
-        </div>
+Bus Route Map
 
-      <% } else { %>
+</h3>
 
-        <div class="row g-3 mb-3">
-          <div class="col-md-3">
-            <div class="card p-3 h-100">
-              <div class="text-muted small text-uppercase mb-1">Bus</div>
-              <strong><%= bus.bus_number %></strong>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card p-3 h-100">
-              <div class="text-muted small text-uppercase mb-1">Driver</div>
-              <strong><%= bus.driver_name || 'Not assigned yet' %></strong>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card p-3 h-100">
-              <div class="text-muted small text-uppercase mb-1">Distance</div>
-              <strong><%= route.total_distance ? route.total_distance + ' km' : '—' %></strong>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card p-3 h-100">
-              <div class="text-muted small text-uppercase mb-1">Est. Journey Time</div>
-              <strong><%= route.estimated_time ? route.estimated_time + ' min' : '—' %></strong>
-            </div>
-          </div>
-        </div>
+<p class="text-muted">
 
-        <div class="card p-3 mb-3">
-          <h5 class="mb-1"><%= route.route_name %></h5>
-          <p class="text-muted mb-0"><%= route.start_location %> &rarr; <%= route.end_location %></p>
-        </div>
+View your complete bus route and all pickup stops.
 
-        <div class="row g-3">
-          <div class="col-lg-7">
-            <div id="routeMap" data-stops='<%= JSON.stringify(stops) %>'></div>
-          </div>
-          <div class="col-lg-5">
-            <div class="card p-3">
-              <h5 class="mb-3">Stops</h5>
-              <% if (stops.length === 0) { %>
-                <p class="text-muted mb-0">No stops added for this route yet.</p>
-              <% } else { %>
-                <ol class="ps-3 mb-0">
-                  <% stops.forEach((stop) => { %>
-                    <li class="mb-2">
-                      <strong><%= stop.stop_name %></strong>
-                      <% if (stop.expected_arrival) { %>
-                        <span class="text-muted small"> &middot; <%= String(stop.expected_arrival).slice(0, 5) %></span>
-                      <% } %>
-                    </li>
-                  <% }) %>
-                </ol>
-              <% } %>
-            </div>
-          </div>
-        </div>
+</p>
 
-        <a href="/student/track-bus" class="btn btn-primary mt-3">Track My Bus Live</a>
-
-      <% } %>
-
-    </main>
-
-    <%- include('../partials/footer') %>
-
-  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/script.js"></script>
+<% if(!route){ %>
+
+<div class="alert alert-warning">
+
+No route has been assigned to your bus yet.
+
+</div>
+
+<% } else { %>
+
+<div class="row">
+
+<div class="col-lg-8">
+
+<div class="card p-3">
+
+<div id="map"></div>
+
+</div>
+
+</div>
+
+<div class="col-lg-4">
+
+<div class="card p-3">
+
+<h5>
+
+<%= route.route_name %>
+
+</h5>
+
+<hr>
+
+<% stops.forEach(function(stop){ %>
+
+<div class="card stop-card p-3">
+
+<strong>
+
+<%= stop.stop_order %>.
+<%= stop.stop_name %>
+
+</strong>
+
+<small class="text-muted d-block">
+
+<%= stop.latitude %>,
+<%= stop.longitude %>
+
+</small>
+
+</div>
+
+<% }) %>
+
+</div>
+
+</div>
+
+</div>
+
+<% } %>
+
+</main>
+
+<%- include('../partials/footer') %>
+
+</div>
+
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="/js/route-map.js"></script>
+
+<script>
+
+const stops=<%- JSON.stringify(stops||[]) %>;
+
+if(stops.length){
+
+const map=L.map("map").setView(
+
+[
+Number(stops[0].latitude),
+Number(stops[0].longitude)
+],
+
+13
+
+);
+
+L.tileLayer(
+
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+{
+
+maxZoom:19,
+
+attribution:"© OpenStreetMap"
+
+}
+
+).addTo(map);
+
+const points=[];
+
+stops.forEach(stop=>{
+
+const lat=Number(stop.latitude);
+
+const lng=Number(stop.longitude);
+
+points.push([lat,lng]);
+
+L.marker([lat,lng])
+
+.addTo(map)
+
+.bindPopup(
+
+`<strong>${stop.stop_name}</strong><br>Stop ${stop.stop_order}`
+
+);
+
+});
+
+L.polyline(points,{
+
+weight:5
+
+}).addTo(map);
+
+map.fitBounds(points);
+
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="/js/script.js"></script>
 
 </body>
 </html>
