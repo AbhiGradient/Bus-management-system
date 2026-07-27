@@ -3,6 +3,8 @@ dns.setDefaultResultOrder('ipv4first');
 
 const express = require('express');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 const session = require('express-session');
 const methodOverride = require('method-override');
 
@@ -10,6 +12,18 @@ require('dotenv').config();
 
 const app = express();
 
+// =====================================================
+// HTTP SERVER + SOCKET.IO
+// =====================================================
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+        origin: true,
+        credentials: true
+    }
+});
 
 // =====================================================
 // VIEW ENGINE
@@ -22,7 +36,6 @@ app.set(
     path.join(__dirname, 'views')
 );
 
-
 // =====================================================
 // MIDDLEWARE
 // =====================================================
@@ -34,18 +47,15 @@ app.use(
     })
 );
 
-
 // Parse JSON requests
 app.use(
     express.json()
 );
 
-
 // Support PUT / DELETE through HTML forms
 app.use(
     methodOverride('_method')
 );
-
 
 // Serve files from /public
 app.use(
@@ -53,7 +63,6 @@ app.use(
         path.join(__dirname, 'public')
     )
 );
-
 
 // =====================================================
 // SESSION
@@ -83,7 +92,6 @@ app.use(
     })
 );
 
-
 // =====================================================
 // MAKE LOGGED-IN USER AVAILABLE TO ALL EJS VIEWS
 // =====================================================
@@ -99,7 +107,6 @@ app.use(
 
     }
 );
-
 
 // =====================================================
 // ROUTES
@@ -126,6 +133,11 @@ const paymentRoutes =
 const homeRoutes =
     require('./routes/home');
 
+const trackingRoutes =
+    require('./routes/tracking');
+
+const routeManagementRoutes =
+    require('./routes/routeManagement');
 
 // =====================================================
 // ROUTE MOUNTING
@@ -137,13 +149,17 @@ app.use(
     authRoutes
 );
 
-
 // Admin
 app.use(
     '/admin',
     adminRoutes
 );
 
+// Admin route management
+app.use(
+    '/admin/routes',
+    routeManagementRoutes
+);
 
 // Student
 app.use(
@@ -151,13 +167,11 @@ app.use(
     studentRoutes
 );
 
-
 // Driver
 app.use(
     '/driver',
     driverRoutes
 );
-
 
 // QR
 app.use(
@@ -165,13 +179,11 @@ app.use(
     qrRoutes
 );
 
-
 // Payment
 app.use(
     '/payment',
     paymentRoutes
 );
-
 
 // Public / General Home Pages
 app.use(
@@ -179,6 +191,11 @@ app.use(
     homeRoutes
 );
 
+// Live Tracking API
+app.use(
+    '/tracking',
+    trackingRoutes
+);
 
 // =====================================================
 // TRANSPORT OFFICE
@@ -195,7 +212,6 @@ app.get(
     }
 );
 
-
 // =====================================================
 // ROOT
 // =====================================================
@@ -209,7 +225,6 @@ app.get(
     }
 );
 
-
 // =====================================================
 // TEST MAIL
 // =====================================================
@@ -217,7 +232,6 @@ app.get(
 const {
     sendMail
 } = require('./config/mailer');
-
 
 app.get(
     '/test-mail',
@@ -236,9 +250,7 @@ app.get(
 
                 );
 
-
             res.json(result);
-
 
         } catch (error) {
 
@@ -246,7 +258,6 @@ app.get(
                 'Test mail error:',
                 error
             );
-
 
             res.status(500).json({
 
@@ -262,6 +273,91 @@ app.get(
     }
 );
 
+// =====================================================
+// SOCKET.IO LIVE TRACKING
+// =====================================================
+
+const trackingService =
+    require('./services/trackingService');
+
+// Give trackingService access to Socket.IO
+// so it can broadcast live GPS updates.
+trackingService.setIO(io);
+
+// Handle Socket.IO connections
+io.on(
+    'connection',
+    (socket) => {
+
+        console.log(
+            `🔌 Socket connected: ${socket.id}`
+        );
+
+        // ---------------------------------------------
+        // Join a specific bus tracking room
+        // ---------------------------------------------
+
+        socket.on(
+            'joinBus',
+            (busId) => {
+
+                if (!busId) {
+                    return;
+                }
+
+                const room =
+                    `bus-${busId}`;
+
+                socket.join(room);
+
+                console.log(
+                    `🚌 Socket ${socket.id} joined ${room}`
+                );
+
+            }
+        );
+
+        // ---------------------------------------------
+        // Leave a specific bus tracking room
+        // ---------------------------------------------
+
+        socket.on(
+            'leaveBus',
+            (busId) => {
+
+                if (!busId) {
+                    return;
+                }
+
+                const room =
+                    `bus-${busId}`;
+
+                socket.leave(room);
+
+                console.log(
+                    `🚪 Socket ${socket.id} left ${room}`
+                );
+
+            }
+        );
+
+        // ---------------------------------------------
+        // Socket disconnected
+        // ---------------------------------------------
+
+        socket.on(
+            'disconnect',
+            () => {
+
+                console.log(
+                    `🔌 Socket disconnected: ${socket.id}`
+                );
+
+            }
+        );
+
+    }
+);
 
 // =====================================================
 // 404 HANDLER
@@ -301,6 +397,31 @@ app.use(
     }
 );
 
+// =====================================================
+// ERROR HANDLER
+// =====================================================
+
+app.use(
+    (err, req, res, next) => {
+
+        console.error(
+            '❌ Server Error:',
+            err
+        );
+
+        res
+            .status(500)
+            .json({
+
+                success: false,
+
+                message:
+                    'Internal server error.'
+
+            });
+
+    }
+);
 
 // =====================================================
 // START SERVER
@@ -310,15 +431,16 @@ const PORT =
     process.env.PORT ||
     3000;
 
-
-app.listen(
+server.listen(
     PORT,
     () => {
 
         console.log(
-
             `🚌 Smart College Bus Management System running at http://localhost:${PORT}`
+        );
 
+        console.log(
+            `📡 Live tracking Socket.IO server is ready`
         );
 
     }

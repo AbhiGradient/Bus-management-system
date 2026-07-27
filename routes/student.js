@@ -430,4 +430,71 @@ router.get('/notifications', async (req, res) => {
     }
 
 });
+// ================= LIVE BUS TRACKING =================
+
+router.get('/live-tracking', async (req, res) => {
+
+    try {
+
+        const studentId = req.session.user.id;
+
+        // Find the student's assigned bus
+        const [[student]] = await db.query(`
+            SELECT
+                s.bus_id
+            FROM students s
+            WHERE s.user_id = ?
+        `, [studentId]);
+
+        if (!student || !student.bus_id) {
+
+            return res.render('student/live-tracking', {
+                bus: null,
+                location: null,
+                message: 'You are not assigned to a bus yet.'
+            });
+
+        }
+
+        // Get bus details
+        const [[bus]] = await db.query(`
+            SELECT
+                id,
+                bus_number,
+                route_name,
+                status
+            FROM buses
+            WHERE id = ?
+        `, [student.bus_id]);
+
+        // Get latest live location
+        const [[location]] = await db.query(`
+            SELECT
+                bus_id,
+                driver_id,
+                latitude,
+                longitude,
+                speed,
+                heading,
+                journey_status,
+                updated_at
+            FROM live_locations
+            WHERE bus_id = ?
+        `, [student.bus_id]);
+
+        res.render('student/live-tracking', {
+            bus,
+            location,
+            message: null
+        });
+
+    } catch (err) {
+
+        console.error('❌ Student live tracking error:', err);
+
+        res.status(500).send('Unable to load live tracking.');
+
+    }
+
+});
 module.exports = router;

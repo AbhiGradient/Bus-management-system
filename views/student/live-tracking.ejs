@@ -1,0 +1,615 @@
+<%- include('../partials/header', {
+  pageTitle: 'Live Bus Tracking',
+  pageCss: []
+}) %>
+
+<head><link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<style>
+  #map {
+    width: 100%;
+    height: 500px;
+    border-radius: 12px;
+    z-index: 1;
+  }
+</style> </head>
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+    currentPage: 'live-tracking'
+  }) %>
+
+  <%- include('../partials/navbar', {
+    pageLabel: 'Live Bus Tracking'
+  }) %>
+
+  <div class="app-main">
+
+    <main class="main-content">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+          <h3 class="mb-1">
+            <i class="bi bi-geo-alt-fill text-primary"></i>
+            Live Bus Tracking
+          </h3>
+
+          <p class="text-muted mb-0">
+            Track your assigned college bus in real time.
+          </p>
+        </div>
+
+      </div>
+
+
+      <% if (message) { %>
+
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <%= message %>
+        </div>
+
+      <% } else if (!bus) { %>
+
+        <div class="card p-4">
+          <div class="text-center">
+
+            <i class="bi bi-bus-front fs-1 text-muted"></i>
+
+            <h5 class="mt-3">
+              No Bus Assigned
+            </h5>
+
+            <p class="text-muted mb-0">
+              You currently don't have a bus assigned to you.
+            </p>
+
+          </div>
+        </div>
+
+      <% } else { %>
+
+
+        <!-- BUS INFORMATION -->
+
+        <div class="row g-3 mb-3">
+
+          <div class="col-md-4">
+
+            <div class="card p-4 h-100">
+
+              <h6 class="text-muted">
+                <i class="bi bi-bus-front-fill"></i>
+                Bus Number
+              </h6>
+
+              <h4 class="mb-0">
+                <%= bus.bus_number %>
+              </h4>
+
+            </div>
+
+          </div>
+
+
+          <div class="col-md-4">
+
+            <div class="card p-4 h-100">
+
+              <h6 class="text-muted">
+                <i class="bi bi-signpost-2-fill"></i>
+                Route
+              </h6>
+
+              <h5 class="mb-0">
+                <%= bus.route_name || 'Route not assigned' %>
+              </h5>
+
+            </div>
+
+          </div>
+
+
+          <div class="col-md-4">
+
+            <div class="card p-4 h-100">
+
+              <h6 class="text-muted">
+                <i class="bi bi-circle-fill"></i>
+                Status
+              </h6>
+
+              <span id="busStatus"
+                    class="badge <%= bus.status === 'active' ? 'bg-success' : 'bg-secondary' %>">
+
+                <%= bus.status === 'active' ? 'On Trip' : 'Not Active' %>
+
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- LIVE LOCATION -->
+
+        <div class="card p-4">
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <div>
+
+              <h5 class="mb-1">
+                <i class="bi bi-map text-primary"></i>
+                Live Location
+              </h5>
+
+              <small class="text-muted">
+                Bus location updates automatically.
+              </small>
+
+            </div>
+
+            <span id="connectionStatus"
+                  class="badge bg-secondary">
+
+              Connecting...
+
+            </span>
+
+          </div>
+
+
+          <!-- MAP -->
+
+          <div id="map"
+               style="
+                 width: 100%;
+                 height: 500px;
+                 border-radius: 12px;
+                 background: #f1f3f5;
+               ">
+
+          </div>
+
+
+          <!-- LOCATION DETAILS -->
+
+          <div class="row mt-3">
+
+            <div class="col-md-3">
+
+              <small class="text-muted">
+                Latitude
+              </small>
+
+              <div id="latitude">
+
+                <%= location ? location.latitude : 'Waiting...' %>
+
+              </div>
+
+            </div>
+
+
+            <div class="col-md-3">
+
+              <small class="text-muted">
+                Longitude
+              </small>
+
+              <div id="longitude">
+
+                <%= location ? location.longitude : 'Waiting...' %>
+
+              </div>
+
+            </div>
+
+
+            <div class="col-md-3">
+
+              <small class="text-muted">
+                Speed
+              </small>
+
+              <div id="speed">
+
+                <%= location ? location.speed + ' km/h' : 'Waiting...' %>
+
+              </div>
+
+            </div>
+
+
+            <div class="col-md-3">
+
+              <small class="text-muted">
+                Last Updated
+              </small>
+
+              <div id="updatedAt">
+
+                <%= location ? location.updated_at : 'Waiting...' %>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+      <% } %>
+
+    </main>
+
+
+    <%- include('../partials/footer') %>
+
+  </div>
+
+</div>
+
+
+<!-- Socket.IO -->
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Socket.IO -->
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+const busId = <%= bus ? bus.id : 'null' %>;
+
+const initialLatitude =
+  <%= location ? Number(location.latitude) : 'null' %>;
+
+const initialLongitude =
+  <%= location ? Number(location.longitude) : 'null' %>;
+
+let map = null;
+let busMarker = null;
+
+
+// ======================================================
+// INITIALIZE MAP
+// ======================================================
+
+if (busId) {
+
+  const defaultLatitude = 18.5204;
+  const defaultLongitude = 73.8567;
+
+  const mapLatitude =
+    initialLatitude !== null
+      ? initialLatitude
+      : defaultLatitude;
+
+  const mapLongitude =
+    initialLongitude !== null
+      ? initialLongitude
+      : defaultLongitude;
+
+
+  // Create map
+  map = L.map('map').setView(
+    [mapLatitude, mapLongitude],
+    14
+  );
+
+
+  // OpenStreetMap tiles
+  L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }
+  ).addTo(map);
+
+
+  // Create initial marker
+  if (
+    initialLatitude !== null &&
+    initialLongitude !== null
+  ) {
+
+    createBusMarker(
+      initialLatitude,
+      initialLongitude
+    );
+
+  }
+
+
+  // Fix Bootstrap/card rendering issue
+  setTimeout(() => {
+
+    map.invalidateSize();
+
+  }, 500);
+
+}
+
+
+// ======================================================
+// SOCKET.IO
+// ======================================================
+
+if (busId) {
+
+  const socket = io();
+
+
+  socket.on('connect', () => {
+
+    console.log(
+      '✅ Connected to live tracking server'
+    );
+
+  });
+
+
+  socket.on('disconnect', () => {
+
+    console.log(
+      '❌ Disconnected from live tracking server'
+    );
+
+  });
+
+
+  // Receive live location
+  socket.on(
+    'bus-location-update',
+    (data) => {
+
+      console.log(
+        '📍 Live bus location:',
+        data
+      );
+
+
+      // Ignore other buses
+      if (
+        Number(data.bus_id) !==
+        Number(busId)
+      ) {
+
+        return;
+
+      }
+
+
+      // Update text information
+      updateLocation(
+        data.latitude,
+        data.longitude,
+        data.speed,
+        data.updated_at
+      );
+
+
+      // Update map marker
+      updateBusMarker(
+        Number(data.latitude),
+        Number(data.longitude)
+      );
+
+    }
+  );
+
+}
+
+
+// ======================================================
+// CREATE MARKER
+// ======================================================
+
+function createBusMarker(
+  latitude,
+  longitude
+) {
+
+  if (!map) {
+
+    return;
+
+  }
+
+
+  busMarker = L.marker([
+    latitude,
+    longitude
+  ])
+  .addTo(map);
+
+
+  busMarker.bindPopup(`
+    <div style="text-align:center">
+
+      <strong>🚌 College Bus</strong>
+
+      <br>
+
+      Bus ID: ${busId}
+
+      <br>
+
+      <small>
+        Live Location
+      </small>
+
+    </div>
+  `);
+
+
+  busMarker.openPopup();
+
+
+  console.log(
+    '🚌 Bus marker created:',
+    latitude,
+    longitude
+  );
+
+}
+
+
+// ======================================================
+// UPDATE MARKER
+// ======================================================
+
+function updateBusMarker(
+  latitude,
+  longitude
+) {
+
+  if (!map) {
+
+    return;
+
+  }
+
+
+  // If marker doesn't exist
+  if (!busMarker) {
+
+    createBusMarker(
+      latitude,
+      longitude
+    );
+
+    return;
+
+  }
+
+
+  // Move marker
+  busMarker.setLatLng([
+    latitude,
+    longitude
+  ]);
+
+
+  // Move map to bus
+  map.panTo([
+    latitude,
+    longitude
+  ]);
+
+
+  // Update popup
+  busMarker.setPopupContent(`
+    <div style="text-align:center">
+
+      <strong>🚌 College Bus</strong>
+
+      <br>
+
+      Bus ID: ${busId}
+
+      <br>
+
+      <small>
+        Live Location Updated
+      </small>
+
+    </div>
+  `);
+
+
+  console.log(
+    '📍 Bus marker moved:',
+    latitude,
+    longitude
+  );
+
+}
+
+
+// ======================================================
+// UPDATE LOCATION TEXT
+// ======================================================
+
+function updateLocation(
+  latitude,
+  longitude,
+  speed,
+  updatedAt
+) {
+
+  const latitudeElement =
+    document.getElementById('latitude');
+
+  const longitudeElement =
+    document.getElementById('longitude');
+
+  const speedElement =
+    document.getElementById('speed');
+
+  const updatedAtElement =
+    document.getElementById('updatedAt');
+
+
+  if (latitudeElement) {
+
+    latitudeElement.textContent =
+      Number(latitude).toFixed(6);
+
+  }
+
+
+  if (longitudeElement) {
+
+    longitudeElement.textContent =
+      Number(longitude).toFixed(6);
+
+  }
+
+
+  if (
+    speedElement &&
+    speed !== null &&
+    speed !== undefined
+  ) {
+
+    speedElement.textContent =
+      speed + ' km/h';
+
+  }
+
+
+  if (
+    updatedAtElement &&
+    updatedAt
+  ) {
+
+    updatedAtElement.textContent =
+      updatedAt;
+
+  }
+
+}
+
+</script>
+
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Your main JS -->
+<script src="/js/script.js"></script>
+
+</body>
+</html>

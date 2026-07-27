@@ -1,0 +1,93 @@
+<%- include('../partials/header', {
+  pageTitle: 'Live Fleet Tracking',
+  pageCss: ['live-tracking']
+}) %>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+  currentPage: 'tracking'
+}) %>
+
+<%- include('../partials/navbar', {
+  pageLabel: 'Live Fleet Tracking'
+}) %>
+
+<div class="app-main">
+  <main class="main-content">
+
+
+    <div class="main-content flex-grow-1">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Live Fleet Tracking</h3>
+      </div>
+
+      <div class="tracking-stats">
+        <div class="tracking-stat">
+          <strong><%= buses.length %></strong>
+          <span>Active Buses</span>
+        </div>
+        <div class="tracking-stat">
+          <strong id="statRunning">0</strong>
+          <span>Currently Running</span>
+        </div>
+        <div class="tracking-stat">
+          <strong id="statIdle"><%= buses.length %></strong>
+          <span>Not Started / Idle</span>
+        </div>
+      </div>
+
+      <div class="tracking-layout">
+        <div class="tracking-map-col">
+          <div id="fleetMap"></div>
+        </div>
+
+        <aside class="fleet-panel">
+          <div class="fleet-panel-head">Fleet</div>
+          <div id="busList">
+            <% if (buses.length === 0) { %>
+              <div class="fleet-panel-empty">No active buses right now.</div>
+            <% } %>
+            <% buses.forEach((bus) => { %>
+              <div
+                class="bus-list-item"
+                data-bus-id="<%= bus.id %>"
+                data-bus-number="<%= bus.bus_number %>"
+                data-route-name="<%= bus.route_name || '' %>"
+                data-driver-name="<%= bus.driver_name || '' %>"
+              >
+                <div class="bus-list-info">
+                  <strong><%= bus.bus_number %></strong>
+                  <small><%= bus.route_name || 'No route assigned' %></small>
+                  <small><%= bus.driver_name || 'No driver assigned' %></small>
+                </div>
+                <div class="bus-list-status">
+                  <span class="bus-status-dot is-idle"></span>
+                  <span class="bus-status-label">Not Started</span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </aside>
+      </div>
+
+    </div>
+  </div>
+      </main>
+
+
+
+  </div>
+</div>
+<%- include('../partials/footer') %>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/script.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/live-tracking.js"></script>
+</body>
+</html>

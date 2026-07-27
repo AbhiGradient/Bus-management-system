@@ -1,0 +1,68 @@
+<%- include('../partials/header', {
+  pageTitle: 'Track My Bus',
+  pageCss: ['live-tracking']
+}) %>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+    currentPage: 'tracking'
+  }) %>
+
+  <%- include('../partials/navbar', {
+    pageLabel: 'Track My Bus'
+  }) %>
+
+  <div class="app-main">
+    <main class="main-content">
+
+      <h3 class="mb-3">Track My Bus</h3>
+
+      <% if (!bus) { %>
+
+        <div class="card p-4 text-center text-muted">
+          No bus has been assigned to you yet. Please contact the administration.
+        </div>
+
+      <% } else { %>
+
+        <div class="track-info-grid">
+          <div class="track-info-card">
+            <strong id="journeyStatus">Not started yet</strong>
+            <span>Journey Status</span>
+          </div>
+          <div class="track-info-card">
+            <strong id="busSpeed">0 km/h</strong>
+            <span>Current Speed</span>
+          </div>
+          <div class="track-info-card">
+            <strong id="busEta">—</strong>
+            <span>ETA</span>
+          </div>
+          <div class="track-info-card">
+            <strong id="nextStop">—</strong>
+            <span>Next Stop</span>
+          </div>
+        </div>
+
+        <div id="trackMap" data-bus-id="<%= bus.id %>"></div>
+
+      <% } %>
+
+    </main>
+
+    <%- include('../partials/footer') %>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/script.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/track-bus.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,302 @@
+<%- include('../partials/header', {
+  pageTitle: 'Route Management',
+  pageCss: []
+}) %>
+
+<div class="app-shell">
+
+  <%- include('../partials/sidebar', {
+  currentPage: 'route-management'
+}) %>
+
+<%- include('../partials/navbar', {
+  pageLabel: 'Route Management'
+}) %>
+
+<div class="app-main">
+  <main class="main-content">
+
+
+    <div class="main-content flex-grow-1">
+
+      <% if (error) { %>
+        <div class="alert alert-danger auto-alert" role="alert"><%= error %></div>
+      <% } %>
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Route Management</h3>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRouteModal">
+          + Add Route
+        </button>
+      </div>
+
+      <div class="card p-3">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Route Name</th>
+                <th>Start &rarr; End</th>
+                <th>Distance</th>
+                <th>Est. Time</th>
+                <th>Stops</th>
+                <th>Assigned Bus(es)</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (routes.length === 0) { %>
+                <tr><td colspan="9" class="text-center text-muted py-3">No routes added yet.</td></tr>
+              <% } %>
+              <% routes.forEach((route, i) => { %>
+                <tr>
+                  <td><%= i + 1 %></td>
+                  <td><strong><%= route.route_name %></strong></td>
+                  <td><%= route.start_location %> &rarr; <%= route.end_location %></td>
+                  <td><%= route.total_distance ? route.total_distance + ' km' : '—' %></td>
+                  <td><%= route.estimated_time ? route.estimated_time + ' min' : '—' %></td>
+                  <td><%= route.stop_count %></td>
+                  <td><%= route.assigned_buses || '—' %></td>
+                  <td>
+                    <span class="badge badge-status <%= route.is_active ? 'bg-success' : 'bg-secondary' %>">
+                      <%= route.is_active ? 'active' : 'inactive' %>
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#stopsModal<%= route.id %>">Stops</button>
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#assignModal<%= route.id %>">Assign</button>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editRouteModal<%= route.id %>">Edit</button>
+                    <form action="/admin/routes/<%= route.id %>?_method=DELETE" method="POST" class="d-inline confirm-delete">
+                      <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+
+                <!-- Edit Route Modal -->
+                <div class="modal fade" id="editRouteModal<%= route.id %>" tabindex="-1">
+                  <div class="modal-dialog">
+                    <form action="/admin/routes/<%= route.id %>?_method=PUT" method="POST" class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Edit Route - <%= route.route_name %></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <div class="mb-2">
+                          <label class="form-label">Route Name</label>
+                          <input type="text" name="route_name" class="form-control" value="<%= route.route_name %>" required />
+                        </div>
+                        <div class="mb-2">
+                          <label class="form-label">Start Location</label>
+                          <input type="text" name="start_location" class="form-control" value="<%= route.start_location %>" required />
+                        </div>
+                        <div class="mb-2">
+                          <label class="form-label">End Location</label>
+                          <input type="text" name="end_location" class="form-control" value="<%= route.end_location %>" required />
+                        </div>
+                        <div class="row">
+                          <div class="col-6 mb-2">
+                            <label class="form-label">Total Distance (km)</label>
+                            <input type="number" step="0.01" name="total_distance" class="form-control" value="<%= route.total_distance || '' %>" />
+                          </div>
+                          <div class="col-6 mb-2">
+                            <label class="form-label">Estimated Time (min)</label>
+                            <input type="number" name="estimated_time" class="form-control" value="<%= route.estimated_time || '' %>" />
+                          </div>
+                        </div>
+                        <div class="mb-2">
+                          <label class="form-label">Status</label>
+                          <select name="is_active" class="form-select">
+                            <option value="1" <%= route.is_active ? 'selected' : '' %>>Active</option>
+                            <option value="0" <%= !route.is_active ? 'selected' : '' %>>Inactive</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- Manage Stops Modal -->
+                <div class="modal fade" id="stopsModal<%= route.id %>" tabindex="-1">
+                  <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Stops - <%= route.route_name %></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <% const stops = stopsByRoute[route.id] || []; %>
+
+                        <!-- One empty form per stop, referenced by the `form` attribute below.
+                             Keeps this valid HTML: a <form> can't wrap several <td>s in the
+                             same row, but inputs anywhere on the page can point at a form
+                             living outside the table via its id. -->
+                        <% stops.forEach((stop) => { %>
+                          <form id="stopForm<%= stop.id %>" action="/admin/routes/stops/<%= stop.id %>?_method=PUT" method="POST"></form>
+                        <% }) %>
+
+                        <div class="table-responsive mb-3">
+                          <table class="table table-sm align-middle">
+                            <thead>
+                              <tr>
+                                <th style="width:80px">Order</th>
+                                <th>Stop Name</th>
+                                <th style="width:130px">Latitude</th>
+                                <th style="width:130px">Longitude</th>
+                                <th style="width:110px">Arrival</th>
+                                <th class="text-end">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <% if (stops.length === 0) { %>
+                                <tr><td colspan="6" class="text-center text-muted py-2">No stops added yet.</td></tr>
+                              <% } %>
+                              <% stops.forEach((stop) => { %>
+                                <tr>
+                                  <td><input form="stopForm<%= stop.id %>" type="number" name="stop_order" class="form-control form-control-sm" value="<%= stop.stop_order %>" required /></td>
+                                  <td><input form="stopForm<%= stop.id %>" type="text" name="stop_name" class="form-control form-control-sm" value="<%= stop.stop_name %>" required /></td>
+                                  <td><input form="stopForm<%= stop.id %>" type="text" name="latitude" class="form-control form-control-sm" value="<%= stop.latitude %>" required /></td>
+                                  <td><input form="stopForm<%= stop.id %>" type="text" name="longitude" class="form-control form-control-sm" value="<%= stop.longitude %>" required /></td>
+                                  <td><input form="stopForm<%= stop.id %>" type="time" name="expected_arrival" class="form-control form-control-sm" value="<%= stop.expected_arrival ? String(stop.expected_arrival).slice(0, 5) : '' %>" /></td>
+                                  <td class="text-end">
+                                    <button form="stopForm<%= stop.id %>" type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                                    <form action="/admin/routes/stops/<%= stop.id %>?_method=DELETE" method="POST" class="d-inline confirm-delete">
+                                      <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                  </td>
+                                </tr>
+                              <% }) %>
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <hr />
+                        <h6>Add Stop</h6>
+                        <form action="/admin/routes/<%= route.id %>/stops" method="POST" class="row g-2">
+                          <div class="col-md-2">
+                            <input type="number" name="stop_order" class="form-control" placeholder="Order" required />
+                          </div>
+                          <div class="col-md-3">
+                            <input type="text" name="stop_name" class="form-control" placeholder="Stop name" required />
+                          </div>
+                          <div class="col-md-2">
+                            <input type="text" name="latitude" class="form-control" placeholder="Latitude" required />
+                          </div>
+                          <div class="col-md-2">
+                            <input type="text" name="longitude" class="form-control" placeholder="Longitude" required />
+                          </div>
+                          <div class="col-md-2">
+                            <input type="time" name="expected_arrival" class="form-control" />
+                          </div>
+                          <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary w-100">Add</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Assign Bus Modal -->
+                <div class="modal fade" id="assignModal<%= route.id %>" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Assign Buses - <%= route.route_name %></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form action="/admin/routes/<%= route.id %>/assign" method="POST" class="d-flex gap-2 mb-3">
+                          <select name="bus_id" class="form-select" required>
+                            <option value="">-- Select a bus --</option>
+                            <% buses.forEach((bus) => { %>
+                              <option value="<%= bus.id %>">
+                                <%= bus.bus_number %><%= bus.assigned_route_id ? (bus.assigned_route_id === route.id ? ' (assigned here)' : ' (assigned to another route)') : '' %>
+                              </option>
+                            <% }) %>
+                          </select>
+                          <button type="submit" class="btn btn-primary">Assign</button>
+                        </form>
+                        <p class="text-muted small mb-2">A bus can only run one route at a time — assigning it here moves it off any other route.</p>
+                        <% const assignedToThisRoute = buses.filter(function (b) { return b.assigned_route_id === route.id; }); %>
+                        <% if (assignedToThisRoute.length) { %>
+                          <ul class="list-group">
+                            <% assignedToThisRoute.forEach((bus) => { %>
+                              <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <%= bus.bus_number %>
+                                <form action="/admin/routes/assign/<%= bus.id %>?_method=DELETE" method="POST">
+                                  <button class="btn btn-sm btn-outline-danger">Unassign</button>
+                                </form>
+                              </li>
+                            <% }) %>
+                          </ul>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+      </main>
+
+
+
+  </div>
+</div>
+<%- include('../partials/footer') %>
+
+  <!-- Add Route Modal -->
+  <div class="modal fade" id="addRouteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <form action="/admin/routes" method="POST" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add New Route</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label">Route Name</label>
+            <input type="text" name="route_name" class="form-control" placeholder="e.g. Route A - Narhe" required />
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Start Location</label>
+            <input type="text" name="start_location" class="form-control" placeholder="e.g. Narhe Gaon" required />
+          </div>
+          <div class="mb-2">
+            <label class="form-label">End Location</label>
+            <input type="text" name="end_location" class="form-control" placeholder="e.g. ZCOER Campus" required />
+          </div>
+          <div class="row">
+            <div class="col-6 mb-2">
+              <label class="form-label">Total Distance (km)</label>
+              <input type="number" step="0.01" name="total_distance" class="form-control" placeholder="e.g. 8.5" />
+            </div>
+            <div class="col-6 mb-2">
+              <label class="form-label">Estimated Time (min)</label>
+              <input type="number" name="estimated_time" class="form-control" placeholder="e.g. 25" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Add Route</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/script.js"></script>
+</body>
+</html>
