@@ -1,474 +1,180 @@
 <%- include('../partials/header', {
-  pageTitle: 'Start Trip',
-  pageCss: []
+    pageTitle: 'Start Trip',
+    pageCss: []
 }) %>
 
 <div class="app-shell">
 
-  <%- include('../partials/sidebar', {
-    currentPage: 'trip-start'
-  }) %>
+    <%- include('../partials/sidebar', {
+        currentPage: 'trip-start'
+    }) %>
 
-  <%- include('../partials/navbar', {
-    pageLabel: 'Start Trip'
-  }) %>
+    <%- include('../partials/navbar', {
+        pageLabel: 'Start Trip'
+    }) %>
 
-  <div class="app-main">
-    <main class="main-content">
+    <div class="app-main">
 
-      <!-- PAGE HEADER -->
-      <div class="mb-4">
-        <h3 class="mb-1">
-          <i class="bi bi-play-circle-fill text-success"></i>
-          Start Bus Trip
-        </h3>
+        <main class="main-content">
 
-        <p class="text-muted mb-0">
-          Start your journey and begin sharing your live GPS location with students.
-        </p>
-      </div>
+            <div class="container py-4">
 
+                <div class="row justify-content-center">
 
-      <% if (!bus) { %>
+                    <div class="col-lg-7">
 
-        <!-- NO BUS ASSIGNED -->
-        <div class="card p-4">
-          <div class="text-center py-4">
+                        <div class="card shadow-sm border-0">
 
-            <i
-              class="bi bi-bus-front text-muted"
-              style="font-size: 4rem;"
-            ></i>
+                            <div class="card-body text-center p-5">
 
-            <h5 class="mt-3">
-              No Bus Assigned
-            </h5>
+                                <i class="bi bi-bus-front-fill text-primary"
+                                   style="font-size:70px;"></i>
 
-            <p class="text-muted">
-              You currently do not have a bus assigned to you.
-              Please contact the transport administration.
-            </p>
+                                <h2 class="mt-3">
+                                    Start Your Journey
+                                </h2>
 
-          </div>
-        </div>
+                                <% if (bus) { %>
 
-      <% } else { %>
+                                    <p class="text-muted mb-4">
 
+                                        <strong>Bus:</strong>
+                                        <%= bus.bus_number %>
 
-        <!-- BUS INFORMATION -->
-        <div class="row g-4">
+                                        <br>
 
-          <div class="col-lg-6">
+                                        <strong>Route:</strong>
+                                        <%= bus.route_name || 'Not Assigned' %>
 
-            <div class="card p-4 h-100">
+                                    </p>
 
-              <h5 class="mb-3">
-                <i class="bi bi-bus-front-fill text-primary"></i>
-                Your Assigned Bus
-              </h5>
+                                    <% if (activeJourney) { %>
 
-              <hr>
+                                        <div class="alert alert-success">
 
-              <div class="mb-3">
-                <small class="text-muted">
-                  Bus Number
-                </small>
+                                            <i class="bi bi-check-circle-fill"></i>
 
-                <h4 class="mb-0">
-                  <%= bus.bus_number %>
-                </h4>
-              </div>
+                                            Journey already running.
 
+                                        </div>
 
-              <div class="mb-3">
-                <small class="text-muted">
-                  Bus Route
-                </small>
+                                        <a
+                                            href="/driver/live-location"
+                                            class="btn btn-primary btn-lg">
 
-                <p class="fw-semibold mb-0">
-                  <%= bus.route_name || 'Route not assigned' %>
-                </p>
-              </div>
+                                            <i class="bi bi-geo-alt-fill"></i>
 
+                                            Open Live Location
 
-              <div class="mb-3">
-                <small class="text-muted">
-                  Capacity
-                </small>
+                                        </a>
 
-                <p class="fw-semibold mb-0">
-                  <%= bus.capacity %> Students
-                </p>
-              </div>
+                                    <% } else { %>
 
+                                        <button
+                                            id="startBtn"
+                                            class="btn btn-success btn-lg">
 
-              <div>
+                                            <i class="bi bi-play-fill"></i>
 
-                <small class="text-muted">
-                  Bus Status
-                </small>
+                                            Start Journey
 
-                <div class="mt-1">
+                                        </button>
 
-                  <% if (bus.status === 'active') { %>
+                                    <% } %>
 
-                    <span class="badge bg-success">
-                      <i class="bi bi-check-circle"></i>
-                      Active
-                    </span>
+                                <% } else { %>
 
-                  <% } else { %>
+                                    <div class="alert alert-warning">
 
-                    <span class="badge bg-secondary">
-                      <i class="bi bi-pause-circle"></i>
-                      Inactive
-                    </span>
+                                        No bus is assigned to your account.
 
-                  <% } %>
+                                    </div>
+
+                                <% } %>
+
+                                <div
+                                    id="message"
+                                    class="mt-4">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
 
                 </div>
-
-              </div>
 
             </div>
 
-          </div>
+        </main>
 
+        <%- include('../partials/footer') %>
 
-          <!-- START TRIP CARD -->
-          <div class="col-lg-6">
-
-            <div class="card p-4 h-100">
-
-              <h5 class="mb-3">
-                <i class="bi bi-play-circle-fill text-success"></i>
-                Journey Control
-              </h5>
-
-              <hr>
-
-
-              <% if (activeJourney) { %>
-
-                <!-- JOURNEY ALREADY RUNNING -->
-
-                <div class="alert alert-success">
-
-                  <i class="bi bi-broadcast"></i>
-
-                  <strong>
-                    Journey is currently running.
-                  </strong>
-
-                  <br>
-
-                  <small>
-                    Your GPS location is being shared with students.
-                  </small>
-
-                </div>
-
-
-                <div class="d-grid gap-2">
-
-                  <a
-                    href="/driver/live-location"
-                    class="btn btn-primary"
-                  >
-
-                    <i class="bi bi-geo-alt-fill"></i>
-
-                    Open Live Location
-
-                  </a>
-
-
-                  <a
-                    href="/driver/trip-end"
-                    class="btn btn-outline-danger"
-                  >
-
-                    <i class="bi bi-stop-circle"></i>
-
-                    End Trip
-
-                  </a>
-
-                </div>
-
-
-              <% } else { %>
-
-
-                <!-- JOURNEY NOT STARTED -->
-
-                <div class="alert alert-info">
-
-                  <i class="bi bi-info-circle"></i>
-
-                  Your journey has not started yet.
-
-                  <br>
-
-                  <small>
-                    Click the button below to start the journey.
-                  </small>
-
-                </div>
-
-
-                <form
-                  action="/tracking/start"
-                  method="POST"
-                  id="startJourneyForm"
-                >
-
-                  <button
-                    type="submit"
-                    class="btn btn-success btn-lg w-100"
-                    id="startJourneyBtn"
-                  >
-
-                    <i class="bi bi-play-fill"></i>
-
-                    Start Journey
-
-                  </button>
-
-                </form>
-
-
-                <div
-                  id="startMessage"
-                  class="mt-3"
-                  style="display:none;"
-                ></div>
-
-              <% } %>
-
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- IMPORTANT INFORMATION -->
-        <div class="card p-4 mt-4">
-
-          <h5>
-            <i class="bi bi-info-circle text-primary"></i>
-            How Live Tracking Works
-          </h5>
-
-          <hr>
-
-          <div class="row g-3">
-
-            <div class="col-md-4">
-
-              <div class="d-flex">
-
-                <i class="bi bi-1-circle-fill text-primary fs-3 me-3"></i>
-
-                <div>
-
-                  <strong>
-                    Start Journey
-                  </strong>
-
-                  <p class="text-muted mb-0">
-                    Press Start Journey before beginning your bus trip.
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            <div class="col-md-4">
-
-              <div class="d-flex">
-
-                <i class="bi bi-2-circle-fill text-primary fs-3 me-3"></i>
-
-                <div>
-
-                  <strong>
-                    Share GPS
-                  </strong>
-
-                  <p class="text-muted mb-0">
-                    Your device GPS sends your live location to the server.
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            <div class="col-md-4">
-
-              <div class="d-flex">
-
-                <i class="bi bi-3-circle-fill text-primary fs-3 me-3"></i>
-
-                <div>
-
-                  <strong>
-                    Students Track You
-                  </strong>
-
-                  <p class="text-muted mb-0">
-                    Students can see your bus moving live on the map.
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-      <% } %>
-
-
-    </main>
-
-    <%- include('../partials/footer') %>
-
-  </div>
+    </div>
 
 </div>
 
-
 <script>
 
-const startForm =
-  document.getElementById('startJourneyForm');
+const startBtn = document.getElementById("startBtn");
 
-if (startForm) {
+if(startBtn){
 
-  startForm.addEventListener(
-    'submit',
-    async function(event) {
+    startBtn.addEventListener("click", async ()=>{
 
-      event.preventDefault();
+        startBtn.disabled = true;
 
-      const button =
-        document.getElementById('startJourneyBtn');
+        startBtn.innerHTML =
+            `<span class="spinner-border spinner-border-sm me-2"></span>Starting...`;
 
-      const message =
-        document.getElementById('startMessage');
+        try{
 
+            const response = await fetch("/tracking/start",{
+                method:"POST"
+            });
 
-      button.disabled = true;
+            const data = await response.json();
 
-      button.innerHTML =
-        '<span class="spinner-border spinner-border-sm me-2"></span>Starting Journey...';
+            if(data.success){
 
+                window.location.replace("/driver/live-location");
 
-      try {
+            }else{
 
-        const response =
-          await fetch('/tracking/start', {
+                startBtn.disabled = false;
 
-            method: 'POST',
+                startBtn.innerHTML =
+                    `<i class="bi bi-play-fill"></i> Start Journey`;
 
-            headers: {
-              'Content-Type': 'application/json'
+                document.getElementById("message").innerHTML = `
+                    <div class="alert alert-danger">
+                        ${data.message}
+                    </div>`;
             }
 
-          });
+        }catch(err){
 
+            console.error(err);
 
-        const data =
-          await response.json();
+            startBtn.disabled = false;
 
+            startBtn.innerHTML =
+                `<i class="bi bi-play-fill"></i> Start Journey`;
 
-        if (data.success) {
-
-          message.style.display =
-            'block';
-
-          message.className =
-            'alert alert-success mt-3';
-
-          message.innerHTML =
-            '<i class="bi bi-check-circle-fill"></i> Journey started successfully!';
-
-
-          setTimeout(
-            function() {
-
-              window.location.href =
-                '/driver/live-location';
-
-            },
-            1000
-          );
-
-
-        } else {
-
-          message.style.display =
-            'block';
-
-          message.className =
-            'alert alert-danger mt-3';
-
-          message.textContent =
-            data.message ||
-            'Could not start journey.';
-
-          button.disabled =
-            false;
-
-          button.innerHTML =
-            '<i class="bi bi-play-fill"></i> Start Journey';
-
+            document.getElementById("message").innerHTML = `
+                <div class="alert alert-danger">
+                    Server connection failed.
+                </div>`;
         }
 
-      } catch (error) {
-
-        console.error(error);
-
-        message.style.display =
-          'block';
-
-        message.className =
-          'alert alert-danger mt-3';
-
-        message.textContent =
-          'Unable to connect to the server.';
-
-        button.disabled =
-          false;
-
-        button.innerHTML =
-          '<i class="bi bi-play-fill"></i> Start Journey';
-
-      }
-
-    }
-  );
+    });
 
 }
 
 </script>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="/js/script.js"></script>
 
 </body>

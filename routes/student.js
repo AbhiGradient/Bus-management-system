@@ -314,11 +314,13 @@ router.get('/seat-management', async (req, res) => {
       });
     }
 
-    // Get bus details
-    const [[selectedBus]] = await db.query(
-      'SELECT * FROM buses WHERE id = ?',
-      [student.bus_id]
-    );
+    // Get bus details (with driver name + phone joined from users)
+const [[selectedBus]] = await db.query(`
+  SELECT b.*, u.name AS driver_name, u.phone AS driver_phone
+  FROM buses b
+  LEFT JOIN users u ON b.driver_id = u.id
+  WHERE b.id = ?
+`, [student.bus_id]);
 
     // Get all students on this bus
     const [allocatedStudents] = await db.query(`

@@ -22,46 +22,17 @@
           Seat Management
         </h3>
         <% if (selectedBus) { %>
-          <button type="button" class="btn btn-outline-dark btn-sm" onclick="window.print()">
+          <button type="button" class="btn btn-outline-dark btn-sm no-print" onclick="window.print()">
             <i class="bi bi-printer-fill"></i>
             Print PDF
           </button>
         <% } %>
       </div>
 
-      <% if (user.role === 'admin') { %>
-        <!-- Bus Selector (admin only) -->
-        <div class="card p-3 mb-3 no-print">
-          <form action="/admin/seat-management" method="GET" class="row g-2 align-items-end">
-            <div class="col-md-5">
-              <label class="form-label">Select Bus</label>
-              <select name="bus_id" class="form-select" onchange="this.form.submit()">
-                <option value="">-- Choose a bus --</option>
-                <% buses.forEach(b => { %>
-                  <option value="<%= b.id %>" <%= (selectedBus && selectedBus.id === b.id) ? 'selected' : '' %>>
-                    <%= b.bus_number %> — <%= b.route_name %>
-                  </option>
-                <% }) %>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search"></i>
-                View Seats
-              </button>
-            </div>
-          </form>
-        </div>
-      <% } %>
-
       <% if (!selectedBus) { %>
 
         <div class="card p-4 text-center text-muted">
-          <% if (user.role === 'admin') { %>
-            Select a bus above to view its seat allocation.
-          <% } else { %>
-            No bus has been assigned to you yet. Please contact the administration.
-          <% } %>
+          No bus has been assigned to you yet. Please contact the administration.
         </div>
 
       <% } else { %>
@@ -73,19 +44,23 @@
             <div class="text-muted small"><%= selectedBus.bus_number %> — <%= selectedBus.route_name %></div>
           </div>
 
+          <!-- Summary -->
           <div class="row mb-3 g-3">
+
             <div class="col-md-4">
               <div class="card p-3 text-center">
                 <div class="text-muted small">Total Capacity</div>
                 <div class="fs-3 fw-bold"><%= selectedBus.capacity %></div>
               </div>
             </div>
+
             <div class="col-md-4">
               <div class="card p-3 text-center">
                 <div class="text-muted small">Allocated Seats</div>
                 <div class="fs-3 fw-bold text-danger"><%= allocatedStudents.length %></div>
               </div>
             </div>
+
             <div class="col-md-4">
               <div class="card p-3 text-center">
                 <div class="text-muted small">Vacant Seats</div>
@@ -94,67 +69,126 @@
                 </div>
               </div>
             </div>
+
           </div>
 
+          <!-- Driver Details -->
+          <div class="card p-3 mb-3">
+            <div class="card-title-row mb-3">
+              <i class="bi bi-person-badge-fill"></i>
+              <h5>Driver Details</h5>
+            </div>
+
+            <% if (selectedBus.driver_name) { %>
+              <div class="driver-details-row">
+                <div class="driver-avatar">
+                  <i class="bi bi-person-vcard-fill"></i>
+                </div>
+                <div class="driver-info">
+                  <div class="driver-name"><%= selectedBus.driver_name %></div>
+                  <div class="driver-meta">
+                    <span>
+                      <i class="bi bi-telephone-fill"></i>
+                      <%= selectedBus.driver_phone || 'Not available' %>
+                    </span>
+                    <span>
+                      <i class="bi bi-bus-front-fill"></i>
+                      <%= selectedBus.bus_number %>
+                    </span>
+                  </div>
+                </div>
+                <span class="badge-status ms-auto no-print">On Duty</span>
+              </div>
+            <% } else { %>
+              <div class="driver-details-row driver-unassigned">
+                <div class="driver-avatar driver-avatar-empty">
+                  <i class="bi bi-person-x-fill"></i>
+                </div>
+                <div class="driver-info">
+                  <div class="driver-name text-muted">No Driver Assigned</div>
+                  <div class="driver-meta">
+                    <span>This bus currently has no driver linked to it.</span>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Seat Grid -->
           <div class="card p-3">
-            <h5 class="mb-3"><%= selectedBus.bus_number %> — <%= selectedBus.route_name %></h5>
+
+            <h5 class="mb-3">
+              <%= selectedBus.bus_number %> — <%= selectedBus.route_name %>
+            </h5>
 
             <div class="d-flex gap-3 mb-3 no-print">
-              <span><span class="badge bg-danger">&nbsp;</span> Allocated</span>
-              <span><span class="badge bg-success">&nbsp;</span> Vacant</span>
-              <% if (user.role === 'student') { %>
-                <span><span class="badge bg-primary">&nbsp;</span> My Seat</span>
-              <% } %>
+              <span>
+                <span class="badge bg-primary">&nbsp;</span>
+                My Seat
+              </span>
+              <span>
+                <span class="badge bg-danger">&nbsp;</span>
+                Allocated
+              </span>
+              <span>
+                <span class="badge bg-success">&nbsp;</span>
+                Vacant
+              </span>
             </div>
 
-            <div class="seat-grid d-flex flex-wrap gap-2">
-              <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
-                <% const s = allocatedStudents[seatNo - 1]; %>
-                <% const isMine = user.role === 'student' && s && s.id === student.id; %>
-                <% if (s) { %>
-                  <div
-                    class="seat <%= isMine ? 'seat-mine' : 'seat-occupied' %>"
-                    data-bs-toggle="tooltip"
-                    title="<%= s.name %> (<%= s.roll_no %>)">
-                    <i class="bi bi-person-fill"></i>
-                    <small><%= seatNo %></small>
-                  </div>
-                <% } else { %>
-                  <div class="seat seat-vacant">
-                    <i class="bi bi-person"></i>
-                    <small><%= seatNo %></small>
-                  </div>
-                <% } %>
-              <% } %>
-            </div>
-          </div>
+            <!-- Bus body wrapper: gate + driver front + seat rows -->
+            <div class="bus-layout-wrapper">
 
-          <% if (user.role === 'admin') { %>
-          <div class="card p-3 mt-3">
-            <h5 class="mb-3">Students Allocated to <%= selectedBus.bus_number %></h5>
-            <div class="table-responsive">
-              <table class="table table-hover align-middle">
-                <thead>
-                  <tr><th>Seat #</th><th>Name</th><th>Roll No</th><th>Department</th><th>Year</th></tr>
-                </thead>
-                <tbody>
-                  <% if (allocatedStudents.length === 0) { %>
-                    <tr><td colspan="5" class="text-center text-muted py-3">No students allocated to this bus yet.</td></tr>
+              <div class="bus-front-row">
+                <div class="bus-gate-icon" title="Entry Gate">
+                  <i class="bi bi-door-open-fill"></i>
+                  <small>Gate</small>
+                </div>
+
+                <div class="bus-driver-icon" title="Driver">
+                  <i class="bi bi-steering-wheel"></i>
+                  <small>Driver</small>
+                </div>
+              </div>
+
+              <div class="seat-grid">
+
+                <% for (let seatNo = 1; seatNo <= selectedBus.capacity; seatNo++) { %>
+
+                  <% const s = allocatedStudents[seatNo - 1]; %>
+                  <% const isMine = s && s.id === student.id; %>
+                  <% const posInRow = ((seatNo - 1) % 4) + 1; %>
+
+                  <% if (s) { %>
+
+                    <div
+                      class="seat <%= isMine ? 'seat-mine' : 'seat-occupied' %>"
+                      data-bs-toggle="tooltip"
+                      title="<%= isMine ? 'Your Seat' : (s.name + ' (' + s.roll_no + ')') %>">
+                      <i class="bi bi-person-fill"></i>
+                      <small><%= seatNo %></small>
+                    </div>
+
+                  <% } else { %>
+
+                    <div class="seat seat-vacant">
+                      <i class="bi bi-person"></i>
+                      <small><%= seatNo %></small>
+                    </div>
+
                   <% } %>
-                  <% allocatedStudents.forEach((s, i) => { %>
-                    <tr>
-                      <td><%= i + 1 %></td>
-                      <td><%= s.name %></td>
-                      <td><%= s.roll_no %></td>
-                      <td><%= s.department %></td>
-                      <td><%= s.year %></td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
+
+                  <% if (posInRow === 2) { %>
+                    <div class="seat-aisle"></div>
+                  <% } %>
+
+                <% } %>
+
+              </div>
+
             </div>
+
           </div>
-          <% } %>
 
         </div>
         <!-- /#printable-area -->
@@ -169,23 +203,177 @@
 </div>
 
 <style>
-  .seat {
-    width: 48px; height: 48px; border-radius: 8px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-size: 0.7rem; color: #fff; cursor: default;
+  /* Bus body container */
+  .bus-layout-wrapper {
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 18px 16px 20px;
+    border: 1px solid var(--line, #dee2e6);
+    border-radius: 22px;
+    background: var(--paper-sunk, #f4f4f4);
   }
-  .seat-occupied { background-color: var(--bs-danger, #dc3545); }
-  .seat-vacant   { background-color: var(--bs-success, #198754); }
-  .seat-mine     { background-color: var(--bs-primary, #0d6efd); outline: 2px solid #fff; }
+
+  /* Front row: gate on left, driver on right */
+  .bus-front-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .bus-gate-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--brass-soft, rgba(184,134,60,0.14));
+    border: 1px dashed var(--brass, #B8863C);
+    color: var(--brass, #B8863C);
+    font-size: 1rem;
+  }
+  .bus-gate-icon small {
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .bus-driver-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--paper-raised, #fff);
+    border: 1px solid var(--line, #dee2e6);
+    color: var(--ink-low, #8A9591);
+    font-size: 1rem;
+  }
+  .bus-driver-icon small {
+    font-size: 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /* Seat grid: 2 seats | aisle | 2 seats, wraps into rows automatically */
+  .seat-grid {
+    display: grid;
+    grid-template-columns: 48px 48px 24px 48px 48px;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .seat-aisle {
+    width: 24px;
+  }
+
+  .seat {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: #fff;
+    cursor: default;
+  }
+  .seat-occupied {
+    background-color: var(--bs-danger, #dc3545);
+  }
+  .seat-vacant {
+    background-color: var(--bs-success, #198754);
+  }
+  .seat-mine {
+    background-color: var(--bs-primary, #0d6efd);
+    outline: 2px solid #fff;
+    outline-offset: -3px;
+  }
+
+  /* Driver Details card */
+  .driver-details-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .driver-avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--pine, #1F5C4F), var(--pine-deep, #16332C));
+    box-shadow: 0 8px 20px rgba(31,92,79,0.24);
+  }
+
+  .driver-avatar-empty {
+    background: linear-gradient(135deg, #8A9591, #6b7570);
+    box-shadow: none;
+  }
+
+  .driver-name {
+    font-family: var(--font-display, 'Fraunces', serif);
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--ink-hi, #1C2622);
+  }
+
+  .driver-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--ink-low, #8A9591);
+  }
+
+  .driver-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .driver-unassigned {
+    opacity: 0.85;
+  }
+
+  @media (max-width: 480px) {
+    .bus-layout-wrapper {
+      max-width: 100%;
+    }
+    .seat-grid {
+      grid-template-columns: 42px 42px 20px 42px 42px;
+      gap: 8px;
+    }
+    .seat {
+      width: 42px;
+      height: 42px;
+    }
+    .driver-details-row {
+      flex-wrap: wrap;
+    }
+  }
 
   @media print {
     .app-navbar, .app-sidebar, .app-footer, .no-print, .btn, script { display: none !important; }
     .app-shell, .app-main, .main-content { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
     .card { border: 1px solid #ccc !important; box-shadow: none !important; break-inside: avoid; }
+    .bus-layout-wrapper { border: 1px solid #ccc !important; background: #fff !important; }
     .seat { border: 1px solid #999; color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .seat-occupied, .seat-vacant, .seat-mine { background-color: #fff !important; }
     .seat-occupied::after, .seat-mine::after { content: "X"; font-weight: bold; }
-    table { width: 100% !important; }
   }
 </style>
 

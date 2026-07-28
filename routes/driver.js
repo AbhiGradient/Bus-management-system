@@ -147,27 +147,24 @@ router.get('/dashboard', async (req, res) => {
 // TODAY'S ROUTE
 // =====================================================
 
+// =====================================================
+// TODAY'S ROUTE
+// =====================================================
+
 router.get('/today-route', async (req, res) => {
 
     try {
 
-        const bus =
-            await getDriverBus(
-                req.session.user.id
-            );
-
+        const bus = await getDriverBus(req.session.user.id);
 
         let students = [];
-
         let route = null;
-
+        let stops = [];
 
         if (bus) {
 
-            // Get students assigned to this bus
-
-            const [rows] = await db.query(
-                `
+            // Students
+            const [rows] = await db.query(`
                 SELECT
                     s.roll_no,
                     s.department,
@@ -179,101 +176,44 @@ router.get('/today-route', async (req, res) => {
                     ON s.user_id = u.id
                 WHERE s.bus_id = ?
                 ORDER BY u.name
-                `,
-                [bus.id]
-            );
+            `, [bus.id]);
 
             students = rows;
 
+            // Route
+            route = await trackingService.getRouteForBus(bus.id);
 
-            // Get the real route assigned
-            // to this bus
+            // Route Stops
+            if (route) {
 
-            route =
-                await trackingService.getRouteForBus(
-                    bus.id
-                );
+                const [stopRows] = await db.query(`
+                    SELECT *
+                    FROM route_stops
+                    WHERE route_id = ?
+                    ORDER BY stop_order ASC
+                `, [route.id]);
+
+                stops = stopRows;
+            }
 
         }
 
-
-        res.render(
-            'driver/today-route',
-            {
-                bus,
-                students,
-                route
-            }
-        );
-
+        res.render('driver/today-route', {
+            bus,
+            students,
+            route,
+            stops
+        });
 
     } catch (err) {
 
-        console.error(
-            'Today route error:',
-            err
-        );
+        console.error('Today route error:', err);
 
-        res.status(500).send(
-            "Error loading today's route"
-        );
+        res.status(500).send("Error loading today's route");
 
     }
 
 });
-
-
-// =====================================================
-// START TRIP PAGE
-// =====================================================
-
-router.get('/trip-start', async (req, res) => {
-
-    try {
-
-        const bus =
-            await getDriverBus(
-                req.session.user.id
-            );
-
-
-        let activeJourney = null;
-
-
-        if (bus) {
-
-            activeJourney =
-                await trackingService.getActiveJourney(
-                    bus.id
-                );
-
-        }
-
-
-        res.render(
-            'driver/trip-start',
-            {
-                bus,
-                activeJourney
-            }
-        );
-
-
-    } catch (err) {
-
-        console.error(
-            'Trip start page error:',
-            err
-        );
-
-        res.status(500).send(
-            'Error loading trip start page'
-        );
-
-    }
-
-});
-
 
 // =====================================================
 // START REAL JOURNEY

@@ -1,89 +1,198 @@
-<%- include('../partials/header', {
-  pageTitle: "Today's Route",
-  pageCss: []
+<%- include('../partials/header',{
+pageTitle:'Route Map',
+pageCss:[]
 }) %>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+
+#map{
+height:550px;
+border-radius:15px;
+}
+
+.stop-card{
+border-left:5px solid #0d6efd;
+margin-bottom:12px;
+}
+
+</style>
 
 <div class="app-shell">
 
-  <%- include('../partials/sidebar', {
-    currentPage: 'today-route'
-  }) %>
+<%- include('../partials/sidebar',{
+currentPage:'route-map'
+}) %>
 
-  <%- include('../partials/navbar', {
-    pageLabel: "Today's Route"
-  }) %>
+<%- include('../partials/navbar',{
+pageLabel:'Route Map'
+}) %>
 
-  <div class="app-main">
-    <main class="main-content">
+<div class="app-main">
 
-      <h3 class="mb-3">
-        <i class="bi bi-signpost-split-fill text-primary"></i>
-        Today's Route
-      </h3>
+<main class="main-content">
 
-      <% if (!bus) { %>
+<div class="mb-4">
 
-        <div class="card p-4 text-center text-muted">
-          No bus has been assigned to you yet. Please contact the administration.
-        </div>
+<h3>
 
-      <% } else { %>
+<i class="bi bi-signpost-2-fill text-primary"></i>
 
-        <div class="card p-3 mb-3 d-flex flex-row justify-content-between align-items-center flex-wrap gap-2">
-          <div>
-            <h5 class="mb-0"><%= bus.bus_number %> — <%= bus.route_name %></h5>
-          </div>
-          <span class="badge <%= bus.status === 'active' ? 'bg-success' : 'bg-secondary' %>">
-            <%= bus.status === 'active' ? 'Trip In Progress' : 'Not Started' %>
-          </span>
-        </div>
+Bus Route Map
 
-        <div class="card p-3 mb-3">
-          <h5 class="mb-3">Passenger List</h5>
-          <% if (students.length === 0) { %>
-            <p class="text-muted mb-0">No students are assigned to this route yet.</p>
-          <% } else { %>
-            <div class="table-responsive">
-              <table class="table table-hover align-middle">
-                <thead>
-                  <tr><th>#</th><th>Name</th><th>Roll No</th><th>Department</th></tr>
-                </thead>
-                <tbody>
-                  <% students.forEach((s, i) => { %>
-                    <tr>
-                      <td><%= i + 1 %></td>
-                      <td><%= s.name %></td>
-                      <td><%= s.roll_no %></td>
-                      <td><%= s.department %></td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
-            </div>
-          <% } %>
-        </div>
+</h3>
 
-        <div class="d-flex gap-2">
-          <a href="/driver/trip-start" class="btn btn-success">
-            <i class="bi bi-play-fill"></i>
-            Start Trip
-          </a>
-          <a href="/driver/trip-end" class="btn btn-outline-danger">
-            <i class="bi bi-stop-fill"></i>
-            End Trip
-          </a>
-        </div>
+<p class="text-muted">
 
-      <% } %>
+View your complete bus route and all pickup stops.
 
-    </main>
+</p>
 
-    <%- include('../partials/footer') %>
-
-  </div>
 </div>
 
+<% if(!route){ %>
+
+<div class="alert alert-warning">
+
+No route has been assigned to your bus yet.
+
+</div>
+
+<% } else { %>
+
+<div class="row">
+
+<div class="col-lg-8">
+
+<div class="card p-3">
+
+<div id="map"></div>
+
+</div>
+
+</div>
+
+<div class="col-lg-4">
+
+<div class="card p-3">
+
+<h5>
+
+<%= route.route_name %>
+
+</h5>
+
+<hr>
+
+<% stops.forEach(function(stop){ %>
+
+<div class="card stop-card p-3">
+
+<strong>
+
+<%= stop.stop_order %>.
+<%= stop.stop_name %>
+
+</strong>
+
+<small class="text-muted d-block">
+
+<%= stop.latitude %>,
+<%= stop.longitude %>
+
+</small>
+
+</div>
+
+<% }) %>
+
+</div>
+
+</div>
+
+</div>
+
+<% } %>
+
+</main>
+
+<%- include('../partials/footer') %>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const stops=<%- JSON.stringify(stops||[]) %>;
+
+if(stops.length){
+
+const map=L.map("map").setView(
+
+[
+Number(stops[0].latitude),
+Number(stops[0].longitude)
+],
+
+13
+
+);
+
+L.tileLayer(
+
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+{
+
+maxZoom:19,
+
+attribution:"© OpenStreetMap"
+
+}
+
+).addTo(map);
+
+const points=[];
+
+stops.forEach(stop=>{
+
+const lat=Number(stop.latitude);
+
+const lng=Number(stop.longitude);
+
+points.push([lat,lng]);
+
+L.marker([lat,lng])
+
+.addTo(map)
+
+.bindPopup(
+
+`<strong>${stop.stop_name}</strong><br>Stop ${stop.stop_order}`
+
+);
+
+});
+
+L.polyline(points,{
+
+weight:5
+
+}).addTo(map);
+
+map.fitBounds(points);
+
+}
+
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="/js/script.js"></script>
 
 </body>
