@@ -175,16 +175,21 @@ async function startJourney() {
 // Update GPS information on driver dashboard
 // -------------------------------------------------
 
+// -------------------------------------------------
+// Update GPS UI
+// GPS is not online until the browser
+// actually returns a GPS position.
+// -------------------------------------------------
+
 if (gpsConnectionBadge) {
 
     gpsConnectionBadge.textContent =
-        'GPS Online';
+        'GPS Starting...';
 
     gpsConnectionBadge.className =
-        'badge bg-success';
+        'badge bg-warning text-dark';
 
 }
-
 
 if (gpsLocationInfo) {
 
@@ -193,30 +198,26 @@ if (gpsLocationInfo) {
 
 }
 
-
 if (gpsLatitude) {
 
     gpsLatitude.textContent =
-        latitude.toFixed(6);
+        'Waiting...';
 
 }
-
 
 if (gpsLongitude) {
 
     gpsLongitude.textContent =
-        longitude.toFixed(6);
+        'Waiting...';
 
 }
-
 
 if (gpsSpeed) {
 
     gpsSpeed.textContent =
-        `${speedKmph.toFixed(1)} km/h`;
+        'Waiting...';
 
 }
-
 
         // -------------------------------------------------
         // Update UI
@@ -492,21 +493,59 @@ async function handleGPSPosition(
 
 
         console.log(
+    'GPS updated:',
+    data.location
+);
 
-            'GPS updated:',
+// -------------------------------------------------
+// Update GPS UI after REAL GPS position received
+// -------------------------------------------------
 
-            data.location
+if (gpsConnectionBadge) {
 
-        );
+    gpsConnectionBadge.textContent =
+        'GPS Online';
 
+    gpsConnectionBadge.className =
+        'badge bg-success';
 
-        updateGPSStatus(
+}
 
-            `Live GPS active • ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+if (gpsLocationInfo) {
 
-            'success'
+    gpsLocationInfo.style.display =
+        'block';
 
-        );
+}
+
+if (gpsLatitude) {
+
+    gpsLatitude.textContent =
+        latitude.toFixed(6);
+
+}
+
+if (gpsLongitude) {
+
+    gpsLongitude.textContent =
+        longitude.toFixed(6);
+
+}
+
+if (gpsSpeed) {
+
+    gpsSpeed.textContent =
+        `${speedKmph.toFixed(1)} km/h`;
+
+}
+
+updateGPSStatus(
+
+    `Live GPS active • ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+
+    'success'
+
+);
 
 
     } catch (error) {

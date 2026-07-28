@@ -288,435 +288,390 @@
 
 
 <!-- SOCKET.IO -->
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Socket.IO -->
+ <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
 
-const busId = <%= bus ? bus.id : 'null' %>;
+    const startBtn =
+        document.getElementById('startLocationBtn');
 
-const initialLatitude =
-  <%= location ? Number(location.latitude) : 'null' %>;
+    const stopBtn =
+        document.getElementById('stopLocationBtn');
 
-const initialLongitude =
-  <%= location ? Number(location.longitude) : 'null' %>;
+    const statusText =
+        document.getElementById('gpsStatus');
 
+    const latitudeText =
+        document.getElementById('latitude');
 
-// ======================================================
-// MAP VARIABLES
-// ======================================================
+    const longitudeText =
+        document.getElementById('longitude');
+
+    const speedText =
+        document.getElementById('speed');
+
+    const lastUpdateText =
+        document.getElementById('lastUpdate');
+
+    let watchId = null;
+
+    // -----------------------------------------
+// LEAFLET MAP
+// -----------------------------------------
 
 let map = null;
-
 let busMarker = null;
 
+// Default map position
+const defaultLat = 18.5204;
+const defaultLng = 73.8567;
 
-// ======================================================
-// INITIALIZE MAP
-// ======================================================
+// Initialize map
+if (document.getElementById('map')) {
 
-if (busId) {
-
-  // Default Pune location
-  const defaultLatitude = 18.5204;
-
-  const defaultLongitude = 73.8567;
-
-
-  // Use existing GPS position
-  // if available
-
-  const mapLatitude =
-    initialLatitude !== null
-      ? initialLatitude
-      : defaultLatitude;
-
-
-  const mapLongitude =
-    initialLongitude !== null
-      ? initialLongitude
-      : defaultLongitude;
-
-
-  // Create Leaflet map
-
-  map = L.map('map').setView(
-    [
-      mapLatitude,
-      mapLongitude
-    ],
-    15
-  );
-
-
-  // OpenStreetMap
-
-  L.tileLayer(
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {
-      maxZoom: 19,
-
-      attribution:
-        '&copy; OpenStreetMap contributors'
-    }
-  ).addTo(map);
-
-
-  // If GPS position exists
-  // create marker
-
-  if (
-    initialLatitude !== null &&
-    initialLongitude !== null
-  ) {
-
-    createBusMarker(
-      initialLatitude,
-      initialLongitude
+    map = L.map('map').setView(
+        [defaultLat, defaultLng],
+        13
     );
 
-  }
-
-
-  // Fix Bootstrap rendering
-
-  setTimeout(() => {
-
-    map.invalidateSize();
-
-  }, 500);
+    L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            maxZoom: 19,
+            attribution:
+                '&copy; OpenStreetMap contributors'
+        }
+    ).addTo(map);
 
 }
 
+    // -----------------------------------------
+    // START LOCATION SHARING
+    // -----------------------------------------
 
-// ======================================================
-// SOCKET.IO
-// ======================================================
+    if (startBtn) {
 
-const socket = io();
+        startBtn.addEventListener('click', function () {
 
+            if (!navigator.geolocation) {
 
-// ======================================================
-// SOCKET CONNECTED
-// ======================================================
+                alert(
+                    'Geolocation is not supported by your browser.'
+                );
 
-socket.on(
-  'connect',
-  () => {
+                return;
 
-    console.log(
-      '✅ Driver connected to tracking server'
-    );
+            }
 
-  }
-);
+            statusText.textContent =
+                'Requesting GPS permission...';
 
+            startBtn.disabled = true;
 
-// ======================================================
-// SOCKET DISCONNECTED
-// ======================================================
+            navigator.geolocation.getCurrentPosition(
 
-socket.on(
-  'disconnect',
-  () => {
+                function (position) {
 
-    console.log(
-      '❌ Driver disconnected from tracking server'
-    );
+                    console.log(
+                        'GPS permission granted'
+                    );
 
-  }
-);
+                    statusText.textContent =
+                        'GPS Online';
 
+                    startGPS();
 
-// ======================================================
-// LIVE LOCATION UPDATE
-// ======================================================
+                },
 
-socket.on(
-  'bus-location-update',
-  (data) => {
+                function (error) {
 
-    console.log(
-      '📍 Driver GPS update:',
-      data
-    );
+                    console.error(
+                        'GPS permission error:',
+                        error
+                    );
 
+                    startBtn.disabled = false;
 
-    // Only update driver's own bus
+                    statusText.textContent =
+                        'GPS Error';
 
-    if (
-      Number(data.bus_id) !==
-      Number(busId)
-    ) {
+                    alert(
+                        'Unable to access GPS. Please allow location permission in your browser.'
+                    );
 
-      return;
+                },
+
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+
+            );
+
+        });
 
     }
 
 
-    // Update GPS text
+    // -----------------------------------------
+    // START GPS WATCHER
+    // -----------------------------------------
 
-    updateLocation(
+    function startGPS() {
 
-      data.latitude,
+        if (watchId !== null) {
 
-      data.longitude,
+            navigator.geolocation.clearWatch(
+                watchId
+            );
 
-      data.speed,
+        }
 
-      data.updated_at
+        statusText.textContent =
+            'GPS Starting...';
 
+        watchId =
+            navigator.geolocation.watchPosition(
+
+                function (position) {
+
+                    const latitude =
+                        position.coords.latitude;
+
+                    const longitude =
+                        position.coords.longitude;
+
+                        // -----------------------------------------
+// UPDATE DRIVER MAP
+// -----------------------------------------
+
+if (map) {
+
+    const gpsPosition = [
+        latitude,
+        longitude
+    ];
+
+    // First GPS update
+    if (!busMarker) {
+
+        busMarker = L.marker(
+            gpsPosition
+        )
+        .addTo(map)
+        .bindPopup(
+            '<strong>Your Bus</strong><br>Current GPS Position'
+        )
+        .openPopup();
+
+    }
+
+    // Move existing marker
+    else {
+
+        busMarker.setLatLng(
+            gpsPosition
+        );
+
+    }
+
+    // Center map on bus
+    map.setView(
+        gpsPosition,
+        16
     );
 
+    // Update map status
+    const mapStatus =
+        document.getElementById('mapStatus');
 
-    // Update map
+    if (mapStatus) {
 
-    updateBusMarker(
+        mapStatus.textContent =
+            'GPS Online';
 
-      Number(data.latitude),
-
-      Number(data.longitude)
-
-    );
-
-  }
-);
-
-
-// ======================================================
-// CREATE BUS MARKER
-// ======================================================
-
-function createBusMarker(
-  latitude,
-  longitude
-) {
-
-  if (!map) {
-
-    return;
-
-  }
-
-
-  busMarker = L.marker(
-    [
-      latitude,
-      longitude
-    ]
-  )
-  .addTo(map);
-
-
-  busMarker.bindPopup(
-
-    `
-      <div style="text-align:center">
-
-        <strong>
-          🚌 Your Bus
-        </strong>
-
-        <br>
-
-        Bus ID:
-        ${busId}
-
-        <br>
-
-        <small>
-          Your Current GPS Position
-        </small>
-
-      </div>
-    `
-
-  );
-
-
-  busMarker.openPopup();
-
-
-  console.log(
-    '🚌 Driver bus marker created:',
-    latitude,
-    longitude
-  );
+    }
 
 }
 
+                    const speed =
+                        position.coords.speed
+                            ? position.coords.speed * 3.6
+                            : 0;
 
-// ======================================================
-// UPDATE BUS MARKER
-// ======================================================
 
-function updateBusMarker(
-  latitude,
-  longitude
-) {
+                    console.log(
+                        'GPS position:',
+                        latitude,
+                        longitude,
+                        speed
+                    );
 
-  if (!map) {
 
-    return;
+                    // Update UI
 
-  }
+                    if (latitudeText) {
 
+                        latitudeText.textContent =
+                            latitude.toFixed(6);
 
-  // Create marker
-  // if it doesn't exist
+                    }
 
-  if (!busMarker) {
+                    if (longitudeText) {
 
-    createBusMarker(
-      latitude,
-      longitude
-    );
+                        longitudeText.textContent =
+                            longitude.toFixed(6);
 
-    return;
+                    }
 
-  }
+                    if (speedText) {
 
+                        speedText.textContent =
+                            speed.toFixed(1) + ' km/h';
 
-  // Move marker
+                    }
 
-  busMarker.setLatLng(
+                    if (lastUpdateText) {
 
-    [
-      latitude,
-      longitude
-    ]
+                        lastUpdateText.textContent =
+                            new Date().toLocaleTimeString();
 
-  );
+                    }
 
+                    statusText.textContent =
+                        'GPS Online';
 
-  // Center map
 
-  map.panTo(
+                    // -----------------------------------------
+                    // SEND GPS TO NEW TRACKING API
+                    // -----------------------------------------
 
-    [
-      latitude,
-      longitude
-    ]
+                    fetch('/tracking/update', {
 
-  );
+                        method: 'POST',
 
+                        headers: {
 
-  // Update popup
+                            'Content-Type':
+                                'application/json'
 
-  busMarker.setPopupContent(
+                        },
 
-    `
-      <div style="text-align:center">
+                        body: JSON.stringify({
 
-        <strong>
-          🚌 Your Bus
-        </strong>
+                            latitude:
+                                latitude,
 
-        <br>
+                            longitude:
+                                longitude,
 
-        Bus ID:
-        ${busId}
+                            speed:
+                                speed
 
-        <br>
+                        })
 
-        <small>
-          GPS Location Updating Live
-        </small>
+                    })
 
-      </div>
-    `
+                    .then(function (response) {
 
-  );
+                        return response.json();
 
+                    })
 
-  console.log(
-    '📍 Driver map updated:',
-    latitude,
-    longitude
-  );
+                    .then(function (data) {
 
-}
+                        console.log(
+                            'Tracking update response:',
+                            data
+                        );
 
+                    })
 
-// ======================================================
-// UPDATE GPS INFORMATION
-// ======================================================
+                    .catch(function (error) {
 
-function updateLocation(
-  latitude,
-  longitude,
-  speed,
-  updatedAt
-) {
+                        console.error(
+                            'Tracking update failed:',
+                            error
+                        );
 
+                        statusText.textContent =
+                            'Server Update Failed';
 
-  const latitudeElement =
-    document.getElementById(
-      'latitude'
-    );
+                    });
 
+                },
 
-  const longitudeElement =
-    document.getElementById(
-      'longitude'
-    );
 
+                function (error) {
 
-  const speedElement =
-    document.getElementById(
-      'speed'
-    );
+                    console.error(
+                        'GPS watcher error:',
+                        error
+                    );
 
+                    statusText.textContent =
+                        'GPS Error';
 
-  const updatedAtElement =
-    document.getElementById(
-      'updatedAt'
-    );
+                },
 
 
-  if (latitudeElement) {
+                {
 
-    latitudeElement.textContent =
-      Number(latitude).toFixed(6);
+                    enableHighAccuracy:
+                        true,
 
-  }
+                    timeout:
+                        15000,
 
+                    maximumAge:
+                        0
 
-  if (longitudeElement) {
+                }
 
-    longitudeElement.textContent =
-      Number(longitude).toFixed(6);
+            );
 
-  }
+    }
 
 
-  if (
-    speedElement &&
-    speed !== null &&
-    speed !== undefined
-  ) {
+    // -----------------------------------------
+    // STOP LOCATION SHARING
+    // -----------------------------------------
 
-    speedElement.textContent =
-      speed + ' km/h';
+    if (stopBtn) {
 
-  }
+        stopBtn.addEventListener(
+            'click',
+            function () {
 
+                if (watchId !== null) {
 
-  if (
-    updatedAtElement &&
-    updatedAt
-  ) {
+                    navigator.geolocation.clearWatch(
+                        watchId
+                    );
 
-    updatedAtElement.textContent =
-      updatedAt;
+                    watchId = null;
 
-  }
+                }
 
-}
+                statusText.textContent =
+                    'GPS Stopped';
 
+                startBtn.disabled =
+                    false;
+
+                console.log(
+                    'GPS location sharing stopped'
+                );
+
+            }
+        );
+
+    }
+
+});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

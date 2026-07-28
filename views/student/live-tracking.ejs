@@ -262,6 +262,7 @@
 
 <!-- Socket.IO -->
 <!-- Leaflet JS -->
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <!-- Socket.IO -->
@@ -269,7 +270,12 @@
 
 <script>
 
-const busId = <%= bus ? bus.id : 'null' %>;
+// ======================================================
+// STUDENT LIVE BUS TRACKING
+// ======================================================
+
+const busId =
+  <%= bus ? bus.id : 'null' %>;
 
 const initialLatitude =
   <%= location ? Number(location.latitude) : 'null' %>;
@@ -277,7 +283,13 @@ const initialLatitude =
 const initialLongitude =
   <%= location ? Number(location.longitude) : 'null' %>;
 
+
+// ======================================================
+// GLOBAL MAP VARIABLES
+// ======================================================
+
 let map = null;
+
 let busMarker = null;
 
 
@@ -287,13 +299,18 @@ let busMarker = null;
 
 if (busId) {
 
-  const defaultLatitude = 18.5204;
-  const defaultLongitude = 73.8567;
+  const defaultLatitude =
+    18.5204;
+
+  const defaultLongitude =
+    73.8567;
+
 
   const mapLatitude =
     initialLatitude !== null
       ? initialLatitude
       : defaultLatitude;
+
 
   const mapLongitude =
     initialLongitude !== null
@@ -301,24 +318,34 @@ if (busId) {
       : defaultLongitude;
 
 
-  // Create map
-  map = L.map('map').setView(
-    [mapLatitude, mapLongitude],
-    14
-  );
+  // Create Leaflet map
+
+  map =
+    L.map('map').setView(
+      [
+        mapLatitude,
+        mapLongitude
+      ],
+      14
+    );
 
 
   // OpenStreetMap tiles
+
   L.tileLayer(
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
+
+      attribution:
+        '&copy; OpenStreetMap contributors'
     }
   ).addTo(map);
 
 
   // Create initial marker
+  // if previous location exists
+
   if (
     initialLatitude !== null &&
     initialLongitude !== null
@@ -332,88 +359,246 @@ if (busId) {
   }
 
 
-  // Fix Bootstrap/card rendering issue
-  setTimeout(() => {
+  // Fix map rendering
 
-    map.invalidateSize();
+  setTimeout(
+    function () {
 
-  }, 500);
+      map.invalidateSize();
 
-}
-
-
-// ======================================================
-// SOCKET.IO
-// ======================================================
-
-if (busId) {
-
-  const socket = io();
-
-
-  socket.on('connect', () => {
-
-    console.log(
-      '✅ Connected to live tracking server'
-    );
-
-  });
-
-
-  socket.on('disconnect', () => {
-
-    console.log(
-      '❌ Disconnected from live tracking server'
-    );
-
-  });
-
-
-  // Receive live location
-  socket.on(
-    'bus-location-update',
-    (data) => {
-
-      console.log(
-        '📍 Live bus location:',
-        data
-      );
-
-
-      // Ignore other buses
-      if (
-        Number(data.bus_id) !==
-        Number(busId)
-      ) {
-
-        return;
-
-      }
-
-
-      // Update text information
-      updateLocation(
-        data.latitude,
-        data.longitude,
-        data.speed,
-        data.updated_at
-      );
-
-
-      // Update map marker
-      updateBusMarker(
-        Number(data.latitude),
-        Number(data.longitude)
-      );
-
-    }
+    },
+    500
   );
 
 }
 
 
 // ======================================================
-// CREATE MARKER
+// SOCKET.IO CONNECTION
+// ======================================================
+
+const socket =
+  io();
+
+
+console.log(
+  'Student tracking started'
+);
+
+console.log(
+  'Assigned Bus ID:',
+  busId
+);
+
+
+// ======================================================
+// JOIN BUS ROOM
+// ======================================================
+
+socket.on(
+  'connect',
+  function () {
+
+    console.log(
+      'Socket.IO connected:',
+      socket.id
+    );
+
+
+    const connectionStatus =
+      document.getElementById(
+        'connectionStatus'
+      );
+
+
+    if (connectionStatus) {
+
+      connectionStatus.textContent =
+        'Connected';
+
+      connectionStatus.className =
+        'badge bg-success';
+
+    }
+
+
+    // Join assigned bus room
+
+    if (busId) {
+
+      socket.emit(
+        'joinBus',
+        busId
+      );
+
+
+      console.log(
+        'Joined bus room:',
+        `bus-${busId}`
+      );
+
+    }
+
+  }
+);
+
+
+// ======================================================
+// RECEIVE LIVE BUS LOCATION
+// ======================================================
+
+socket.on(
+  'busLocation',
+  function (location) {
+
+    console.log(
+      'LIVE BUS LOCATION RECEIVED:',
+      location
+    );
+
+
+    if (!location) {
+
+      console.warn(
+        'Received empty bus location'
+      );
+
+      return;
+
+    }
+
+
+    // Convert GPS values to numbers
+
+    const latitude =
+      parseFloat(
+        location.latitude
+      );
+
+
+    const longitude =
+      parseFloat(
+        location.longitude
+      );
+
+
+    const speed =
+      parseFloat(
+        location.speed || 0
+      );
+
+
+    // Validate coordinates
+
+    if (
+      isNaN(latitude) ||
+      isNaN(longitude)
+    ) {
+
+      console.error(
+        'Invalid GPS coordinates:',
+        location
+      );
+
+      return;
+
+    }
+
+
+    console.log(
+      'Updating student map:',
+      latitude,
+      longitude
+    );
+
+
+    // ==================================================
+    // UPDATE LOCATION TEXT
+    // ==================================================
+
+    updateLocation(
+
+      latitude,
+
+      longitude,
+
+      speed,
+
+      location.updated_at ||
+      new Date().toLocaleTimeString()
+
+    );
+
+
+    // ==================================================
+    // UPDATE BUS MARKER
+    // ==================================================
+
+    updateBusMarker(
+      latitude,
+      longitude
+    );
+
+
+    // ==================================================
+    // UPDATE BUS STATUS
+    // ==================================================
+
+    const busStatus =
+      document.getElementById(
+        'busStatus'
+      );
+
+
+    if (busStatus) {
+
+      busStatus.textContent =
+        'On Trip';
+
+      busStatus.className =
+        'badge bg-success';
+
+    }
+
+  }
+);
+
+
+// ======================================================
+// SOCKET DISCONNECTED
+// ======================================================
+
+socket.on(
+  'disconnect',
+  function () {
+
+    console.log(
+      'Socket.IO disconnected'
+    );
+
+
+    const connectionStatus =
+      document.getElementById(
+        'connectionStatus'
+      );
+
+
+    if (connectionStatus) {
+
+      connectionStatus.textContent =
+        'Disconnected';
+
+      connectionStatus.className =
+        'badge bg-danger';
+
+    }
+
+  }
+);
+
+
+// ======================================================
+// CREATE BUS MARKER
 // ======================================================
 
 function createBusMarker(
@@ -423,42 +608,53 @@ function createBusMarker(
 
   if (!map) {
 
+    console.warn(
+      'Map is not initialized'
+    );
+
     return;
 
   }
 
 
-  busMarker = L.marker([
-    latitude,
-    longitude
-  ])
-  .addTo(map);
+  busMarker =
+    L.marker(
+      [
+        latitude,
+        longitude
+      ]
+    )
+    .addTo(map);
 
 
-  busMarker.bindPopup(`
-    <div style="text-align:center">
+  busMarker.bindPopup(
 
-      <strong>🚌 College Bus</strong>
+    `
+      <div style="text-align:center">
 
-      <br>
+        <strong>
+          🚌 Your College Bus
+        </strong>
 
-      Bus ID: ${busId}
+        <br>
 
-      <br>
+        Bus ID:
+        ${busId}
 
-      <small>
-        Live Location
-      </small>
+        <br>
 
-    </div>
-  `);
+        <small>
+          Live Location
+        </small>
 
+      </div>
+    `
 
-  busMarker.openPopup();
+  );
 
 
   console.log(
-    '🚌 Bus marker created:',
+    'Bus marker created:',
     latitude,
     longitude
   );
@@ -467,7 +663,7 @@ function createBusMarker(
 
 
 // ======================================================
-// UPDATE MARKER
+// UPDATE BUS MARKER
 // ======================================================
 
 function updateBusMarker(
@@ -477,17 +673,8 @@ function updateBusMarker(
 
   if (!map) {
 
-    return;
-
-  }
-
-
-  // If marker doesn't exist
-  if (!busMarker) {
-
-    createBusMarker(
-      latitude,
-      longitude
+    console.warn(
+      'Map is not initialized'
     );
 
     return;
@@ -495,42 +682,47 @@ function updateBusMarker(
   }
 
 
-  // Move marker
-  busMarker.setLatLng([
+  const newPosition = [
+
     latitude,
+
     longitude
-  ]);
+
+  ];
 
 
-  // Move map to bus
-  map.panTo([
-    latitude,
-    longitude
-  ]);
+  // Create marker if it doesn't exist
+
+  if (!busMarker) {
+
+    createBusMarker(
+      latitude,
+      longitude
+    );
+
+  }
 
 
-  // Update popup
-  busMarker.setPopupContent(`
-    <div style="text-align:center">
+  // Move existing marker
 
-      <strong>🚌 College Bus</strong>
+  else {
 
-      <br>
+    busMarker.setLatLng(
+      newPosition
+    );
 
-      Bus ID: ${busId}
+  }
 
-      <br>
 
-      <small>
-        Live Location Updated
-      </small>
+  // Center map on bus
 
-    </div>
-  `);
+  map.panTo(
+    newPosition
+  );
 
 
   console.log(
-    '📍 Bus marker moved:',
+    'Bus marker moved:',
     latitude,
     longitude
   );
@@ -539,7 +731,7 @@ function updateBusMarker(
 
 
 // ======================================================
-// UPDATE LOCATION TEXT
+// UPDATE LOCATION DETAILS
 // ======================================================
 
 function updateLocation(
@@ -549,18 +741,32 @@ function updateLocation(
   updatedAt
 ) {
 
+
   const latitudeElement =
-    document.getElementById('latitude');
+    document.getElementById(
+      'latitude'
+    );
+
 
   const longitudeElement =
-    document.getElementById('longitude');
+    document.getElementById(
+      'longitude'
+    );
+
 
   const speedElement =
-    document.getElementById('speed');
+    document.getElementById(
+      'speed'
+    );
+
 
   const updatedAtElement =
-    document.getElementById('updatedAt');
+    document.getElementById(
+      'updatedAt'
+    );
 
+
+  // Latitude
 
   if (latitudeElement) {
 
@@ -570,6 +776,8 @@ function updateLocation(
   }
 
 
+  // Longitude
+
   if (longitudeElement) {
 
     longitudeElement.textContent =
@@ -578,22 +786,20 @@ function updateLocation(
   }
 
 
-  if (
-    speedElement &&
-    speed !== null &&
-    speed !== undefined
-  ) {
+  // Speed
+
+  if (speedElement) {
 
     speedElement.textContent =
-      speed + ' km/h';
+      Number(speed).toFixed(1) +
+      ' km/h';
 
   }
 
 
-  if (
-    updatedAtElement &&
-    updatedAt
-  ) {
+  // Last updated
+
+  if (updatedAtElement) {
 
     updatedAtElement.textContent =
       updatedAt;
