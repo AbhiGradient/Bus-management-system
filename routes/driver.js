@@ -218,7 +218,32 @@ router.get('/today-route', async (req, res) => {
 // =====================================================
 // START REAL JOURNEY
 // =====================================================
+router.get('/trip-start', async (req, res) => {
 
+    try {
+
+        const bus = await getDriverBus(req.session.user.id);
+
+        let activeJourney = null;
+
+        if (bus) {
+            activeJourney = await trackingService.getActiveJourney(bus.id);
+        }
+
+        res.render('driver/trip-start', {
+            bus,
+            activeJourney
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).send('Error loading Start Trip page');
+
+    }
+
+});
 router.post('/trip-start', async (req, res) => {
 
     try {
